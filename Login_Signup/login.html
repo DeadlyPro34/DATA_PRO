@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Vortex UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617);
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .sso-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .sso-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen p-4 relative">
+
+    <!-- Decorative Blurred Background Blobs -->
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/15 rounded-full blur-[140px] -z-10 animate-pulse" style="animation-duration: 8s;"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/15 rounded-full blur-[140px] -z-10 animate-pulse" style="animation-duration: 12s;"></div>
+
+    <!-- Login Card Container -->
+    <div class="w-full max-w-[460px] glass-panel p-8 md:p-10 rounded-[32px] relative overflow-hidden transition-all duration-300">
+        <!-- Floating top inner gradient accent line -->
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+
+        <!-- Logo & Brand Header -->
+        <div class="flex flex-col items-center text-center mb-8">
+            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/30 mb-4 transition-transform hover:scale-110 duration-300">
+                <i class="fa-solid fa-cube text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-100">Welcome to Vortex</h1>
+            <p class="text-xs text-slate-400 mt-1.5 font-medium">Enter your credentials to access your global workspace</p>
+        </div>
+
+        <!-- Credentials Form -->
+        <form onsubmit="event.preventDefault();" class="space-y-5">
+            <!-- Email Input Group -->
+            <div class="space-y-1.5">
+                <label for="email" class="text-xs font-semibold text-slate-400 tracking-wide">Business Email</label>
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors duration-200">
+                        <i class="fa-regular fa-envelope text-sm"></i>
+                    </span>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        required 
+                        placeholder="sarah.connor@vortex.io" 
+                        class="w-full pl-11 pr-4 py-3 text-sm text-slate-200 rounded-xl outline-none glass-input placeholder-slate-600"
+                    >
+                </div>
+            </div>
+
+            <!-- Password Input Group -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <label for="password" class="text-xs font-semibold text-slate-400 tracking-wide">Password</label>
+                    <a href="#" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Forgot password?</a>
+                </div>
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors duration-200">
+                        <i class="fa-solid fa-lock text-sm"></i>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        required 
+                        placeholder="••••••••••••" 
+                        class="w-full pl-11 pr-12 py-3 text-sm text-slate-200 rounded-xl outline-none glass-input placeholder-slate-600"
+                    >
+                    <!-- Password toggle button -->
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility()" 
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                        <i id="eye-icon" class="fa-regular fa-eye text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember me checkbox -->
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2.5 cursor-pointer group">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-5 h-5 rounded-lg border border-white/10 bg-black/25 flex items-center justify-center text-transparent peer-checked:text-indigo-400 peer-checked:border-indigo-500/50 transition-all duration-200">
+                        <i class="fa-solid fa-check text-xs"></i>
+                    </div>
+                    <span class="text-xs font-medium text-slate-400 group-hover:text-slate-300 transition-colors selection:bg-transparent">Remember this machine</span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+                type="submit" 
+                class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/35 flex items-center justify-center gap-2 mt-2"
+            >
+                <span>Access Workspace</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative flex items-center my-6">
+            <div class="flex-grow border-t border-white/5"></div>
+            <span class="flex-shrink mx-4 text-[10px] text-slate-500 uppercase tracking-wider font-bold">Or continue with</span>
+            <div class="flex-grow border-t border-white/5"></div>
+        </div>
+
+        <!-- SSO Integrations -->
+        <div class="grid grid-cols-2 gap-4">
+            <button class="sso-btn py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold text-slate-300">
+                <i class="fa-brands fa-google text-slate-400"></i>
+                <span>Google</span>
+            </button>
+            <button class="sso-btn py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold text-slate-300">
+                <i class="fa-brands fa-github text-slate-400"></i>
+                <span>GitHub</span>
+            </button>
+        </div>
+
+        <!-- Card Footer -->
+        <p class="text-center text-xs text-slate-500 mt-8 font-medium">
+            New to our system? 
+            <a href="#" class="text-indigo-400 hover:text-indigo-300 transition-colors font-semibold ml-1">Create an account</a>
+        </p>
+    </div>
+
+    <!-- Active password toggling handler -->
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

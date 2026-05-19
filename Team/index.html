@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management | Vortex UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617);
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-sidebar {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Nav links are completely static with instant changes */
+        .nav-link {
+            transition: none !important;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #6366f1;
+        }
+
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-left: 3px solid #6366f1;
+            color: #818cf8;
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Active Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3"></div>
+
+    <div class="flex min-h-screen relative overflow-hidden">
+        
+        <!-- Decorative Background Blobs -->
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] -z-10"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] -z-10"></div>
+
+        <!-- Sidebar Navigation (Always Persistent and Visible across all screens) -->
+        <aside class="w-64 glass-sidebar flex flex-col fixed h-full z-20">
+            <div class="p-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/50">
+                        <i class="fa-solid fa-cube text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Vortex<span class="text-indigo-400">UI</span></span>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg">
+                    <i class="fa-solid fa-th-large w-5"></i>
+                    <span class="font-medium text-sm">Dashboard</span>
+                </a>
+                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg">
+                    <i class="fa-solid fa-database w-5"></i>
+                    <span class="font-medium text-sm">Data Sets</span>
+                </a>
+                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span class="font-medium text-sm">Analytics</span>
+                </a>
+                <a href="#" class="nav-link active flex items-center gap-4 py-3 px-4 rounded-r-lg">
+                    <i class="fa-solid fa-users w-5"></i>
+                    <span class="font-medium text-sm">Team</span>
+                </a>
+                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg">
+                    <i class="fa-solid fa-cog w-5"></i>
+                    <span class="font-medium text-sm">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Workspace Area (Margin left permanently set to 64 to avoid layout collisions) -->
+        <main class="flex-1 ml-64 p-4 md:p-8 min-h-screen flex flex-col justify-between">
+            
+            <!-- Page Header -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <a href="#" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Workspace</a>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-600"></i>
+                        <span class="text-xs text-slate-500 font-medium">Team Management</span>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight">Team Management</h1>
+                </div>
+
+                <!-- Live Statistics Mini-Counter -->
+                <div class="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-2.5 rounded-2xl">
+                    <div class="flex -space-x-2">
+                        <img class="w-7 h-7 rounded-full border border-[#121c32]" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=64&auto=format&fit=crop" alt="avatar">
+                        <img class="w-7 h-7 rounded-full border border-[#121c32]" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=64&auto=format&fit=crop" alt="avatar">
+                        <img class="w-7 h-7 rounded-full border border-[#121c32]" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=64&auto=format&fit=crop" alt="avatar">
+                    </div>
+                    <span class="text-xs font-semibold text-slate-300"><span id="active-member-count" class="text-indigo-400">5</span> Active Seats</span>
+                </div>
+            </header>
+
+            <!-- Main Interactive Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                
+                <!-- Left Section: Team Members -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-200">Active Directory</h2>
+                            <p class="text-xs text-slate-500 font-medium">Configure roles and check live system connection states.</p>
+                        </div>
+                        
+                        <!-- Filter & Search Controls -->
+                        <div class="flex items-center gap-2.5">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[12px] text-slate-500"></i>
+                                <input 
+                                    id="member-search" 
+                                    onkeyup="filterTeam()" 
+                                    type="text" 
+                                    placeholder="Search directory..." 
+                                    class="bg-white/5 border border-white/10 text-slate-300 text-xs rounded-xl pl-9 pr-4 py-2 outline-none focus:border-indigo-500/50 w-36 md:w-56 transition-all"
+                                >
+                            </div>
+                            <div class="relative">
+                                <select 
+                                    id="role-filter" 
+                                    onchange="filterTeam()" 
+                                    class="bg-white/5 border border-white/10 text-slate-400 text-xs rounded-xl pl-3 pr-8 py-2 outline-none cursor-pointer focus:border-indigo-500/50 appearance-none"
+                                >
+                                    <option value="All" class="bg-[#121c32]">All Roles</option>
+                                    <option value="Admin" class="bg-[#121c32]">Admins</option>
+                                    <option value="Member" class="bg-[#121c32]">Members</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-500 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Members Card Grid -->
+                    <div id="members-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- Populated Reactively via JS -->
+                    </div>
+                </div>
+
+                <!-- Right Section: Invite Terminal -->
+                <div class="space-y-6">
+                    
+                    <!-- Form Container -->
+                    <div class="glass-panel p-6 rounded-[28px] border border-white/10 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -z-10"></div>
+                        
+                        <h2 class="text-base font-bold text-slate-200 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane text-indigo-400 text-sm"></i>
+                            <span>Invite Workspace User</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium mb-6">Dispatches a unique system authentication key.</p>
+
+                        <!-- Invite Input Form -->
+                        <form onsubmit="sendInvitation(event)" class="space-y-4">
+                            <!-- Email Input -->
+                            <div class="space-y-1.5">
+                                <label for="invite-email" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
+                                <div class="relative group">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors duration-200">
+                                        <i class="fa-regular fa-envelope text-sm"></i>
+                                    </span>
+                                    <input 
+                                        type="email" 
+                                        id="invite-email" 
+                                        required 
+                                        placeholder="developer@vortex.io" 
+                                        class="w-full pl-11 pr-4 py-3 text-sm text-slate-200 rounded-xl outline-none glass-input placeholder-slate-600"
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- Role Dropdown -->
+                            <div class="space-y-1.5">
+                                <label for="invite-role" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Assigned Authority</label>
+                                <div class="relative">
+                                    <select 
+                                        id="invite-role" 
+                                        class="w-full px-4 py-3 text-sm text-slate-200 rounded-xl outline-none glass-input appearance-none cursor-pointer focus:border-indigo-500/50"
+                                    >
+                                        <option value="Member" class="bg-[#121c32]">Member (Standard Access)</option>
+                                        <option value="Admin" class="bg-[#121c32]">Admin (Full Directory Control)</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none"></i>
+                                </div>
+                            </div>
+
+                            <!-- Send Button -->
+                            <button 
+                                type="submit" 
+                                class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm py-3 rounded-xl transition-all duration-200 shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 flex items-center justify-center gap-2 pt-3"
+                            >
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                                <span>Send Invitation</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Pending Invites Tracker -->
+                    <div class="glass-panel p-6 rounded-[28px] border border-white/10">
+                        <div class="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
+                            <h3 class="text-xs font-bold uppercase text-slate-500 tracking-wider">Pending Outbox (<span id="invite-count">2</span>)</h3>
+                            <span class="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        </div>
+
+                        <!-- Pending Invites List -->
+                        <div id="invites-list" class="space-y-3">
+                            <!-- Populated Reactively via JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Dashboard Footer -->
+            <footer class="mt-12 pt-8 border-t border-white/5 text-center text-slate-500 text-xs">
+                <p>&copy; 2026 Vortex Systems. All changes propagate instantaneously through directory sync nodes.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Reactive Core Logic -->
+    <script>
+        // System user state (Admin status visually customized with icons and gradients)
+        let teamMembers = [
+            { id: 1, name: "Sarah Connor", role: "Admin", status: "online", activeNode: "US-EAST-1", datasets: 14, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" },
+            { id: 2, name: "Marcus Aure", role: "Member", status: "online", activeNode: "EU-CENTRAL-1", datasets: 22, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" },
+            { id: 3, name: "Emily Watson", role: "Admin", status: "online", activeNode: "AP-SOUTH-1", datasets: 8, avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&auto=format&fit=crop" },
+            { id: 4, name: "David Miller", role: "Member", status: "offline", activeNode: "Inert", datasets: 5, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&auto=format&fit=crop" },
+            { id: 5, name: "Elena Rostova", role: "Member", status: "online", activeNode: "US-WEST-2", datasets: 19, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop" }
+        ];
+
+        // Pending Invite listings
+        let pendingInvites = [
+            { id: 101, email: "thomas.shelby@vortex.io", role: "Member", status: "Pending", dateSent: "2 hours ago" },
+            { id: 102, email: "aria.montgomery@vortex.io", role: "Admin", status: "Pending", dateSent: "Yesterday" }
+        ];
+
+        // Action when user clicks/revokes standard membership rows
+        function removeMember(id) {
+            const memberIdx = teamMembers.findIndex(m => m.id === id);
+            if (memberIdx !== -1) {
+                const deletedName = teamMembers[memberIdx].name;
+                teamMembers.splice(memberIdx, 1);
+                renderWorkspace();
+                showToast("Connection Terminated", `Revoked system privileges for ${deletedName}`);
+            }
+        }
+
+        // Action when client posts form values
+        function sendInvitation(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('invite-email');
+            const roleSelect = document.getElementById('invite-role');
+
+            const email = emailInput.value.trim();
+            const role = roleSelect.value;
+
+            if (!email) return;
+
+            // Append to array
+            pendingInvites.unshift({
+                id: Date.now(),
+                email: email,
+                role: role,
+                status: "Pending",
+                dateSent: "Just now"
+            });
+
+            // Refresh UI and clear
+            emailInput.value = '';
+            roleSelect.value = 'Member';
+            renderWorkspace();
+            showToast("Invitation Sent", `Dispatched verification token to: ${email}`);
+        }
+
+        // Revoke outgoing invitations
+        function cancelInvite(id) {
+            const inviteIdx = pendingInvites.findIndex(i => i.id === id);
+            if (inviteIdx !== -1) {
+                const removedEmail = pendingInvites[inviteIdx].email;
+                pendingInvites.splice(inviteIdx, 1);
+                renderWorkspace();
+                showToast("Invite Canceled", `Access token invalidated for ${removedEmail}`);
+            }
+        }
+
+        // Immersive Notification triggers
+        function showToast(title, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'glass-panel p-4 rounded-2xl border border-white/10 flex gap-3 items-start min-w-[280px] transition-all duration-300 transform translate-y-2 opacity-0 shadow-2xl';
+            toast.style.background = 'rgba(15, 23, 42, 0.96)';
+            
+            toast.innerHTML = `
+                <div class="w-6 h-6 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 text-xs mt-0.5"><i class="fa-solid fa-bell"></i></div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-200">${title}</h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-white ml-auto text-xs"><i class="fa-solid fa-times"></i></button>
+            `;
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Global Dynamic Filter
+        function filterTeam() {
+            const searchVal = document.getElementById('member-search').value.toLowerCase();
+            const roleVal = document.getElementById('role-filter').value;
+            
+            const cardElements = document.querySelectorAll('#members-grid > div');
+            
+            cardElements.forEach(card => {
+                const nameText = card.querySelector('.member-name').innerText.toLowerCase();
+                const roleText = card.querySelector('.member-role').innerText; // Admin / Member
+                
+                const matchesSearch = nameText.includes(searchVal);
+                const matchesRole = (roleVal === 'All' || roleText === roleVal);
+
+                if (matchesSearch && matchesRole) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Unified rendering method for directories and pending rows
+        function renderWorkspace() {
+            // Update Active Counter badge
+            document.getElementById('active-member-count').innerText = teamMembers.length;
+
+            // 1. Render Team Grid
+            const grid = document.getElementById('members-grid');
+            grid.innerHTML = '';
+
+            if (teamMembers.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 glass-panel border border-white/5 rounded-3xl">
+                        <i class="fa-solid fa-users-slash text-slate-600 text-3xl mb-3 block"></i>
+                        <p class="text-sm text-slate-400">No active team members matched your parameters.</p>
+                    </div>
+                `;
+            } else {
+                teamMembers.forEach(member => {
+                    const isOnline = member.status === 'online';
+                    const isAdmin = member.role === 'Admin';
+                    
+                    // Admin vs Member styling tags
+                    const roleBadge = isAdmin 
+                        ? `<span class="px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold tracking-wide member-role">Admin</span>`
+                        : `<span class="px-2.5 py-0.5 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20 text-[10px] font-bold tracking-wide member-role">Member</span>`;
+
+                    const statusDot = isOnline 
+                        ? `<span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#121c32] rounded-full shadow-lg shadow-emerald-500/50"></span>`
+                        : `<span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-slate-600 border-2 border-[#121c32] rounded-full"></span>`;
+
+                    const memberCard = document.createElement('div');
+                    memberCard.className = "glass-panel p-5 rounded-[24px] border border-white/8 relative overflow-hidden group hover:-translate-y-1 hover:scale-[1.01] hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col justify-between";
+                    memberCard.innerHTML = `
+                        <div>
+                            <!-- Header Action Options -->
+                            <div class="absolute top-4 right-4">
+                                <button onclick="removeMember(${member.id})" class="w-7 h-7 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors flex items-center justify-center" title="Remove Member">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Avatar & Role row -->
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="relative">
+                                    <div class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr ${isAdmin ? 'from-indigo-500 to-purple-500' : 'from-slate-600 to-slate-500'}">
+                                        <img class="w-full h-full rounded-full object-cover border-2 border-[#121c32]" src="${member.avatar}" alt="${member.name}">
+                                    </div>
+                                    ${statusDot}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-100 group-hover:text-indigo-300 transition-colors member-name">${member.name}</h3>
+                                    <div class="flex items-center gap-1.5 mt-1">
+                                        ${roleBadge}
+                                        <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">${member.status}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Meta/Stats Section -->
+                            <div class="grid grid-cols-2 gap-2 bg-black/15 p-3 rounded-xl text-xs mb-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase font-semibold">Active Node</p>
+                                    <p class="font-mono text-slate-300 mt-0.5 text-[11px]"><i class="fa-solid fa-server text-[9px] text-indigo-400 mr-1"></i>${member.activeNode}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase font-semibold">Integrations</p>
+                                    <p class="font-mono text-slate-300 mt-0.5 text-[11px]"><i class="fa-solid fa-database text-[9px] text-indigo-400 mr-1"></i>${member.datasets} sets</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Action -->
+                        <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                            <span class="text-slate-500">Access: API & WebConsole</span>
+                            <button onclick="showToast('Secure Comms', 'Secure connection established with ${member.name}.')" class="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors">
+                                <span>Message</span>
+                                <i class="fa-regular fa-comment-dots"></i>
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(memberCard);
+                });
+            }
+
+            // 2. Render Pending Invites
+            const inviteCountLabel = document.getElementById('invite-count');
+            const listContainer = document.getElementById('invites-list');
+            
+            inviteCountLabel.innerText = pendingInvites.length;
+            listContainer.innerHTML = '';
+
+            if (pendingInvites.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-6 bg-white/2 border border-white/5 rounded-2xl">
+                        <i class="fa-regular fa-folder-open text-slate-600 text-xl mb-1.5 block"></i>
+                        <p class="text-[11px] text-slate-500">No pending workspace keys.</p>
+                    </div>
+                `;
+            } else {
+                pendingInvites.forEach(invite => {
+                    const isAdmin = invite.role === 'Admin';
+                    const roleBadge = isAdmin
+                        ? `<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold uppercase tracking-wide">Admin</span>`
+                        : `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-bold uppercase tracking-wide">Member</span>`;
+
+                    const row = document.createElement('div');
+                    row.className = "p-3 bg-white/2 hover:bg-white/5 border border-white/5 rounded-2xl transition-all flex flex-col gap-2";
+                    row.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="min-w-0 pr-2">
+                                <p class="text-xs font-semibold text-slate-200 truncate" title="${invite.email}">${invite.email}</p>
+                                <p class="text-[9px] text-slate-500 mt-0.5">Sent ${invite.dateSent}</p>
+                            </div>
+                            <button onclick="cancelInvite(${invite.id})" class="text-slate-500 hover:text-rose-400 p-1.5 transition-colors" title="Revoke Invite">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between pt-1.5 border-t border-white/5">
+                            <div class="flex gap-1.5">${roleBadge}</div>
+                            <span class="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-amber-500">
+                                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                                <span>Pending</span>
+                            </span>
+                        </div>
+                    `;
+                    listContainer.appendChild(row);
+                });
+            }
+        }
+
+        // Initialize lists on document load
+        window.onload = function() {
+            renderWorkspace();
+        }
+    </script>
+</body>
+</html>
