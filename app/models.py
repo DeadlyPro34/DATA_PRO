@@ -19,3 +19,12 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.team.name} ({self.role})"
+
+class DataPoint(models.Model):
+    label = models.CharField(max_length=255)
+    value = models.FloatField()
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='datapoints')
+
+    def __str__(self):
+        return f"{self.label}: {self.value} ({self.team.name})"
+

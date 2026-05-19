@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .models import Team, TeamMember
+from .models import Team, TeamMember, DataPoint
 
 @login_required
 def dashboard_view(request):
@@ -178,17 +178,47 @@ def analytics_view(request):
 @login_required
 def datasets_view(request):
     """
-    Renders the datasets page with dynamic dataset records.
+    Renders the datasets page with dynamic dataset records belonging to the user's team.
     """
-    dataset = [
-        {'id': 1, 'label': 'Q4_Marketing_Metrics.csv', 'value': '12,840 rows', 'status': 'Ready', 'last_updated': 'Oct 24, 2023', 'category': 'Financial Data'},
-        {'id': 2, 'label': 'User_Behavior_Logs', 'value': '84,201 rows', 'status': 'Processing', 'last_updated': '2 hours ago', 'category': 'User Analytics'},
-        {'id': 3, 'label': 'Incomplete_Sales_Data', 'value': '240 rows', 'status': 'Error', 'last_updated': 'Oct 20, 2023', 'category': 'Archive'}
-    ]
-    
+    # Fetch current logged-in user's team membership
+    membership = TeamMember.objects.filter(user=request.user).first()
+    if not membership:
+        team = Team.objects.create(name=f"{request.user.username}'s Team", owner=request.user)
+        membership = TeamMember.objects.create(user=request.user, team=team, role='admin')
+    else:
+        team = membership.team
+
+    # Form Submission Handling
     if request.method == 'POST':
-        # Simple POST stub reload
+        action = request.POST.get('action')
+        
+        if action == 'add_dataset':
+            label = request.POST.get('label', '').strip()
+            value_str = request.POST.get('value', '').strip()
+            
+            # Safe parsing of numeric values (e.g., "12,840 rows" -> 12840.0)
+            cleaned_val = ''.join(c for c in value_str if c.isdigit() or c == '.')
+            try:
+                value = float(cleaned_val)
+            except ValueError:
+                value = 0.0
+            
+            if label:
+                DataPoint.objects.create(label=label, value=value, team=team)
+                
+        elif action == 'delete_dataset':
+            dataset_id = request.POST.get('dataset_id')
+            if dataset_id:
+                try:
+                    # Guarantee isolation: only allow deleting points within the user's team
+                    DataPoint.objects.get(id=dataset_id, team=team).delete()
+                except DataPoint.DoesNotExist:
+                    pass
+                    
         return redirect('datasets')
+
+    # Fetch dataset records scoped strictly to the current team
+    dataset = DataPoint.objects.filter(team=team)
 
     context = {
         'dataset': dataset,
