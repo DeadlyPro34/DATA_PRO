@@ -37,12 +37,36 @@ def login_view(request):
 
 def signup_view(request):
     """
-    Renders the signup page.
+    Handles user registration, validates uniqueness, and initiates auto-login.
     """
     error = None
     if request.method == 'POST':
-        # Simple POST stub signup redirection to login
-        return redirect('login')
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        # Input and validation checks
+        if not username or not email or not password:
+            error = "All fields are required."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif User.objects.filter(username=username).exists():
+            error = "Username already exists."
+        elif User.objects.filter(email=email).exists():
+            error = "An account with this email address already exists."
+        else:
+            try:
+                # Create the user using Django standard manager
+                user = User.objects.create_user(username=username, email=email, password=password)
+                user.save()
+                
+                # Auto log-in after registration
+                auth_login(request, user)
+                return redirect('dashboard')
+            except Exception as e:
+                error = f"An error occurred during account creation: {str(e)}"
+
     return render(request, 'Login_Signup/Sign_up.html', {'error': error})
 
 def team_view(request):
