@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from .models import Team, TeamMember
 
+@login_required
 def dashboard_view(request):
     """
     Renders the main dashboard layout.
@@ -37,7 +40,7 @@ def login_view(request):
 
 def signup_view(request):
     """
-    Handles user registration, validates uniqueness, and initiates auto-login.
+    Handles user registration, validates uniqueness, creates default Team, and initiates auto-login.
     """
     error = None
     if request.method == 'POST':
@@ -61,6 +64,12 @@ def signup_view(request):
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
                 
+                # Automatically create a new Team
+                team = Team.objects.create(name=f"{username}'s Team", owner=user)
+                
+                # Assign the user as "admin" in TeamMember
+                TeamMember.objects.create(user=user, team=team, role='admin')
+                
                 # Auto log-in after registration
                 auth_login(request, user)
                 return redirect('dashboard')
@@ -69,25 +78,85 @@ def signup_view(request):
 
     return render(request, 'Login_Signup/Sign_up.html', {'error': error})
 
+@login_required
 def team_view(request):
     """
-    Renders the team directory page with dynamic members list.
+    Renders the team directory page with dynamic members list from the database.
     """
-    members = [
-        {'id': 1, 'username': 'Sarah Connor', 'role': 'Admin', 'status': 'online', 'activeNode': 'US-EAST-1', 'datasets': 14, 'avatar': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'},
-        {'id': 2, 'username': 'Marcus Aure', 'role': 'Member', 'status': 'online', 'activeNode': 'EU-CENTRAL-1', 'datasets': 22, 'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop'},
-        {'id': 3, 'username': 'Emily Watson', 'role': 'Admin', 'status': 'online', 'activeNode': 'AP-SOUTH-1', 'datasets': 8, 'avatar': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&auto=format&fit=crop'},
-        {'id': 4, 'username': 'David Miller', 'role': 'Member', 'status': 'offline', 'activeNode': 'Inert', 'datasets': 5, 'avatar': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&auto=format&fit=crop'},
-        {'id': 5, 'username': 'Elena Rostova', 'role': 'Member', 'status': 'online', 'activeNode': 'US-WEST-2', 'datasets': 19, 'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop'}
-    ]
+    # Fetch current logged-in user's team membership
+    membership = TeamMember.objects.filter(user=request.user).first()
+    
+    if not membership:
+        # Fallback: if user doesn't have a team membership (e.g. if created via manage.py createsuperuser),
+        # automatically create a team for them.
+        team = Team.objects.create(name=f"{request.user.username}'s Team", owner=request.user)
+        membership = TeamMember.objects.create(user=request.user, team=team, role='admin')
+    else:
+        team = membership.team
+
+    # Handle Team operations (adding / removing members)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'invite_member':
+            email_input = request.POST.get('email', '').strip()
+            role_input = request.POST.get('role', 'member').lower()
+            
+            if email_input:
+                try:
+                    invited_user = User.objects.get(email=email_input)
+                    # Check if user is already in the team
+                    if not TeamMember.objects.filter(team=team, user=invited_user).exists():
+                        TeamMember.objects.create(user=invited_user, team=team, role=role_input)
+                except User.DoesNotExist:
+                    # For interactive demo purposes, if invited email doesn't exist in system yet,
+                    # we create a stub user so the member directory grows instantly!
+                    username_stub = email_input.split('@')[0]
+                    # Ensure username is unique
+                    suffix = 1
+                    base_username = username_stub
+                    while User.objects.filter(username=username_stub).exists():
+                        username_stub = f"{base_username}{suffix}"
+                        suffix += 1
+                    
+                    new_user = User.objects.create_user(username=username_stub, email=email_input, password='Password123')
+                    TeamMember.objects.create(user=new_user, team=team, role=role_input)
+            
+        elif action == 'remove_member':
+            member_id = request.POST.get('member_id')
+            if member_id:
+                try:
+                    member_to_remove = TeamMember.objects.get(id=member_id, team=team)
+                    # Prevent owners from removing themselves
+                    if member_to_remove.user != request.user:
+                        member_to_remove.delete()
+                except TeamMember.DoesNotExist:
+                    pass
+        
+        return redirect('team')
+
+    # Query all members of the user's team
+    team_members = TeamMember.objects.filter(team=team).select_related('user')
+    
+    # Format members matching what template expects
+    members = []
+    for m in team_members:
+        status = 'online' if m.user.is_active else 'offline'
+        members.append({
+            'id': m.id,
+            'username': m.user.username,
+            'role': m.role.capitalize(), # 'admin' -> 'Admin', 'member' -> 'Member'
+            'status': status,
+            'activeNode': 'US-EAST-1' if m.role == 'admin' else 'EU-CENTRAL-1',
+            'datasets': 14 if m.role == 'admin' else 8,
+            'avatar': None
+        })
+
+    # Stub pending invites for dashboard view
     pending_invites = [
         {'id': 101, 'email': 'thomas.shelby@vortex.io', 'role': 'Member', 'status': 'Pending', 'date_sent': '2 hours ago'},
         {'id': 102, 'email': 'aria.montgomery@vortex.io', 'role': 'Admin', 'status': 'Pending', 'date_sent': 'Yesterday'}
     ]
-    
-    if request.method == 'POST':
-        # Simple POST stub reload
-        return redirect('team')
 
     context = {
         'members': members,
@@ -95,6 +164,7 @@ def team_view(request):
     }
     return render(request, 'Team/index.html', context)
 
+@login_required
 def analytics_view(request):
     """
     Renders the analytics page with dynamic labels and values for Chart.js.
@@ -105,6 +175,7 @@ def analytics_view(request):
     }
     return render(request, 'Analytics/index.html', context)
 
+@login_required
 def datasets_view(request):
     """
     Renders the datasets page with dynamic dataset records.
@@ -124,6 +195,7 @@ def datasets_view(request):
     }
     return render(request, 'Data_Sets/index.html', context)
 
+@login_required
 def settings_view(request):
     """
     Renders the account settings page.
