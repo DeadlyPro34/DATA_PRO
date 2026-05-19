@@ -3,7 +3,7 @@ from django.contrib.auth import login as auth_login, authenticate, logout as aut
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset
+from .models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset, UploadedFile, CleanedDataset, SavedChart, TeamActivity
 from .services import create_team_for_user, get_or_create_user_team
 import csv
 import io
@@ -24,11 +24,16 @@ def dashboard_view(request):
         min_value=Min('value')
     )
 
+    # Get recent team activities
+    activities = TeamActivity.get_recent_activities(team)
+
     context = {
         'total': round(stats['total'] or 0.0, 2),
         'average': round(stats['average'] or 0.0, 2),
         'max_value': round(stats['max_value'] or 0.0, 2),
         'min_value': round(stats['min_value'] or 0.0, 2),
+        'recent_activities': activities[:3],
+        'all_activities': activities,
     }
     return render(request, 'Layout/index.html', context)
 
@@ -251,6 +256,15 @@ def accept_invite_view(request, token):
         role=invitation.role
     )
     
+    # Log team join activity
+    TeamActivity.objects.create(
+        team=invitation.team,
+        user=request.user,
+        activity_type='join',
+        description="Welcome aboard! 👋",
+        status_color='indigo'
+    )
+    
     # Mark invite as accepted
     invitation.status = 'accepted'
     invitation.save()
@@ -302,6 +316,13 @@ def datasets_view(request):
                 try:
                     value = float(cleaned_val)
                     DataPoint.objects.create(label=label, value=value, team=team)
+                    TeamActivity.objects.create(
+                        team=team,
+                        user=request.user,
+                        activity_type='upload',
+                        description=f"Manually added '{label}' ({value})",
+                        status_color='emerald'
+                    )
                     messages.success(request, f"Successfully created data entry '{label}' with cleaned value {value}.")
                 except ValueError:
                     messages.error(request, "Failed to parse value. Please enter a valid number.")
@@ -319,6 +340,13 @@ def datasets_view(request):
                         name=csv_file.name,
                         team=team,
                         status='pending'
+                    )
+                    TeamActivity.objects.create(
+                        team=team,
+                        user=request.user,
+                        activity_type='upload',
+                        description=csv_file.name,
+                        status_color='emerald'
                     )
                     from .tasks import process_csv_upload
                     process_csv_upload.delay(csv_dataset.id, file_data_str, team.id)
@@ -351,6 +379,14 @@ def datasets_view(request):
                         csv_dataset.status = 'deleting'
                         csv_dataset.save()
                         
+                        TeamActivity.objects.create(
+                            team=team,
+                            user=request.user,
+                            activity_type='custom',
+                            description=f"Deleted CSV dataset '{csv_dataset.name}'",
+                            status_color='amber'
+                        )
+                        
                         from .tasks import process_csv_delete
                         process_csv_delete.delay(csv_id, team.id)
                         
@@ -368,6 +404,14 @@ def datasets_view(request):
             else:
                 dp_count = DataPoint.objects.filter(team=team).delete()[0]
                 CSVDataset.objects.filter(team=team).delete()
+                
+                TeamActivity.objects.create(
+                    team=team,
+                    user=request.user,
+                    activity_type='custom',
+                    description="Cleared all team data",
+                    status_color='amber'
+                )
                 
                 from .signals import broadcast_team_update
                 broadcast_team_update(team)
@@ -434,3 +478,170 @@ def csv_status_view(request, csv_id):
         })
     except CSVDataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=404)
+
+
+@login_required
+def upload_view(request):
+    """
+    Handles CSV, Excel, and JSON file uploads. Dispatches parsing/cleaning
+    to a background Celery task and renders the status polling page.
+    """
+    if request.method == 'POST':
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            messages.error(request, "No file uploaded.")
+            return redirect('upload')
+            
+        filename = file_obj.name.lower()
+        if filename.endswith('.csv'):
+            file_type = 'csv'
+        elif filename.endswith(('.xls', '.xlsx')):
+            file_type = 'excel'
+        elif filename.endswith('.json'):
+            file_type = 'json'
+        else:
+            messages.error(request, "Unsupported file format. Please upload CSV, Excel, or JSON.")
+            return redirect('upload')
+            
+        uploaded_file = UploadedFile.objects.create(
+            user=request.user,
+            file=file_obj,
+            original_filename=file_obj.name,
+            file_type=file_type,
+            status='pending'
+        )
+        
+        # Dispatch background Celery task
+        from .tasks import process_uploaded_file
+        process_uploaded_file.delay(uploaded_file.id)
+        
+        return redirect(f"/upload/?file_id={uploaded_file.id}")
+        
+    file_id = request.GET.get('file_id')
+    context = {
+        'file_id': file_id
+    }
+    return render(request, 'Data_Sets/upload.html', context)
+
+
+@login_required
+def file_status_view(request, file_id):
+    """
+    JSON endpoint that returns status, row_count, column_count, and ai_summary
+    for an uploaded file, scoped to the logged-in user.
+    """
+    try:
+        uploaded_file = UploadedFile.objects.get(id=file_id, user=request.user)
+        return JsonResponse({
+            'status': uploaded_file.status,
+            'row_count': uploaded_file.row_count,
+            'column_count': uploaded_file.column_count,
+            'ai_summary': uploaded_file.ai_summary,
+        })
+    except UploadedFile.DoesNotExist:
+        return JsonResponse({'error': 'File not found'}, status=404)
+
+
+@login_required
+def dataset_view(request, file_id):
+    """
+    Displays the cleaned dataset, along with dynamic Chart.js options,
+    the cleaning execution log, and the AI-generated dataset summary.
+    """
+    try:
+        uploaded_file = UploadedFile.objects.get(id=file_id, user=request.user)
+        cleaned_dataset = CleanedDataset.objects.get(uploaded_file=uploaded_file)
+    except (UploadedFile.DoesNotExist, CleanedDataset.DoesNotExist):
+        messages.error(request, "Dataset not found or is still being processed.")
+        return redirect('upload')
+        
+    context = {
+        'uploaded_file': uploaded_file,
+        'dataset': cleaned_dataset,
+        'columns': cleaned_dataset.columns,
+        'rows': cleaned_dataset.rows,
+        'cleaning_log': cleaned_dataset.cleaning_log,
+    }
+    return render(request, 'Data_Sets/dataset.html', context)
+
+
+@login_required
+def save_chart_view(request, file_id):
+    """
+    API endpoint to save a customized Chart.js setup for a dataset.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+        
+    try:
+        uploaded_file = UploadedFile.objects.get(id=file_id, user=request.user)
+        cleaned_dataset = CleanedDataset.objects.get(uploaded_file=uploaded_file)
+    except (UploadedFile.DoesNotExist, CleanedDataset.DoesNotExist):
+        return JsonResponse({'error': 'Dataset not found'}, status=404)
+        
+    import json
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+    except Exception:
+        data = request.POST
+        
+    chart_type = data.get('chart_type')
+    x_axis = data.get('x_axis')
+    y_axis = data.get('y_axis')
+    title = data.get('title')
+    
+    if not all([chart_type, x_axis, y_axis, title]):
+        return JsonResponse({'error': 'Missing required fields'}, status=400)
+        
+    try:
+        saved_chart = SavedChart.objects.create(
+            dataset=cleaned_dataset,
+            chart_type=chart_type.lower(),
+            x_axis=x_axis,
+            y_axis=y_axis,
+            title=title
+        )
+        return JsonResponse({'success': True, 'chart_id': saved_chart.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def charts_gallery_view(request):
+    """
+    Lists all saved charts and handles deletion requests.
+    """
+    if request.method == 'POST' and request.POST.get('action') == 'delete':
+        chart_id = request.POST.get('chart_id')
+        if chart_id:
+            try:
+                chart = SavedChart.objects.get(id=chart_id, dataset__uploaded_file__user=request.user)
+                chart.delete()
+                messages.success(request, "Chart deleted successfully.")
+            except SavedChart.DoesNotExist:
+                messages.error(request, "Chart not found.")
+        return redirect('charts_gallery')
+        
+    charts = SavedChart.objects.filter(dataset__uploaded_file__user=request.user).select_related('dataset', 'dataset__uploaded_file')
+    
+    # Serialize preview rows for Chart.js rendering on client side
+    import json
+    preview_data = []
+    for chart in charts:
+        # Limit rows to first 40 records to keep preview lightweight
+        preview_data.append({
+            'id': chart.id,
+            'chart_type': chart.chart_type,
+            'x_axis': chart.x_axis,
+            'y_axis': chart.y_axis,
+            'rows': chart.dataset.rows[:40]
+        })
+        
+    context = {
+        'charts': charts,
+        'chart_data_json': json.dumps(preview_data),
+    }
+    return render(request, 'Data_Sets/charts_gallery.html', context)

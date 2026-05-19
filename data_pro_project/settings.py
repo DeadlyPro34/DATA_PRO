@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'channels',
     'django_celery_results',
     'app',
@@ -55,6 +56,28 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+# Auto-detect if Redis is running; if not, fallback to eager execution so uploads work synchronously
+import socket
+from urllib.parse import urlparse
+def _check_redis():
+    try:
+        parsed = urlparse(CELERY_BROKER_URL)
+        host = parsed.hostname or 'localhost'
+        port = parsed.port or 6379
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
+        s.connect((host, port))
+        s.close()
+        return True
+    except Exception:
+        return False
+
+if not _check_redis():
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+else:
+    CELERY_TASK_ALWAYS_EAGER = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

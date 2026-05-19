@@ -1,6 +1,6 @@
 from django.test import TestCase, Client, override_settings
 from django.contrib.auth.models import User
-from app.models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset
+from app.models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset, UploadedFile, CleanedDataset, SavedChart
 import io
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
@@ -130,6 +130,9 @@ class DatasetSystemTest(TestCase):
         self.assertEqual(response.context['average'], 19.14)
         self.assertEqual(response.context['max_value'], 30.0)
         self.assertEqual(response.context['min_value'], 8.9)
+        self.assertIn('recent_activities', response.context)
+        self.assertIn('all_activities', response.context)
+        self.assertEqual(len(response.context['recent_activities']), 3)
 
     def test_invite_member_flow(self):
         # 1. Admin invites standard email
@@ -310,4 +313,92 @@ class WebSocketSystemTest(TestCase):
             async_to_sync(communicator.disconnect)()
         except BaseException:
             pass
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+class SmartDataIngestionTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        # Register a test user
+        signup_data = {
+            'username': 'smart_user',
+            'email': 'smart@example.com',
+            'password': 'Password123',
+            'confirm_password': 'Password123'
+        }
+        self.client.post('/signup/', signup_data, follow=True)
+        self.user = User.objects.get(username='smart_user')
+        self.client.login(username='smart_user', password='Password123')
+
+    def test_smart_upload_csv(self):
+        # CSV content
+        csv_content = "name,age,salary\nAlice,30,85000\nBob,25,95000\nCharlie,,120000\n"
+        csv_file = io.BytesIO(csv_content.encode('utf-8'))
+        csv_file.name = 'messy_data.csv'
+        
+        # Test GET upload
+        response = self.client.get('/upload/')
+        self.assertEqual(response.status_code, 200)
+        
+        # Test POST upload
+        post_data = {
+            'file': csv_file
+        }
+        response = self.client.post('/upload/', post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify UploadedFile created
+        uploaded_file = UploadedFile.objects.get(user=self.user)
+        self.assertEqual(uploaded_file.original_filename, 'messy_data.csv')
+        self.assertEqual(uploaded_file.file_type, 'csv')
+        self.assertEqual(uploaded_file.status, 'done')
+        
+        # Verify CleanedDataset created
+        cleaned = CleanedDataset.objects.get(uploaded_file=uploaded_file)
+        self.assertIn('name', cleaned.columns)
+        self.assertIn('age', cleaned.columns)
+        self.assertEqual(len(cleaned.rows), 3)
+        # Charlie's age should have been filled with column mean (27.5)
+        charlie_row = [r for r in cleaned.rows if r['name'] == 'Charlie'][0]
+        self.assertEqual(charlie_row['age'], 27.5)
+
+        # Test status view
+        status_res = self.client.get(f'/upload/status/{uploaded_file.id}/')
+        self.assertEqual(status_res.status_code, 200)
+        self.assertEqual(status_res.json()['status'], 'done')
+        
+        # Test dataset view
+        dataset_res = self.client.get(f'/dataset/{uploaded_file.id}/')
+        self.assertEqual(dataset_res.status_code, 200)
+        self.assertContains(dataset_res, 'Alice')
+        
+        # Test save chart
+        chart_post_data = {
+            'chart_type': 'bar',
+            'x_axis': 'name',
+            'y_axis': 'salary',
+            'title': 'Salary by Name'
+        }
+        import json
+        chart_res = self.client.post(
+            f'/dataset/{uploaded_file.id}/save-chart/',
+            data=json.dumps(chart_post_data),
+            content_type='application/json'
+        )
+        self.assertEqual(chart_res.status_code, 200)
+        self.assertTrue(chart_res.json()['success'])
+        
+        # Verify chart created
+        saved_chart = SavedChart.objects.get(title='Salary by Name')
+        self.assertEqual(saved_chart.chart_type, 'bar')
+        
+        # Test gallery view
+        gallery_res = self.client.get('/charts/')
+        self.assertEqual(gallery_res.status_code, 200)
+        self.assertContains(gallery_res, 'Salary by Name')
+        
+        # Test delete chart
+        delete_res = self.client.post('/charts/', {'action': 'delete', 'chart_id': saved_chart.id}, follow=True)
+        self.assertEqual(delete_res.status_code, 200)
+        self.assertFalse(SavedChart.objects.filter(id=saved_chart.id).exists())
 

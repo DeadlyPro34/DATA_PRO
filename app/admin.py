@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Team, TeamMember, CSVDataset, DataPoint, TeamInvitation, UploadedFile, CleanedDataset, SavedChart
+from .models import Team, TeamMember, CSVDataset, DataPoint, TeamInvitation, UploadedFile, CleanedDataset, SavedChart, TeamActivity
 
 admin.site.register(Team)
 admin.site.register(TeamMember)
@@ -9,3 +9,4 @@ admin.site.register(TeamInvitation)
 admin.site.register(UploadedFile)
 admin.site.register(CleanedDataset)
 admin.site.register(SavedChart)
+admin.site.register(TeamActivity)
