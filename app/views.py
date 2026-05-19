@@ -25,9 +25,31 @@ def create_team_for_user(user):
 @login_required
 def dashboard_view(request):
     """
-    Renders the main dashboard layout.
+    Renders the main dashboard layout with dataset insights.
     """
-    return render(request, 'Layout/index.html')
+    # Fetch current logged-in user's team membership
+    membership = TeamMember.objects.filter(user=request.user).first()
+    if not membership:
+        team = create_team_for_user(request.user)
+    else:
+        team = membership.team
+
+    # Calculate dataset statistics for the team
+    from django.db.models import Sum, Avg, Max, Min
+    stats = DataPoint.objects.filter(team=team).aggregate(
+        total=Sum('value'),
+        average=Avg('value'),
+        max_value=Max('value'),
+        min_value=Min('value')
+    )
+
+    context = {
+        'total': round(stats['total'] or 0.0, 2),
+        'average': round(stats['average'] or 0.0, 2),
+        'max_value': round(stats['max_value'] or 0.0, 2),
+        'min_value': round(stats['min_value'] or 0.0, 2),
+    }
+    return render(request, 'Layout/index.html', context)
 
 def login_view(request):
     """

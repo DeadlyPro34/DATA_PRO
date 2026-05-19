@@ -98,3 +98,22 @@ class DatasetSystemTest(TestCase):
         
         # Should not create datapoint
         self.assertFalse(DataPoint.objects.filter(label='Manual Invalid').exists())
+
+    def test_dashboard_insights_calculations(self):
+        # Seed additional datapoints with specific values
+        DataPoint.objects.create(label='Insight A', value=10.0, team=self.team)
+        DataPoint.objects.create(label='Insight B', value=20.0, team=self.team)
+        DataPoint.objects.create(label='Insight C', value=30.0, team=self.team)
+        
+        response = self.client.get('/') # Renders dashboard_view
+        self.assertEqual(response.status_code, 200)
+        
+        # Seed totals: (14.2, 28.4, 8.9, 19.5, 22.1) + (10.0, 20.0, 30.0) = 153.1
+        # Seed count: 8 items
+        # Average: 153.1 / 8 = 19.1375 -> 19.14 rounded
+        # Max: 30.0
+        # Min: 8.9
+        self.assertEqual(response.context['total'], 153.1)
+        self.assertEqual(response.context['average'], 19.14)
+        self.assertEqual(response.context['max_value'], 30.0)
+        self.assertEqual(response.context['min_value'], 8.9)
