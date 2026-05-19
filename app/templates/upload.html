@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Data - Data Pro{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto opacity-0 animate-pop-in">
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-stone-100 mb-3 tracking-tight">Upload Dataset</h1>
+        <p class="text-stone-400">Upload a CSV, Excel, or JSON file. We'll automatically clean and prepare it for stunning visualizations.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="glass-panel rounded-3xl p-8 shadow-2xl relative overflow-hidden" id="uploadForm">
+        {% csrf_token %}
+        
+        <!-- Subtle accent gradient inside form -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+
+        <div class="mb-8 relative z-10">
+            <label for="custom_name" class="block text-sm font-semibold text-stone-300 mb-2">Dataset Name <span class="text-stone-500 font-normal">(Optional)</span></label>
+            <input type="text" id="custom_name" name="custom_name" class="w-full bg-stone-900/50 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 placeholder-stone-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all shadow-inner" placeholder="e.g., Q3 Sales Performance">
+        </div>
+
+        <div class="mb-8 relative z-10">
+            <label class="block text-sm font-semibold text-stone-300 mb-2">Data File</label>
+            <div class="mt-1 flex justify-center px-6 pt-10 pb-12 border-2 border-stone-700 border-dashed rounded-2xl bg-stone-900/30 hover:bg-stone-900/70 hover:border-orange-400 transition-all duration-300 group cursor-pointer relative overflow-hidden" id="dropZone" onclick="document.getElementById('file').click()">
+                
+                <!-- Hover pulse effect -->
+                <div class="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                
+                <div class="space-y-2 text-center relative z-10">
+                    <div class="w-16 h-16 mx-auto bg-stone-900 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-500/20 transition-all duration-300 mb-4 shadow-lg border border-stone-800">
+                        <svg class="h-8 w-8 text-stone-500 group-hover:text-orange-400 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex text-sm text-stone-300 justify-center items-center gap-1">
+                        <span class="relative font-semibold text-orange-400 hover:text-orange-300 transition-colors">
+                            <span>Click to upload</span>
+                            <input id="file" name="file" type="file" class="sr-only" accept=".csv,.xlsx,.xls,.json" onchange="updateFileName(this)">
+                        </span>
+                        <p>or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-stone-500 font-medium tracking-wide">
+                        CSV, EXCEL, JSON up to 50MB
+                    </p>
+                    <div id="fileDisplayBadge" class="mt-4 hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm font-medium animate-pop-in">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="fileNameDisplay"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end relative z-10 pt-4 border-t border-stone-800">
+            <a href="{% url 'dashboard' %}" class="text-sm font-medium text-stone-400 hover:text-stone-200 mr-6 transition-colors">Cancel</a>
+            <button type="submit" id="submitBtn" class="px-8 py-3 bg-stone-200 text-stone-950 hover:bg-white rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(251,146,60,0.15)] hover:shadow-[0_0_25px_rgba(251,146,60,0.3)] flex items-center gap-2">
+                Upload & Process
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('file');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const fileDisplayBadge = document.getElementById('fileDisplayBadge');
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function updateFileName(input) {
+        if (input.files && input.files[0]) {
+            fileNameDisplay.textContent = input.files[0].name;
+            fileDisplayBadge.classList.remove('hidden');
+        }
+    }
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-orange-500', 'bg-stone-900/60');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-orange-500', 'bg-stone-900/60');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-orange-500', 'bg-stone-900/60');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileName(fileInput);
+        }
+    });
+
+    uploadForm.addEventListener('submit', () => {
+        if (fileInput.files.length > 0) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-stone-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg> Processing Data...`;
+        }
+    });
+</script>
+{% endblock %}

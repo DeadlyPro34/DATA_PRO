@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ file.custom_name|default:file.original_filename }} - Data Pro{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
+    <div>
+        <div class="flex items-center gap-4 mb-3">
+            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <h1 class="text-3xl font-bold text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
+            <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase tracking-wider">{{ file.file_type }}</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 sm:gap-6 ml-0 md:ml-14 mt-4 md:mt-0">
+            <p class="text-sm font-medium text-stone-400 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                {{ file.uploaded_at|date:"M d, Y" }}
+            </p>
+            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-400">
+                <span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows
+            </p>
+            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-400">
+                <span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Cleaning Log Panel -->
+<div class="glass-panel rounded-2xl p-1 mb-8 shadow-xl opacity-0 animate-pop-in" style="animation-delay: 100ms;">
+    <details class="group bg-stone-900/40 rounded-[14px]">
+        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none text-stone-200 p-5">
+            <div class="flex items-center gap-3">
+                <div class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span>Data Cleaning Log <span class="ml-2 px-2 py-0.5 rounded-full bg-stone-900 text-xs text-stone-400 border border-stone-800">{{ dataset.cleaning_log|length }} actions</span></span>
+            </div>
+            <span class="transition-transform duration-300 group-open:rotate-180 p-1 rounded-md bg-stone-800/50 text-stone-400 group-hover:text-stone-100">
+                <svg fill="none" height="20" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+        </summary>
+        <div class="p-5 pt-0 border-t border-stone-800 mt-1">
+            <ul class="space-y-3 mt-4">
+                {% for log_item in dataset.cleaning_log %}
+                    <li class="flex items-start gap-3 text-sm font-medium text-stone-300">
+                        <div class="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
+                        {{ log_item }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </details>
+</div>
+
+<!-- Visualization Builder -->
+<div class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay: 200ms;">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="flex items-center gap-3 mb-8 relative z-10">
+        <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+        </div>
+        <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 mb-8 relative z-10">
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Chart Type</label>
+            <div class="relative">
+                <select id="chartType" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="scatter">Scatter Plot</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">X-Axis</label>
+            <div class="relative">
+                <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
+                    <!-- Populated by JS -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Y-Axis (Values)</label>
+            <div class="relative">
+                <select id="yAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
+                    <!-- Populated by JS -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-end">
+            <button id="renderChartBtn" class="w-full px-4 py-3 bg-stone-200 text-stone-950 hover:bg-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(251,146,60,0.15)] hover:shadow-[0_0_25px_rgba(251,146,60,0.3)] transition-all flex justify-center items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Render Chart
+            </button>
+        </div>
+    </div>
+    
+    <div class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-6 h-[450px] flex items-center justify-center relative z-10 shadow-inner">
+        <canvas id="myChart" class="w-full h-full"></canvas>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col h-[700px] opacity-0 animate-pop-in relative" style="animation-delay: 300ms;">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Raw Data Preview</h2>
+        </div>
+        <div class="relative w-full sm:w-auto">
+            <input type="text" id="searchInput" placeholder="Search across all columns..." class="w-full sm:w-72 bg-stone-900 border border-stone-800 rounded-full pl-11 pr-4 py-2 text-sm text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-inner transition-all placeholder-stone-500">
+            <svg class="w-5 h-5 text-stone-500 absolute left-4 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+    </div>
+    
+    <div class="overflow-auto flex-1 rounded-xl border border-stone-800 relative z-10 custom-scrollbar bg-stone-950/30">
+        <table class="min-w-full divide-y divide-stone-800 text-sm">
+            <thead class="bg-stone-900/90 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
+                <tr id="tableHeader">
+                    <!-- Populated by JS -->
+                </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium">
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center text-sm font-medium text-stone-400 shrink-0 relative z-10 gap-4 sm:gap-0">
+        <span id="showingCount" class="bg-stone-900 px-4 py-2 rounded-full border border-stone-800 whitespace-nowrap text-xs sm:text-sm">Showing 0 rows</span>
+        <div class="flex items-center gap-1 sm:gap-2 bg-stone-900 p-1 sm:p-1.5 rounded-xl border border-stone-800 w-full sm:w-auto justify-between sm:justify-start">
+            <button id="prevPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-200">Prev</button>
+            <span id="pageInfo" class="px-2 sm:px-3 py-1 text-stone-300 text-xs sm:text-sm whitespace-nowrap">Page 1</span>
+            <button id="nextPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-200">Next</button>
+        </div>
+    </div>
+</div>
+
+<!-- Data payload from Django -->
+<script>
+    const columns = JSON.parse('{{ columns_json|escapejs }}');
+    const allRows = JSON.parse('{{ rows_json|escapejs }}');
+</script>
+
+<!-- UI Logic -->
+<script>
+    // --- Table & Pagination Logic ---
+    let filteredRows = [...allRows];
+    let currentPage = 1;
+    const rowsPerPage = 50;
+    
+    const tableHeader = document.getElementById('tableHeader');
+    const tableBody = document.getElementById('tableBody');
+    const searchInput = document.getElementById('searchInput');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+    const showingCount = document.getElementById('showingCount');
+    
+    // Sort state
+    let sortCol = null;
+    let sortAsc = true;
+    
+    function renderTable() {
+        // Render headers
+        tableHeader.innerHTML = columns.map(col => `
+            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-800 transition-colors group" onclick="sortTable('${col}')">
+                <div class="flex items-center gap-2">
+                    ${col}
+                    <span class="text-orange-500 transition-opacity ${sortCol === col ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}">
+                        ${sortCol === col ? (sortAsc ? '↑' : '↓') : '↕'}
+                    </span>
+                </div>
+            </th>
+        `).join('');
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        
+        const startIdx = (currentPage - 1) * rowsPerPage;
+        const endIdx = startIdx + rowsPerPage;
+        const pageData = filteredRows.slice(startIdx, endIdx);
+        
+        // Render body
+        tableBody.innerHTML = pageData.map((row, idx) => `
+            <tr class="hover:bg-stone-800/30 transition-colors duration-150">
+                ${columns.map(col => `<td class="px-6 py-3 whitespace-nowrap text-stone-300 ${idx % 2 === 0 ? '' : 'bg-stone-900/30'}">${row[col] !== null ? row[col] : '<span class="text-stone-600">-</span>'}</td>`).join('')}
+            </tr>
+        `).join('');
+        
+        // Update controls
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        showingCount.textContent = `Showing ${pageData.length} of ${filteredRows.length} rows`;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+    }
+    
+    function sortTable(col) {
+        if (sortCol === col) {
+            sortAsc = !sortAsc;
+        } else {
+            sortCol = col;
+            sortAsc = true;
+        }
+        
+        filteredRows.sort((a, b) => {
+            let valA = a[col];
+            let valB = b[col];
+            if (valA === null) valA = '';
+            if (valB === null) valB = '';
+            
+            if (typeof valA === 'number' && typeof valB === 'number') {
+                return sortAsc ? valA - valB : valB - valA;
+            }
+            return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+        });
+        
+        renderTable();
+    }
+    
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        filteredRows = allRows.filter(row => {
+            return columns.some(col => String(row[col] || '').toLowerCase().includes(term));
+        });
+        currentPage = 1;
+        renderTable();
+    });
+    
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+    
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    });
+    
+    // Initial render
+    renderTable();
+
+    // --- Chart Logic ---
+    const xAxisSelect = document.getElementById('xAxis');
+    const yAxisSelect = document.getElementById('yAxis');
+    const chartTypeSelect = document.getElementById('chartType');
+    const renderChartBtn = document.getElementById('renderChartBtn');
+    
+    // Populate select dropdowns
+    columns.forEach(col => {
+        xAxisSelect.add(new Option(col, col));
+        yAxisSelect.add(new Option(col, col));
+    });
+    
+    // Try to smartly default Y axis to a numeric column if available
+    const numericCols = columns.filter(col => allRows.some(r => typeof r[col] === 'number'));
+    if (numericCols.length > 0) {
+        yAxisSelect.value = numericCols[0];
+    }
+    
+    let currentChart = null;
+    
+    function renderChart() {
+        const xCol = xAxisSelect.value;
+        const yCol = yAxisSelect.value;
+        const type = chartTypeSelect.value;
+        
+        if (!xCol || !yCol) return;
+        
+        // Aggregate data
+        let chartData = {};
+        let scatterData = [];
+        
+        if (type === 'scatter') {
+            scatterData = allRows.map(r => {
+                return { 
+                    x: parseFloat(r[xCol]), 
+                    y: parseFloat(r[yCol]) 
+                };
+            }).filter(p => !isNaN(p.x) && !isNaN(p.y));
+            
+            if (scatterData.length === 0) {
+                showCustomAlert("Scatter plots require numeric data for both X and Y axes. The selected columns don't contain valid numbers.");
+                return;
+            }
+        } else {
+            const aggregates = {};
+            allRows.forEach(r => {
+                const label = String(r[xCol] || 'Unknown');
+                const val = parseFloat(r[yCol]) || 0;
+                aggregates[label] = (aggregates[label] || 0) + val;
+            });
+            
+            const sortedKeys = Object.keys(aggregates).sort((a,b) => aggregates[b] - aggregates[a]).slice(0, 50);
+            chartData.labels = sortedKeys;
+            chartData.data = sortedKeys.map(k => aggregates[k]);
+        }
+        
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        if (currentChart) {
+            currentChart.destroy();
+        }
+        
+        // Premium Chart Colors (Warm)
+        const brandColor = '#f97316'; // orange-500
+        const brandColorAlpha = 'rgba(249, 115, 22, 0.6)';
+        
+        // Gradient for Bar/Line charts
+        let gradient = null;
+        if (type === 'bar' || type === 'line') {
+            gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(249, 115, 22, 0.8)'); // orange
+            gradient.addColorStop(1, 'rgba(244, 63, 94, 0.1)'); // rose
+        }
+
+        // Warm pie colors
+        const pieColors = ['#f97316', '#f43f5e', '#d946ef', '#8b5cf6', '#eab308', '#ec4899', '#f87171', '#fb923c'];
+
+        const config = {
+            type: type,
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: yCol,
+                    data: type === 'scatter' ? scatterData : chartData.data,
+                    backgroundColor: type === 'pie' ? pieColors : (gradient || brandColorAlpha),
+                    borderColor: type === 'pie' ? '#1c1917' : brandColor,
+                    borderWidth: type === 'line' ? 3 : 1,
+                    pointBackgroundColor: type === 'scatter' ? brandColorAlpha : brandColor,
+                    pointBorderColor: type === 'scatter' ? brandColor : '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: brandColor,
+                    fill: type === 'line' ? true : false,
+                    tension: 0.4 // Smooth curves for line chart
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#a8a29e', font: { family: 'Inter', weight: '500' } },
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#d6d3d1',
+                        borderColor: 'rgba(253, 186, 116, 0.15)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: type === 'pie',
+                        titleFont: { family: 'Inter', size: 14, weight: 'bold' },
+                        bodyFont: { family: 'Inter', size: 13 }
+                    }
+                },
+                scales: type === 'pie' ? {} : {
+                    x: {
+                        ticks: { color: '#78716c', font: { family: 'Inter' } },
+                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
+                        type: type === 'scatter' ? 'linear' : 'category'
+                    },
+                    y: {
+                        ticks: { color: '#78716c', font: { family: 'Inter' } },
+                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutElastic',
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default' && !currentChart?.isAnimating) {
+                            delay = context.dataIndex * 50 + context.datasetIndex * 100;
+                        }
+                        return delay;
+                    }
+                },
+                transitions: {
+                    active: {
+                        animation: {
+                            duration: 300
+                        }
+                    }
+                }
+            }
+        };
+        
+        currentChart = new Chart(ctx, config);
+        currentChart.isAnimating = true;
+        setTimeout(() => { if(currentChart) currentChart.isAnimating = false; }, 2000);
+    }
+    
+    renderChartBtn.addEventListener('click', renderChart);
+    chartTypeSelect.addEventListener('change', renderChart);
+</script>
+{% endblock %}

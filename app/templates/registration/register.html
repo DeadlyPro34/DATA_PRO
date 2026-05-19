@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Data Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center opacity-0 animate-pop-in">
+    <div class="w-full max-w-md relative group">
+        <!-- Glow effect -->
+        <div class="absolute inset-0 bg-gradient-to-r from-orange-500/30 to-rose-500/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500 opacity-50"></div>
+        
+        <div class="relative glass-panel rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-100/10">
+            <!-- Decorative gradient orb -->
+            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-rose-500 rounded-full mix-blend-screen filter blur-[50px] opacity-20"></div>
+
+            <div class="text-center mb-10 relative z-10">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-br from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-rose-500/30 transform rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                </div>
+                <h1 class="text-3xl font-bold text-stone-100 mb-2 tracking-tight">Create Account</h1>
+                <p class="text-stone-400 font-medium">Join Data Pro to unlock visual insights.</p>
+            </div>
+
+            <form method="post" class="space-y-5 relative z-10">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="p-4 bg-red-950/40 text-red-400 border border-red-500/20 rounded-xl text-sm font-medium flex items-center gap-2">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Please correct the errors below.
+                </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div class="space-y-1">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-stone-300 ml-1">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="mt-1.5 text-[11px] text-stone-500 leading-tight px-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-red-400 font-medium px-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="w-full py-3 px-4 border border-transparent rounded-xl shadow-[0_0_15px_rgba(244,63,94,0.2)] text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-500 hover:to-rose-500 hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] focus:outline-none transition-all duration-300 mt-6">
+                    Create Account
+                </button>
+            </form>
+            
+            <p class="mt-8 text-center text-sm font-medium text-stone-400 relative z-10">
+                Already have an account? <a href="{% url 'login' %}" class="text-rose-400 hover:text-rose-300 transition-colors border-b border-rose-400/30 hover:border-rose-300 pb-0.5">Log in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add tailwind classes to django forms
+    document.querySelectorAll('input').forEach(input => {
+        if (input.type !== 'hidden' && input.type !== 'submit') {
+            input.classList.add('w-full', 'bg-stone-900/50', 'border', 'border-stone-800', 'rounded-xl', 'px-4', 'py-3', 'text-stone-200', 'placeholder-stone-600', 'focus:outline-none', 'focus:border-rose-500', 'focus:ring-1', 'focus:ring-rose-500', 'transition-all', 'shadow-inner');
+        }
+    });
+</script>
+{% endblock %}
