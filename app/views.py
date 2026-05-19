@@ -3,7 +3,7 @@ from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Team, TeamMember, DataPoint, TeamInvitation
+from .models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset
 import csv
 import io
 
@@ -342,6 +342,8 @@ def datasets_view(request):
                     file_data = csv_file.read().decode('utf-8')
                     csv_data = csv.reader(io.StringIO(file_data))
                     
+                    csv_dataset = CSVDataset.objects.create(name=csv_file.name, team=team)
+                    
                     datapoints_to_create = []
                     count = 0
                     skipped_count = 0
@@ -360,7 +362,12 @@ def datasets_view(request):
                             if cleaned_val:
                                 try:
                                     value = float(cleaned_val)
-                                    datapoints_to_create.append(DataPoint(label=label, value=value, team=team))
+                                    datapoints_to_create.append(DataPoint(
+                                        label=label, 
+                                        value=value, 
+                                        team=team, 
+                                        csv_file=csv_dataset
+                                    ))
                                     count += 1
                                 except ValueError:
                                     skipped_count += 1
@@ -371,11 +378,16 @@ def datasets_view(request):
                     
                     if datapoints_to_create:
                         DataPoint.objects.bulk_create(datapoints_to_create)
+                    else:
+                        csv_dataset.delete()
                     
                     if count > 0:
                         messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
-                    if skipped_count > 0:
-                        messages.warning(request, f"Skipped {skipped_count} row(s) containing invalid or non-numeric values.")
+                        if skipped_count > 0:
+                            messages.warning(request, f"Skipped {skipped_count} row(s) containing invalid or non-numeric values.")
+                        return redirect(f"/datasets/?source={csv_dataset.id}")
+                    else:
+                        messages.error(request, "No valid data entries were found in the uploaded file.")
                 except Exception as e:
                     messages.error(request, f"Error parsing CSV: {str(e)}")
 
@@ -391,11 +403,37 @@ def datasets_view(request):
                         messages.success(request, "Data entry deleted.")
                     except DataPoint.DoesNotExist:
                         pass
+
+        elif action == 'delete_csv':
+            if not is_admin:
+                messages.error(request, "Only team admins can delete CSV datasets.")
+            else:
+                csv_id = request.POST.get('csv_id')
+                if csv_id:
+                    try:
+                        CSVDataset.objects.get(id=csv_id, team=team).delete()
+                        messages.success(request, "CSV dataset and all associated records deleted successfully.")
+                    except CSVDataset.DoesNotExist:
+                        pass
                     
+        query_params = request.GET.urlencode()
+        if query_params:
+            return redirect(f"/datasets/?{query_params}")
         return redirect('datasets')
 
     # Fetch dataset records scoped strictly to the current team
-    dataset = DataPoint.objects.filter(team=team)
+    csv_files = CSVDataset.objects.filter(team=team).order_by('-uploaded_at')
+    selected_source = request.GET.get('source', 'manual')
+    
+    if selected_source == 'manual':
+        dataset = DataPoint.objects.filter(team=team, csv_file__isnull=True)
+    else:
+        try:
+            csv_dataset = CSVDataset.objects.get(id=selected_source, team=team)
+            dataset = DataPoint.objects.filter(team=team, csv_file=csv_dataset)
+        except (CSVDataset.DoesNotExist, ValueError):
+            dataset = DataPoint.objects.filter(team=team, csv_file__isnull=True)
+            selected_source = 'manual'
 
     # Sort data in view: order_by('value') or order_by('-value') based on query param (?sort=asc / ?sort=desc)
     sort_param = request.GET.get('sort', '').lower()
@@ -409,6 +447,8 @@ def datasets_view(request):
     context = {
         'dataset': dataset,
         'is_admin': is_admin,
+        'csv_files': csv_files,
+        'selected_source': selected_source,
     }
     return render(request, 'Data_Sets/index.html', context)
 

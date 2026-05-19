@@ -20,10 +20,19 @@ class TeamMember(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.team.name} ({self.role})"
 
+class CSVDataset(models.Model):
+    name = models.CharField(max_length=255)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='csv_datasets')
+
+    def __str__(self):
+        return f"{self.name} - {self.team.name} ({self.uploaded_at})"
+
 class DataPoint(models.Model):
     label = models.CharField(max_length=255)
     value = models.FloatField()
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='datapoints')
+    csv_file = models.ForeignKey(CSVDataset, on_delete=models.CASCADE, null=True, blank=True, related_name='datapoints')
 
     def __str__(self):
         return f"{self.label}: {self.value} ({self.team.name})"

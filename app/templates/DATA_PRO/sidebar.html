@@ -11,27 +11,27 @@
 
     <nav class="flex-1 px-4 space-y-2 mt-4">
         <!-- Dashboard Link -->
-        <a href="#" class="nav-link {% if active_page == 'dashboard' or 'Layout' in request.path or 'dashboard' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
+        <a href="{% url 'dashboard' %}" class="nav-link {% if active_page == 'dashboard' or 'Layout' in request.path or 'dashboard' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
             <i class="fas fa-th-large w-5"></i>
             <span class="font-medium text-sm">Dashboard</span>
         </a>
         <!-- Data Sets Link -->
-        <a href="#" class="nav-link {% if active_page == 'datasets' or 'Data_Sets' in request.path or 'datasets' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
+        <a href="{% url 'datasets' %}" class="nav-link {% if active_page == 'datasets' or 'Data_Sets' in request.path or 'datasets' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
             <i class="fas fa-database w-5"></i>
             <span class="font-medium text-sm">Data Sets</span>
         </a>
         <!-- Analytics Link -->
-        <a href="#" class="nav-link {% if active_page == 'analytics' or 'Analytics' in request.path or 'analytics' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
+        <a href="{% url 'analytics' %}" class="nav-link {% if active_page == 'analytics' or 'Analytics' in request.path or 'analytics' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
             <i class="fas fa-chart-line w-5"></i>
             <span class="font-medium text-sm">Analytics</span>
         </a>
         <!-- Team Link -->
-        <a href="#" class="nav-link {% if active_page == 'team' or 'Team' in request.path or 'team' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
+        <a href="{% url 'team' %}" class="nav-link {% if active_page == 'team' or 'Team' in request.path or 'team' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
             <i class="fas fa-users w-5"></i>
             <span class="font-medium text-sm">Team</span>
         </a>
         <!-- Settings Link -->
-        <a href="#" class="nav-link {% if active_page == 'settings' or 'Settings' in request.path or 'settings' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
+        <a href="{% url 'settings' %}" class="nav-link {% if active_page == 'settings' or 'Settings' in request.path or 'settings' in request.path %}active{% else %}text-slate-400{% endif %} flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
             <i class="fas fa-cog w-5"></i>
             <span class="font-medium text-sm">Settings</span>
         </a>
