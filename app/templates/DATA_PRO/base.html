@@ -137,5 +137,51 @@
     {% block extra_js %}
     {% endblock %}
 
+    {% if request.user.is_authenticated %}
+    <script>
+        (function() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/dashboard/`;
+            const socket = new WebSocket(wsUrl);
+
+            socket.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    
+                    // Update stats
+                    const totalEl = document.getElementById('stat-total');
+                    const avgEl = document.getElementById('stat-average');
+                    const maxEl = document.getElementById('stat-max');
+                    const minEl = document.getElementById('stat-min');
+
+                    if (totalEl) totalEl.innerText = data.total;
+                    if (avgEl) avgEl.innerText = data.average;
+                    if (maxEl) maxEl.innerText = data.max_value;
+                    if (minEl) minEl.innerText = data.min_value;
+
+                    // Update Chart.js if present
+                    if (window.myChart) {
+                        window.myChart.data.labels = data.labels;
+                        window.myChart.data.datasets[0].data = data.values;
+                        window.myChart.update();
+                    }
+                } catch (err) {
+                    console.error("Error processing websocket message:", err);
+                }
+            };
+
+            socket.onclose = function(e) {
+                console.warn("Dashboard WebSocket closed unexpectedly. Reconnecting in 3 seconds...");
+                setTimeout(function() {
+                    window.location.reload();
+                }, 3000);
+            };
+
+            socket.onerror = function(err) {
+                console.error("Dashboard WebSocket error:", err);
+            };
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

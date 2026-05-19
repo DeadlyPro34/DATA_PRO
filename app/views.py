@@ -1,38 +1,19 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset
+from .services import create_team_for_user, get_or_create_user_team
 import csv
 import io
-
-def create_team_for_user(user):
-    """
-    Creates a default team for a user, registers them as admin, and seeds initial data.
-    """
-    team = Team.objects.create(name=f"{user.username}'s Team", owner=user)
-    TeamMember.objects.create(user=user, team=team, role='admin')
-    
-    # Seed default datapoints to render stunning reports out-of-the-box
-    DataPoint.objects.create(label='Organic Traffic', value=14.2, team=team)
-    DataPoint.objects.create(label='Web API', value=28.4, team=team)
-    DataPoint.objects.create(label='Social Media', value=8.9, team=team)
-    DataPoint.objects.create(label='Manual CSV', value=19.5, team=team)
-    DataPoint.objects.create(label='Integrations', value=22.1, team=team)
-    return team
 
 @login_required
 def dashboard_view(request):
     """
     Renders the main dashboard layout with dataset insights.
     """
-    # Fetch current logged-in user's team membership
-    membership = TeamMember.objects.filter(user=request.user).first()
-    if not membership:
-        team = create_team_for_user(request.user)
-    else:
-        team = membership.team
+    team, membership = get_or_create_user_team(request.user)
 
     # Calculate dataset statistics for the team
     from django.db.models import Sum, Avg, Max, Min
@@ -123,18 +104,19 @@ def signup_view(request):
 
     return render(request, 'Login_Signup/Sign_up.html', {'error': error})
 
+def logout_view(request):
+    """
+    Logs out the user and redirects to the login page.
+    """
+    auth_logout(request)
+    return redirect('login')
+
 @login_required
 def team_view(request):
     """
     Renders the team directory page with dynamic members list and invitation outbox.
     """
-    # Fetch current logged-in user's team membership
-    membership = TeamMember.objects.filter(user=request.user).first()
-    
-    if not membership:
-        team = create_team_for_user(request.user)
-    else:
-        team = membership.team
+    team, membership = get_or_create_user_team(request.user)
 
     # Security check: Determine if current user is admin/owner
     is_admin = (membership and membership.role == 'admin') or (team.owner == request.user)
@@ -170,7 +152,8 @@ def team_view(request):
                                 status='pending'
                             )
                             accept_url = request.build_absolute_uri(f"/team/accept/{invitation.token}/")
-                            messages.success(request, f"Invitation created for {email_input}! Link: {accept_url}")
+                            messages.success(request, f"Invitation created for {email_input}. Please share the link with them directly.")
+                            request.session['new_invite_url'] = accept_url
             
         elif action == 'remove_member':
             # Only admin can remove members
@@ -226,13 +209,16 @@ def team_view(request):
     # Query real pending invitations
     pending_invites = TeamInvitation.objects.filter(team=team, status='pending').order_by('-created_at')
 
+    # Retrieve the new invite URL if it exists
+    new_invite_url = request.session.pop('new_invite_url', None)
+
     context = {
         'members': members,
         'pending_invites': pending_invites,
         'is_admin': is_admin,
+        'new_invite_url': new_invite_url,
     }
     return render(request, 'Team/index.html', context)
-
 
 def accept_invite_view(request, token):
     """
@@ -277,12 +263,7 @@ def analytics_view(request):
     """
     Renders the analytics page with dynamic labels and values from the user's team dataset for Chart.js.
     """
-    # Fetch current logged-in user's team membership
-    membership = TeamMember.objects.filter(user=request.user).first()
-    if not membership:
-        team = create_team_for_user(request.user)
-    else:
-        team = membership.team
+    team, membership = get_or_create_user_team(request.user)
 
     # Fetch dataset records scoped strictly to the current team
     datapoints = DataPoint.objects.filter(team=team)
@@ -302,14 +283,8 @@ def datasets_view(request):
     """
     Renders the datasets page with dynamic dataset records belonging to the user's team.
     """
-    # Fetch current logged-in user's team membership
-    membership = TeamMember.objects.filter(user=request.user).first()
-    if not membership:
-        team = create_team_for_user(request.user)
-        is_admin = True
-    else:
-        team = membership.team
-        is_admin = (membership.role == 'admin') or (team.owner == request.user)
+    team, membership = get_or_create_user_team(request.user)
+    is_admin = (membership.role == 'admin') or (team.owner == request.user)
 
     # Form Submission Handling
     if request.method == 'POST':
@@ -339,57 +314,18 @@ def datasets_view(request):
                 messages.error(request, "Invalid file format. Please upload a valid CSV file.")
             else:
                 try:
-                    file_data = csv_file.read().decode('utf-8')
-                    csv_data = csv.reader(io.StringIO(file_data))
-                    
-                    csv_dataset = CSVDataset.objects.create(name=csv_file.name, team=team)
-                    
-                    datapoints_to_create = []
-                    count = 0
-                    skipped_count = 0
-                    for row in csv_data:
-                        if not row:
-                            continue
-                        
-                        label = row[0].strip()
-                        if not label:
-                            continue
-                        
-                        if len(row) > 1:
-                            val_str = row[1].strip()
-                            # Clean value: strip commas, symbols, text, and convert safely to float
-                            cleaned_val = ''.join(c for c in val_str if c.isdigit() or c == '.')
-                            if cleaned_val:
-                                try:
-                                    value = float(cleaned_val)
-                                    datapoints_to_create.append(DataPoint(
-                                        label=label, 
-                                        value=value, 
-                                        team=team, 
-                                        csv_file=csv_dataset
-                                    ))
-                                    count += 1
-                                except ValueError:
-                                    skipped_count += 1
-                            else:
-                                skipped_count += 1
-                        else:
-                            skipped_count += 1
-                    
-                    if datapoints_to_create:
-                        DataPoint.objects.bulk_create(datapoints_to_create)
-                    else:
-                        csv_dataset.delete()
-                    
-                    if count > 0:
-                        messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
-                        if skipped_count > 0:
-                            messages.warning(request, f"Skipped {skipped_count} row(s) containing invalid or non-numeric values.")
-                        return redirect(f"/datasets/?source={csv_dataset.id}")
-                    else:
-                        messages.error(request, "No valid data entries were found in the uploaded file.")
+                    file_data_str = csv_file.read().decode('utf-8')
+                    csv_dataset = CSVDataset.objects.create(
+                        name=csv_file.name,
+                        team=team,
+                        status='pending'
+                    )
+                    from .tasks import process_csv_upload
+                    process_csv_upload.delay(csv_dataset.id, file_data_str, team.id)
+                    messages.success(request, f"File '{csv_file.name}' uploaded successfully! Processing in the background...")
+                    return redirect(f"/datasets/?source={csv_dataset.id}")
                 except Exception as e:
-                    messages.error(request, f"Error parsing CSV: {str(e)}")
+                    messages.error(request, f"Error launching background task: {str(e)}")
 
         elif action == 'delete_dataset':
             if not is_admin:
@@ -411,10 +347,32 @@ def datasets_view(request):
                 csv_id = request.POST.get('csv_id')
                 if csv_id:
                     try:
-                        CSVDataset.objects.get(id=csv_id, team=team).delete()
-                        messages.success(request, "CSV dataset and all associated records deleted successfully.")
+                        csv_dataset = CSVDataset.objects.get(id=csv_id, team=team)
+                        csv_dataset.status = 'deleting'
+                        csv_dataset.save()
+                        
+                        from .tasks import process_csv_delete
+                        process_csv_delete.delay(csv_id, team.id)
+                        
+                        messages.success(request, "CSV dataset deletion started in the background.")
+                        
+                        # If the deleted dataset is currently selected, redirect to default manual view
+                        if request.GET.get('source') == str(csv_id):
+                            return redirect('datasets')
                     except CSVDataset.DoesNotExist:
                         pass
+
+        elif action == 'clear_data':
+            if not is_admin:
+                messages.error(request, "Only team admins can clear all data.")
+            else:
+                dp_count = DataPoint.objects.filter(team=team).delete()[0]
+                CSVDataset.objects.filter(team=team).delete()
+                
+                from .signals import broadcast_team_update
+                broadcast_team_update(team)
+                
+                messages.success(request, f"All team data cleared successfully ({dp_count} data points removed).")
                     
         query_params = request.GET.urlencode()
         if query_params:
@@ -422,15 +380,16 @@ def datasets_view(request):
         return redirect('datasets')
 
     # Fetch dataset records scoped strictly to the current team
-    csv_files = CSVDataset.objects.filter(team=team).order_by('-uploaded_at')
+    csv_files = CSVDataset.objects.filter(team=team).exclude(status='deleting').order_by('-uploaded_at')
     selected_source = request.GET.get('source', 'manual')
+    selected_csv = None
     
     if selected_source == 'manual':
         dataset = DataPoint.objects.filter(team=team, csv_file__isnull=True)
     else:
         try:
-            csv_dataset = CSVDataset.objects.get(id=selected_source, team=team)
-            dataset = DataPoint.objects.filter(team=team, csv_file=csv_dataset)
+            selected_csv = CSVDataset.objects.get(id=selected_source, team=team)
+            dataset = DataPoint.objects.filter(team=team, csv_file=selected_csv)
         except (CSVDataset.DoesNotExist, ValueError):
             dataset = DataPoint.objects.filter(team=team, csv_file__isnull=True)
             selected_source = 'manual'
@@ -449,6 +408,7 @@ def datasets_view(request):
         'is_admin': is_admin,
         'csv_files': csv_files,
         'selected_source': selected_source,
+        'selected_csv': selected_csv,
     }
     return render(request, 'Data_Sets/index.html', context)
 
@@ -457,4 +417,20 @@ def settings_view(request):
     """
     Renders the account settings page.
     """
+    # TODO: implement account settings (change password, update profile)
     return render(request, 'Settings/index.html')
+
+from django.http import JsonResponse
+
+@login_required
+def csv_status_view(request, csv_id):
+    team, membership = get_or_create_user_team(request.user)
+    try:
+        csv_dataset = CSVDataset.objects.get(id=csv_id, team=team)
+        return JsonResponse({
+            'status': csv_dataset.status,
+            'imported_count': csv_dataset.imported_count,
+            'skipped_count': csv_dataset.skipped_count,
+        })
+    except CSVDataset.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found'}, status=404)

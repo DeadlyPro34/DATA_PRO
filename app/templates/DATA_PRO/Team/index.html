@@ -65,6 +65,21 @@
 </div>
 {% endif %}
 
+{% if new_invite_url %}
+<div class="mb-8 glass-panel p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-slate-300 text-xs flex flex-col gap-2">
+    <div class="flex items-center gap-3">
+        <i class="fas fa-link text-indigo-400 text-sm"></i>
+        <p class="font-medium">Secure Invitation Link Generated:</p>
+    </div>
+    <div class="bg-black/25 p-3 rounded-xl border border-white/5 text-xs font-mono text-indigo-300 break-all select-all flex items-center justify-between gap-2 mt-1">
+        <span>{{ new_invite_url }}</span>
+        <button onclick="navigator.clipboard.writeText('{{ new_invite_url }}'); showToast('Link Copied', 'Invitation URL has been copied to your clipboard.')" type="button" class="text-slate-400 hover:text-white transition-colors px-2.5 py-1 bg-white/5 rounded border border-white/10 hover:bg-white/10" title="Copy Link">
+            <i class="fa-regular fa-copy mr-1"></i> Copy Link
+        </button>
+    </div>
+</div>
+{% endif %}
+
 <!-- Main Interactive Content Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
     

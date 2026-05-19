@@ -277,7 +277,7 @@
             if (lineCanvas.classList.contains('opacity-30') && {% if labels and values %}true{% else %}false{% endif %}) {
                 lineCanvas.classList.remove('opacity-30');
             }
-            new Chart(lineCanvas.getContext('2d'), {
+            window.myChart = new Chart(lineCanvas.getContext('2d'), {
                 type: 'line',
                 data: {
                     labels: chartLabels,

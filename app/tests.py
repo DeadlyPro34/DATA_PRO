@@ -1,8 +1,9 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth.models import User
-from app.models import Team, TeamMember, DataPoint, TeamInvitation
+from app.models import Team, TeamMember, DataPoint, TeamInvitation, CSVDataset
 import io
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class DatasetSystemTest(TestCase):
     def setUp(self):
         # Create standard test client
@@ -53,6 +54,18 @@ class DatasetSystemTest(TestCase):
         
         # Verify the invalid row was skipped
         self.assertFalse(new_datapoints.filter(label='Invalid Row').exists())
+
+    def test_clear_data_functionality(self):
+        # Verify datapoints exist (we have the 5 default seeds)
+        self.assertTrue(DataPoint.objects.filter(team=self.team).exists())
+        
+        # Post the clear_data action
+        response = self.client.post('/datasets/', {'action': 'clear_data'}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "All team data cleared successfully")
+        
+        # Verify no datapoints exist for this team
+        self.assertFalse(DataPoint.objects.filter(team=self.team).exists())
 
     def test_sorting_functionality(self):
         # Upload a few datapoints with known values
@@ -133,6 +146,21 @@ class DatasetSystemTest(TestCase):
         invite = TeamInvitation.objects.get(email='invitee@vortex.io', team=self.team)
         self.assertEqual(invite.status, 'pending')
         self.assertEqual(invite.role, 'member')
+
+        # Verify that new_invite_url is in context and secure message is set
+        self.assertIn('new_invite_url', response.context)
+        accept_url = f"http://testserver/team/accept/{invite.token}/"
+        self.assertEqual(response.context['new_invite_url'], accept_url)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), "Invitation created for invitee@vortex.io. Please share the link with them directly.")
+
+    def test_logout_view(self):
+        # User is authenticated
+        response = self.client.get('/logout/', follow=True)
+        self.assertRedirects(response, '/login/')
+        # Session should be cleared/empty
+        self.assertFalse('_auth_user_id' in self.client.session)
 
     def test_accept_invite_flow(self):
         # 1. Create a pending invite record
@@ -235,3 +263,51 @@ class DatasetSystemTest(TestCase):
         self.assertContains(response3, "Only team admins can delete data.")
         # Verify the data point is not deleted
         self.assertTrue(DataPoint.objects.filter(id=data_point.id).exists())
+
+    def test_csv_status_polling(self):
+        # Create a CSV dataset
+        csv_dataset = CSVDataset.objects.create(
+            name='test_poll.csv',
+            team=self.team,
+            status='processing',
+            imported_count=10,
+            skipped_count=2
+        )
+        response = self.client.get(f'/datasets/status/{csv_dataset.id}/')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'processing')
+        self.assertEqual(data['imported_count'], 10)
+        self.assertEqual(data['skipped_count'], 2)
+
+    def test_csv_delete_background(self):
+        # Create a CSV dataset
+        csv_dataset = CSVDataset.objects.create(name='test_delete.csv', team=self.team)
+        dp = DataPoint.objects.create(label='DeleteMe', value=12.3, team=self.team, csv_file=csv_dataset)
+        
+        post_data = {
+            'action': 'delete_csv',
+            'csv_id': csv_dataset.id
+        }
+        response = self.client.post('/datasets/', post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify the CSV dataset was deleted (since CELERY_TASK_ALWAYS_EAGER=True runs task synchronously)
+        self.assertFalse(CSVDataset.objects.filter(id=csv_dataset.id).exists())
+        self.assertFalse(DataPoint.objects.filter(id=dp.id).exists())
+
+
+class WebSocketSystemTest(TestCase):
+    def test_unauthenticated_websocket_connection_closes(self):
+        from channels.testing import WebsocketCommunicator
+        from data_pro_project.asgi import application
+        from asgiref.sync import async_to_sync
+
+        communicator = WebsocketCommunicator(application, "/ws/dashboard/")
+        connected, subprotocol = async_to_sync(communicator.connect)()
+        self.assertFalse(connected)
+        try:
+            async_to_sync(communicator.disconnect)()
+        except BaseException:
+            pass
+

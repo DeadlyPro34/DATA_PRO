@@ -39,14 +39,22 @@ ALLOWED_HOSTS = os.environ.get(
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
+    'django_celery_results',
     'app',
 ]
+
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -80,6 +88,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'data_pro_project.wsgi.application'
+ASGI_APPLICATION = 'data_pro_project.asgi.application'
 
 
 # Database
@@ -150,4 +159,20 @@ else:
     }
 
 LOGIN_URL = 'login'
+
+import sys
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer' if 'test' in sys.argv else 'channels_redis.core.RedisChannelLayer',
+        'config': {
+            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        } if 'test' not in sys.argv else {},
+    },
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
 
