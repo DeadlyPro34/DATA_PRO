@@ -1,291 +1,207 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Sets | Vortex UI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1e293b, #0f172a, #020617);
-            min-height: 100vh;
-            color: #f8fafc;
-            overflow-x: hidden;
-        }
+{% extends "Layout/base.html" %}
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
+{% block title %}Data Sets | Vortex UI{% endblock %}
 
-        .glass-sidebar {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
+{% block extra_head %}
+<style>
+    .drop-zone {
+        border: 2px dashed rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
+    }
 
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 3px solid #6366f1;
-        }
+    .drop-zone:hover {
+        border-color: #818cf8;
+        background: rgba(99, 102, 241, 0.05);
+    }
 
-        .nav-link.active {
-            background: rgba(99, 102, 241, 0.15);
-            border-left: 3px solid #6366f1;
-            color: #818cf8;
-        }
+    .table-row-hover:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+</style>
+{% endblock %}
 
-        .drop-zone {
-            border: 2px dashed rgba(99, 102, 241, 0.3);
-            transition: all 0.3s ease;
-        }
+{% block sidebar %}
+    {% include "Layout/sidebar.html" with active_page="datasets" %}
+{% endblock %}
 
-        .drop-zone:hover {
-            border-color: #818cf8;
-            background: rgba(99, 102, 241, 0.05);
-        }
+{% block header_title %}
+<div class="flex items-center gap-2 mb-1">
+    <a href="#" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Workspace</a>
+    <i class="fas fa-chevron-right text-[10px] text-slate-600"></i>
+    <span class="text-xs text-slate-500">Data Sets</span>
+</div>
+<h1 class="text-2xl font-bold tracking-tight">Manage Data Sets</h1>
+{% endblock %}
 
-        .table-row-hover:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
+{% block header_actions %}
+<button class="bg-white/5 hover:bg-white/10 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10">
+    <i class="fas fa-download"></i>
+    <span>Export All</span>
+</button>
+<button class="bg-indigo-600 hover:bg-indigo-500 transition-colors text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+    <i class="fas fa-plus"></i>
+    <span>Create Set</span>
+</button>
+{% endblock %}
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-    </style>
-</head>
-<body class="antialiased">
+{% block header_profile %}{% endblock %}
 
-    <div class="flex min-h-screen relative overflow-hidden">
-        
-        <!-- Decorative Background Blobs -->
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] -z-10"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] -z-10"></div>
+{% block content %}
+<section class="mb-10">
+    <div class="glass-panel p-8 rounded-[32px] border border-white/10">
+        <div class="flex flex-col items-center justify-center text-center py-6 drop-zone rounded-[24px] cursor-pointer">
+            <div class="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-cloud-upload-alt text-2xl text-indigo-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-1">Upload New Data Set</h3>
+            <p class="text-sm text-slate-400 mb-6">Drag and drop your CSV or Excel files here, or click to browse.</p>
+            
+            <div class="flex items-center gap-4">
+                <button class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 px-6 py-2 rounded-lg text-sm font-semibold transition-all border border-indigo-500/30">
+                    Select File
+                </button>
+                <span class="text-xs text-slate-500 font-medium">Max size: 50MB</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 glass-sidebar hidden md:flex flex-col fixed h-full z-20">
-            <div class="p-8">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/50">
-                        <i class="fas fa-cube text-white text-xl"></i>
-                    </div>
-                    <span class="text-xl font-bold tracking-tight">Vortex<span class="text-indigo-400">UI</span></span>
+<section>
+    <div class="glass-panel rounded-[32px] border border-white/10 overflow-hidden">
+        <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+            <h2 class="font-bold">Active Data Sets</h2>
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" placeholder="Filter tables..." class="bg-black/20 border border-white/5 py-1.5 pl-8 pr-4 rounded-lg text-xs outline-none focus:border-indigo-500/50 w-48">
                 </div>
             </div>
+        </div>
 
-            <nav class="flex-1 px-4 space-y-2 mt-4">
-                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
-                    <i class="fas fa-th-large w-5"></i>
-                    <span class="font-medium text-sm">Dashboard</span>
-                </a>
-                <a href="#" class="nav-link active flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
-                    <i class="fas fa-database w-5"></i>
-                    <span class="font-medium text-sm">Data Sets</span>
-                </a>
-                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
-                    <i class="fas fa-chart-line w-5"></i>
-                    <span class="font-medium text-sm">Analytics</span>
-                </a>
-                <!-- Added "Team" navigation item below to match your reference image -->
-                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
-                    <i class="fas fa-users w-5"></i>
-                    <span class="font-medium text-sm">Team</span>
-                </a>
-                <a href="#" class="nav-link text-slate-400 flex items-center gap-4 py-3 px-4 rounded-r-lg transition-all">
-                    <i class="fas fa-cog w-5"></i>
-                    <span class="font-medium text-sm">Settings</span>
-                </a>
-            </nav>
-        </aside>
-
-        <main class="flex-1 md:ml-64 p-4 md:p-8">
-            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <a href="#" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Workspace</a>
-                        <i class="fas fa-chevron-right text-[10px] text-slate-600"></i>
-                        <span class="text-xs text-slate-500">Data Sets</span>
-                    </div>
-                    <h1 class="text-2xl font-bold tracking-tight">Manage Data Sets</h1>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                    <button class="bg-white/5 hover:bg-white/10 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10">
-                        <i class="fas fa-download"></i>
-                        <span>Export All</span>
-                    </button>
-                    <button class="bg-indigo-600 hover:bg-indigo-500 transition-colors text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 flex items-center gap-2">
-                        <i class="fas fa-plus"></i>
-                        <span>Create Set</span>
-                    </button>
-                </div>
-            </header>
-
-            <section class="mb-10">
-                <div class="glass-panel p-8 rounded-[32px] border border-white/10">
-                    <div class="flex flex-col items-center justify-center text-center py-6 drop-zone rounded-[24px] cursor-pointer">
-                        <div class="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4">
-                            <i class="fas fa-cloud-upload-alt text-2xl text-indigo-400"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold mb-1">Upload New Data Set</h3>
-                        <p class="text-sm text-slate-400 mb-6">Drag and drop your CSV or Excel files here, or click to browse.</p>
-                        
-                        <div class="flex items-center gap-4">
-                            <button class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 px-6 py-2 rounded-lg text-sm font-semibold transition-all border border-indigo-500/30">
-                                Select File
-                            </button>
-                            <span class="text-xs text-slate-500 font-medium">Max size: 50MB</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <div class="glass-panel rounded-[32px] border border-white/10 overflow-hidden">
-                    <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-                        <h2 class="font-bold">Active Data Sets</h2>
-                        <div class="flex items-center gap-2">
-                            <div class="relative">
-                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                                <input type="text" placeholder="Filter tables..." class="bg-black/20 border border-white/5 py-1.5 pl-8 pr-4 rounded-lg text-xs outline-none focus:border-indigo-500/50 w-48">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[11px] uppercase tracking-wider text-slate-500 border-b border-white/5">
+                        <th class="px-6 py-4 font-bold">Data Set Label</th>
+                        <th class="px-6 py-4 font-bold">Records</th>
+                        <th class="px-6 py-4 font-bold">Status</th>
+                        <th class="px-6 py-4 font-bold">Last Updated</th>
+                        <th class="px-6 py-4 font-bold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <!-- Table Row 1 -->
+                    <tr class="table-row-hover border-b border-white/5 transition-colors">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-csv text-blue-400 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Q4_Marketing_Metrics.csv</p>
+                                    <p class="text-[10px] text-slate-500 italic">Financial Data</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </td>
+                        <td class="px-6 py-5 font-mono text-xs text-slate-400">12,840 rows</td>
+                        <td class="px-6 py-5">
+                            <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase">Ready</span>
+                        </td>
+                        <td class="px-6 py-5 text-slate-400 text-xs">Oct 24, 2023</td>
+                        <td class="px-6 py-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center" title="Edit">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center" title="Delete">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="text-[11px] uppercase tracking-wider text-slate-500 border-b border-white/5">
-                                    <th class="px-6 py-4 font-bold">Data Set Label</th>
-                                    <th class="px-6 py-4 font-bold">Records</th>
-                                    <th class="px-6 py-4 font-bold">Status</th>
-                                    <th class="px-6 py-4 font-bold">Last Updated</th>
-                                    <th class="px-6 py-4 font-bold text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                <!-- Table Row 1 -->
-                                <tr class="table-row-hover border-b border-white/5 transition-colors">
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-file-csv text-blue-400 text-xs"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-slate-200">Q4_Marketing_Metrics.csv</p>
-                                                <p class="text-[10px] text-slate-500 italic">Financial Data</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-5 font-mono text-xs text-slate-400">12,840 rows</td>
-                                    <td class="px-6 py-5">
-                                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase">Ready</span>
-                                    </td>
-                                    <td class="px-6 py-5 text-slate-400 text-xs">Oct 24, 2023</td>
-                                    <td class="px-6 py-5 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center" title="Edit">
-                                                <i class="fas fa-edit text-xs"></i>
-                                            </button>
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center" title="Delete">
-                                                <i class="fas fa-trash-alt text-xs"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                    <!-- Table Row 2 -->
+                    <tr class="table-row-hover border-b border-white/5 transition-colors">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-purple-400 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-200">User_Behavior_Logs</p>
+                                    <p class="text-[10px] text-slate-500 italic">User Analytics</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-mono text-xs text-slate-400">84,201 rows</td>
+                        <td class="px-6 py-5">
+                            <span class="px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase">Processing</span>
+                        </td>
+                        <td class="px-6 py-5 text-slate-400 text-xs">2 hours ago</td>
+                        <td class="px-6 py-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
 
-                                <!-- Table Row 2 -->
-                                <tr class="table-row-hover border-b border-white/5 transition-colors">
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-users text-purple-400 text-xs"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-slate-200">User_Behavior_Logs</p>
-                                                <p class="text-[10px] text-slate-500 italic">User Analytics</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-5 font-mono text-xs text-slate-400">84,201 rows</td>
-                                    <td class="px-6 py-5">
-                                        <span class="px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase">Processing</span>
-                                    </td>
-                                    <td class="px-6 py-5 text-slate-400 text-xs">2 hours ago</td>
-                                    <td class="px-6 py-5 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center">
-                                                <i class="fas fa-edit text-xs"></i>
-                                            </button>
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center">
-                                                <i class="fas fa-trash-alt text-xs"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <!-- Table Row 3 -->
-                                <tr class="table-row-hover border-b border-white/5 transition-colors">
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-exclamation-triangle text-amber-400 text-xs"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-semibold text-slate-200">Incomplete_Sales_Data</p>
-                                                <p class="text-[10px] text-slate-500 italic">Archive</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-5 font-mono text-xs text-slate-400">240 rows</td>
-                                    <td class="px-6 py-5">
-                                        <span class="px-2 py-1 rounded-md bg-rose-500/10 text-rose-400 text-[10px] font-bold uppercase">Error</span>
-                                    </td>
-                                    <td class="px-6 py-5 text-slate-400 text-xs">Oct 20, 2023</td>
-                                    <td class="px-6 py-5 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center">
-                                                <i class="fas fa-edit text-xs"></i>
-                                            </button>
-                                            <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center">
-                                                <i class="fas fa-trash-alt text-xs"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="p-6 flex items-center justify-between text-xs text-slate-500 border-t border-white/5 bg-black/10">
-                        <p>Showing 3 of 12 data sets</p>
-                        <div class="flex items-center gap-2">
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-50" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">1</button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5">2</button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <footer class="mt-8 pt-8 border-t border-white/5 text-center text-slate-500 text-xs">
-                <p>&copy; 2024 Vortex Systems. All uploads are scanned for security.</p>
-            </footer>
-        </main>
+                    <!-- Table Row 3 -->
+                    <tr class="table-row-hover border-b border-white/5 transition-colors">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-amber-400 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Incomplete_Sales_Data</p>
+                                    <p class="text-[10px] text-slate-500 italic">Archive</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-mono text-xs text-slate-400">240 rows</td>
+                        <td class="px-6 py-5">
+                            <span class="px-2 py-1 rounded-md bg-rose-500/10 text-rose-400 text-[10px] font-bold uppercase">Error</span>
+                        </td>
+                        <td class="px-6 py-5 text-slate-400 text-xs">Oct 20, 2023</td>
+                        <td class="px-6 py-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all flex items-center justify-center">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all flex items-center justify-center">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="p-6 flex items-center justify-between text-xs text-slate-500 border-t border-white/5 bg-black/10">
+            <p>Showing 3 of 12 data sets</p>
+            <div class="flex items-center gap-2">
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-50" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5">2</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 hover:bg-white/5">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
+</section>
+{% endblock %}
 
-</body>
-</html>
+{% block footer %}
+<footer class="mt-8 pt-8 border-t border-white/5 text-center text-slate-500 text-xs">
+    <p>&copy; 2024 Vortex Systems. All uploads are scanned for security.</p>
+</footer>
+{% endblock %}
