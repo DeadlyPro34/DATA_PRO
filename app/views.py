@@ -207,6 +207,9 @@ def team_view(request):
     # Query all members of the user's team
     team_members = TeamMember.objects.filter(team=team).select_related('user')
     
+    # Calculate dataset count once outside the loop to optimize database access (N+1 query fix)
+    datasets_count = DataPoint.objects.filter(team=team).count()
+    
     members = []
     for m in team_members:
         status = 'online' if m.user.is_active else 'offline'
@@ -216,7 +219,7 @@ def team_view(request):
             'role': m.role.capitalize(),
             'status': status,
             'activeNode': 'US-EAST-1' if m.role == 'admin' else 'EU-CENTRAL-1',
-            'datasets': DataPoint.objects.filter(team=team).count(),
+            'datasets': datasets_count,
             'avatar': None
         })
 
@@ -339,6 +342,7 @@ def datasets_view(request):
                     file_data = csv_file.read().decode('utf-8')
                     csv_data = csv.reader(io.StringIO(file_data))
                     
+                    datapoints_to_create = []
                     count = 0
                     skipped_count = 0
                     for row in csv_data:
@@ -356,7 +360,7 @@ def datasets_view(request):
                             if cleaned_val:
                                 try:
                                     value = float(cleaned_val)
-                                    DataPoint.objects.create(label=label, value=value, team=team)
+                                    datapoints_to_create.append(DataPoint(label=label, value=value, team=team))
                                     count += 1
                                 except ValueError:
                                     skipped_count += 1
@@ -364,6 +368,9 @@ def datasets_view(request):
                                 skipped_count += 1
                         else:
                             skipped_count += 1
+                    
+                    if datapoints_to_create:
+                        DataPoint.objects.bulk_create(datapoints_to_create)
                     
                     if count > 0:
                         messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
