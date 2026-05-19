@@ -111,6 +111,8 @@
         <!-- Line Chart Canvas & SVG overlay mock up -->
         <div class="relative h-[280px] w-full bg-black/20 rounded-[20px] overflow-hidden p-4 border border-white/5">
             <canvas id="lineChart" class="absolute inset-0 w-full h-full opacity-30"></canvas>
+            
+            {% if not labels or not values %}
             <!-- Premium Visual Chart overlay (SVG path for perfect clean graphics) -->
             <svg class="absolute inset-0 w-full h-full" viewBox="0 0 600 280" preserveAspectRatio="none">
                 <defs>
@@ -138,6 +140,7 @@
             <div class="absolute top-[35px] left-[340px] glass-panel bg-slate-900/90 border border-indigo-500/30 px-2.5 py-1.5 rounded-lg text-xs pointer-events-none">
                 <span class="text-slate-400 font-medium">Load:</span> <span class="font-bold text-indigo-400">142,391 r/s</span>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -151,6 +154,8 @@
         <!-- Donut Chart Container -->
         <div class="relative h-[200px] flex items-center justify-center my-4">
             <canvas id="donutChart" class="absolute inset-0 w-full h-full opacity-20"></canvas>
+            
+            {% if not labels or not values %}
             <!-- Visual SVG Circular Chart -->
             <svg class="w-40 h-40 transform -rotate-90">
                 <circle cx="80" cy="80" r="60" fill="transparent" stroke="rgba(255,255,255,0.05)" stroke-width="16" />
@@ -165,6 +170,7 @@
                 <span class="text-2xl font-bold tracking-tight text-white">84%</span>
                 <p class="text-[9px] text-slate-500 uppercase font-semibold">Allocated</p>
             </div>
+            {% endif %}
         </div>
 
         <div class="space-y-2">
@@ -172,19 +178,19 @@
                 <span class="flex items-center gap-2 text-slate-400">
                     <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Database Storage
                 </span>
-                <span class="font-semibold text-slate-200">65%</span>
+                <span class="font-semibold text-slate-200">{% if values %}{{ values.0 }}%{% else %}65%{% endif %}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
                 <span class="flex items-center gap-2 text-slate-400">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Cloud Archives
                 </span>
-                <span class="font-semibold text-slate-200">22%</span>
+                <span class="font-semibold text-slate-200">{% if values %}{{ values.1 }}%{% else %}22%{% endif %}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
                 <span class="flex items-center gap-2 text-slate-400">
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Cached Nodes
                 </span>
-                <span class="font-semibold text-slate-200">13%</span>
+                <span class="font-semibold text-slate-200">{% if values %}{{ values.2 }}%{% else %}13%{% endif %}</span>
             </div>
         </div>
     </div>
@@ -209,6 +215,8 @@
         <!-- Bar Chart Canvas and SVG layout -->
         <div class="relative h-[220px] bg-black/20 rounded-[20px] overflow-hidden p-6 border border-white/5">
             <canvas id="barChart" class="absolute inset-0 w-full h-full opacity-10"></canvas>
+            
+            {% if not labels or not values %}
             <!-- SVG Bar Graph Overlay -->
             <div class="absolute inset-x-6 bottom-4 top-4 flex items-end justify-between gap-4 md:gap-8">
                 <!-- Bar 1 -->
@@ -242,6 +250,7 @@
                     <span class="text-xs text-slate-400 font-medium">Integrations</span>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -251,4 +260,125 @@
 <footer class="mt-8 pt-8 border-t border-white/5 text-center text-slate-500 text-xs">
     <p>&copy; 2024 Vortex Systems. All data signals are protected with SHA-256 end-to-end encryption.</p>
 </footer>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library and Dynamic Setup -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Read dynamic context variables with fallbacks to preserve visual UI
+        const chartLabels = {% if labels %}{{ labels|safe }}{% else %}['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']{% endif %};
+        const chartValues = {% if values %}{{ values|safe }}{% else %}[120, 150, 180, 140, 160, 210, 170]{% endif %};
+
+        // 1. Line Chart
+        const lineCanvas = document.getElementById('lineChart');
+        if (lineCanvas) {
+            if (lineCanvas.classList.contains('opacity-30') && {% if labels and values %}true{% else %}false{% endif %}) {
+                lineCanvas.classList.remove('opacity-30');
+            }
+            new Chart(lineCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Throughput',
+                        data: chartValues,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#818cf8',
+                        pointBorderColor: '#ffffff',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Donut Chart
+        const donutCanvas = document.getElementById('donutChart');
+        if (donutCanvas) {
+            if (donutCanvas.classList.contains('opacity-20') && {% if labels and values %}true{% else %}false{% endif %}) {
+                donutCanvas.classList.remove('opacity-20');
+            }
+            new Chart(donutCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels.slice(0, 3),
+                    datasets: [{
+                        data: chartValues.slice(0, 3),
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // 3. Bar Chart
+        const barCanvas = document.getElementById('barChart');
+        if (barCanvas) {
+            if (barCanvas.classList.contains('opacity-10') && {% if labels and values %}true{% else %}false{% endif %}) {
+                barCanvas.classList.remove('opacity-10');
+            }
+            new Chart(barCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Acquisition',
+                        data: chartValues,
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
