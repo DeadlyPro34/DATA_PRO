@@ -2,7 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Team, TeamMember, DataPoint
+import csv
+import io
 
 def create_team_for_user(user):
     """
@@ -227,13 +230,51 @@ def datasets_view(request):
             
             if label:
                 DataPoint.objects.create(label=label, value=value, team=team)
+                messages.success(request, f"Successfully created data entry '{label}'.")
                 
+        elif action == 'upload_csv':
+            csv_file = request.FILES.get('csv_file')
+            if not csv_file:
+                messages.error(request, "No file uploaded.")
+            elif not csv_file.name.endswith('.csv'):
+                messages.error(request, "Invalid file format. Please upload a valid CSV file.")
+            else:
+                try:
+                    file_data = csv_file.read().decode('utf-8')
+                    csv_data = csv.reader(io.StringIO(file_data))
+                    
+                    count = 0
+                    for row in csv_data:
+                        if not row:
+                            continue
+                        
+                        label = row[0].strip()
+                        if not label:
+                            continue
+                        
+                        value = 0.0
+                        if len(row) > 1:
+                            val_str = row[1].strip()
+                            cleaned_val = ''.join(c for c in val_str if c.isdigit() or c == '.')
+                            try:
+                                value = float(cleaned_val)
+                            except ValueError:
+                                value = 0.0
+                                
+                        DataPoint.objects.create(label=label, value=value, team=team)
+                        count += 1
+                    
+                    messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
+                except Exception as e:
+                    messages.error(request, f"Error parsing CSV: {str(e)}")
+
         elif action == 'delete_dataset':
             dataset_id = request.POST.get('dataset_id')
             if dataset_id:
                 try:
                     # Guarantee isolation: only allow deleting points within the user's team
                     DataPoint.objects.get(id=dataset_id, team=team).delete()
+                    messages.success(request, "Data entry deleted.")
                 except DataPoint.DoesNotExist:
                     pass
                     
