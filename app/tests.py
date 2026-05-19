@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from app.models import Team, TeamMember, DataPoint
+from app.models import Team, TeamMember, DataPoint, TeamInvitation
 import io
 
 class DatasetSystemTest(TestCase):
@@ -117,3 +117,82 @@ class DatasetSystemTest(TestCase):
         self.assertEqual(response.context['average'], 19.14)
         self.assertEqual(response.context['max_value'], 30.0)
         self.assertEqual(response.context['min_value'], 8.9)
+
+    def test_invite_member_flow(self):
+        # 1. Admin invites standard email
+        invite_data = {
+            'action': 'invite_member',
+            'email': 'invitee@vortex.io',
+            'role': 'member'
+        }
+        # Client currently authenticated as admin 'test_user'
+        response = self.client.post('/team/', invite_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify invitation created in database
+        invite = TeamInvitation.objects.get(email='invitee@vortex.io', team=self.team)
+        self.assertEqual(invite.status, 'pending')
+        self.assertEqual(invite.role, 'member')
+
+    def test_accept_invite_flow(self):
+        # 1. Create a pending invite record
+        invitation = TeamInvitation.objects.create(
+            email='accept_test@vortex.io',
+            team=self.team,
+            role='member',
+            status='pending'
+        )
+        
+        # 2. Click acceptance link logged out
+        self.client.logout()
+        response_logout = self.client.get(f'/team/accept/{invitation.token}/')
+        # Should redirect to login and set session variable
+        self.assertRedirects(response_logout, '/login/')
+        self.assertEqual(self.client.session.get('invite_token'), str(invitation.token))
+        
+        # 3. Log in as a new user to accept the invite
+        new_user = User.objects.create_user(username='new_member', email='accept_test@vortex.io', password='Password123')
+        login_data = {
+            'username': 'new_member',
+            'password': 'Password123'
+        }
+        # Simulate session variables being persisted by making client login and redirecting
+        session = self.client.session
+        session['invite_token'] = str(invitation.token)
+        session.save()
+        
+        response_login = self.client.post('/login/', login_data)
+        # Should redirect to accept invite view
+        self.assertRedirects(response_login, f'/team/accept/{invitation.token}/', target_status_code=302)
+        
+        # 4. Visit the accept URL (with user logged in)
+        response_accept = self.client.get(f'/team/accept/{invitation.token}/')
+        # Should redirect to dashboard
+        self.assertRedirects(response_accept, '/')
+        
+        # 5. Verify TeamMember record created
+        self.assertTrue(TeamMember.objects.filter(team=self.team, user=new_user, role='member').exists())
+        
+        # 6. Verify invitation status accepted
+        invitation.refresh_from_db()
+        self.assertEqual(invitation.status, 'accepted')
+
+    def test_revoke_invite_flow(self):
+        # 1. Create a pending invite record
+        invitation = TeamInvitation.objects.create(
+            email='revoke_test@vortex.io',
+            team=self.team,
+            role='member',
+            status='pending'
+        )
+        
+        # 2. Revoke invitation
+        post_data = {
+            'action': 'cancel_invite',
+            'invite_id': invitation.id
+        }
+        response = self.client.post('/team/', post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # 3. Verify invitation record is deleted
+        self.assertFalse(TeamInvitation.objects.filter(id=invitation.id).exists())

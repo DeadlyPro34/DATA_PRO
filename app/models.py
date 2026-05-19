@@ -28,3 +28,24 @@ class DataPoint(models.Model):
     def __str__(self):
         return f"{self.label}: {self.value} ({self.team.name})"
 
+import uuid
+
+class TeamInvitation(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+    )
+    ROLE_CHOICES = (
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+    )
+    email = models.EmailField()
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='invitations')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invite for {self.email} to {self.team.name} ({self.status})"
+

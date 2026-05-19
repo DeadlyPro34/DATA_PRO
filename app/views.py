@@ -3,7 +3,7 @@ from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Team, TeamMember, DataPoint
+from .models import Team, TeamMember, DataPoint, TeamInvitation
 import csv
 import io
 
@@ -72,6 +72,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password_input)
         if user is not None:
             auth_login(request, user)
+            # Check for invitation token in session
+            invite_token = request.session.pop('invite_token', None)
+            if invite_token:
+                return redirect('accept_invite', token=invite_token)
             return redirect('dashboard')
         else:
             error = "Invalid business email or password. Please try again."
@@ -109,6 +113,10 @@ def signup_view(request):
                 
                 # Auto log-in after registration
                 auth_login(request, user)
+                # Check for invitation token in session
+                invite_token = request.session.pop('invite_token', None)
+                if invite_token:
+                    return redirect('accept_invite', token=invite_token)
                 return redirect('dashboard')
             except Exception as e:
                 error = f"An error occurred during account creation: {str(e)}"
@@ -118,7 +126,7 @@ def signup_view(request):
 @login_required
 def team_view(request):
     """
-    Renders the team directory page with dynamic members list from the database.
+    Renders the team directory page with dynamic members list and invitation outbox.
     """
     # Fetch current logged-in user's team membership
     membership = TeamMember.objects.filter(user=request.user).first()
@@ -128,75 +136,138 @@ def team_view(request):
     else:
         team = membership.team
 
-    # Handle Team operations (adding / removing members)
+    # Security check: Determine if current user is admin/owner
+    is_admin = (membership and membership.role == 'admin') or (team.owner == request.user)
+
+    # Handle Team operations (adding / removing members, revoking invites)
     if request.method == 'POST':
         action = request.POST.get('action')
         
         if action == 'invite_member':
-            email_input = request.POST.get('email', '').strip()
-            role_input = request.POST.get('role', 'member').lower()
-            
-            if email_input:
-                try:
-                    invited_user = User.objects.get(email=email_input)
-                    # Check if user is already in the team
-                    if not TeamMember.objects.filter(team=team, user=invited_user).exists():
-                        TeamMember.objects.create(user=invited_user, team=team, role=role_input)
-                except User.DoesNotExist:
-                    # For interactive demo purposes, if invited email doesn't exist in system yet,
-                    # we create a stub user so the member directory grows instantly!
-                    username_stub = email_input.split('@')[0]
-                    # Ensure username is unique
-                    suffix = 1
-                    base_username = username_stub
-                    while User.objects.filter(username=username_stub).exists():
-                        username_stub = f"{base_username}{suffix}"
-                        suffix += 1
-                    
-                    new_user = User.objects.create_user(username=username_stub, email=email_input, password='Password123')
-                    TeamMember.objects.create(user=new_user, team=team, role=role_input)
+            if not is_admin:
+                messages.error(request, "Only team admins can invite new members.")
+            else:
+                email_input = request.POST.get('email', '').strip()
+                role_input = request.POST.get('role', 'member').lower()
+                if role_input not in ['admin', 'member']:
+                    role_input = 'member'
+                
+                if email_input:
+                    # Check if user is already a member
+                    already_member = TeamMember.objects.filter(team=team, user__email=email_input).exists()
+                    if already_member:
+                        messages.error(request, f"User with email '{email_input}' is already in this team.")
+                    else:
+                        # Check if a pending invite exists
+                        existing_invite = TeamInvitation.objects.filter(team=team, email=email_input, status='pending').first()
+                        if existing_invite:
+                            messages.info(request, f"A pending invitation for '{email_input}' already exists.")
+                        else:
+                            invitation = TeamInvitation.objects.create(
+                                email=email_input,
+                                team=team,
+                                role=role_input,
+                                status='pending'
+                            )
+                            accept_url = request.build_absolute_uri(f"/team/accept/{invitation.token}/")
+                            messages.success(request, f"Invitation created for {email_input}! Link: {accept_url}")
             
         elif action == 'remove_member':
-            member_id = request.POST.get('member_id')
-            if member_id:
-                try:
-                    member_to_remove = TeamMember.objects.get(id=member_id, team=team)
-                    # Prevent owners from removing themselves
-                    if member_to_remove.user != request.user:
-                        member_to_remove.delete()
-                except TeamMember.DoesNotExist:
-                    pass
+            # Only admin can remove members
+            if not is_admin:
+                messages.error(request, "Only team admins can remove members.")
+            else:
+                member_id = request.POST.get('member_id')
+                if member_id:
+                    try:
+                        member_to_remove = TeamMember.objects.get(id=member_id, team=team)
+                        # Prevent owners from removing themselves
+                        if member_to_remove.user != request.user:
+                            member_to_remove.delete()
+                            messages.success(request, f"Removed member '{member_to_remove.user.username}' from the team.")
+                        else:
+                            messages.error(request, "You cannot remove yourself from your owned team.")
+                    except TeamMember.DoesNotExist:
+                        pass
+        
+        elif action == 'cancel_invite':
+            if not is_admin:
+                messages.error(request, "Only team admins can revoke invitations.")
+            else:
+                invite_id = request.POST.get('invite_id')
+                if invite_id:
+                    try:
+                        TeamInvitation.objects.get(id=invite_id, team=team, status='pending').delete()
+                        messages.success(request, "Invitation revoked.")
+                    except TeamInvitation.DoesNotExist:
+                        pass
         
         return redirect('team')
 
     # Query all members of the user's team
     team_members = TeamMember.objects.filter(team=team).select_related('user')
     
-    # Format members matching what template expects
     members = []
     for m in team_members:
         status = 'online' if m.user.is_active else 'offline'
         members.append({
             'id': m.id,
             'username': m.user.username,
-            'role': m.role.capitalize(), # 'admin' -> 'Admin', 'member' -> 'Member'
+            'role': m.role.capitalize(),
             'status': status,
             'activeNode': 'US-EAST-1' if m.role == 'admin' else 'EU-CENTRAL-1',
-            'datasets': 14 if m.role == 'admin' else 8,
+            'datasets': DataPoint.objects.filter(team=team).count(),
             'avatar': None
         })
 
-    # Stub pending invites for dashboard view
-    pending_invites = [
-        {'id': 101, 'email': 'thomas.shelby@vortex.io', 'role': 'Member', 'status': 'Pending', 'date_sent': '2 hours ago'},
-        {'id': 102, 'email': 'aria.montgomery@vortex.io', 'role': 'Admin', 'status': 'Pending', 'date_sent': 'Yesterday'}
-    ]
+    # Query real pending invitations
+    pending_invites = TeamInvitation.objects.filter(team=team, status='pending').order_by('-created_at')
 
     context = {
         'members': members,
         'pending_invites': pending_invites,
+        'is_admin': is_admin,
     }
     return render(request, 'Team/index.html', context)
+
+
+def accept_invite_view(request, token):
+    """
+    Validates the invitation token and joins the user to the team.
+    """
+    try:
+        invitation = TeamInvitation.objects.get(token=token, status='pending')
+    except (TeamInvitation.DoesNotExist, ValueError):
+        messages.error(request, "Invalid or expired invitation token.")
+        return redirect('dashboard')
+
+    # If user is not logged in, save invite token in session and redirect to login
+    if not request.user.is_authenticated:
+        request.session['invite_token'] = str(token)
+        messages.info(request, "Please log in or sign up to accept the invitation.")
+        return redirect('login')
+
+    # Guard against user joining their own team or duplicate memberships
+    already_member = TeamMember.objects.filter(team=invitation.team, user=request.user).exists()
+    if already_member:
+        invitation.status = 'accepted'
+        invitation.save()
+        messages.info(request, f"You are already a member of team '{invitation.team.name}'.")
+        return redirect('dashboard')
+
+    # Create new TeamMember record
+    TeamMember.objects.create(
+        user=request.user,
+        team=invitation.team,
+        role=invitation.role
+    )
+    
+    # Mark invite as accepted
+    invitation.status = 'accepted'
+    invitation.save()
+
+    messages.success(request, f"Successfully joined team '{invitation.team.name}' as {invitation.role.capitalize()}!")
+    return redirect('dashboard')
 
 @login_required
 def analytics_view(request):
