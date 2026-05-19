@@ -203,11 +203,11 @@
                 <p class="text-xs text-slate-500 italic">Monthly customer data import sources</p>
             </div>
             <div class="flex gap-1.5">
-                <button class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 text-xs flex items-center justify-center">
+                <button id="toggle-bar" onclick="changeChartType('bar')" class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 text-xs flex items-center justify-center transition-all" title="Bar Chart View">
                     <i class="fas fa-chart-column"></i>
                 </button>
-                <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 text-xs flex items-center justify-center">
-                    <i class="fas fa-list"></i>
+                <button id="toggle-pie" onclick="changeChartType('pie')" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-indigo-400 text-xs flex items-center justify-center transition-all" title="Pie Chart View">
+                    <i class="fas fa-chart-pie"></i>
                 </button>
             </div>
         </div>
@@ -343,11 +343,12 @@
 
         // 3. Bar Chart
         const barCanvas = document.getElementById('barChart');
+        let activeChart;
         if (barCanvas) {
             if (barCanvas.classList.contains('opacity-10') && {% if labels and values %}true{% else %}false{% endif %}) {
                 barCanvas.classList.remove('opacity-10');
             }
-            new Chart(barCanvas.getContext('2d'), {
+            activeChart = new Chart(barCanvas.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: chartLabels,
@@ -379,6 +380,40 @@
                 }
             });
         }
+
+        window.changeChartType = function(type) {
+            if (!activeChart) return;
+            const btnBar = document.getElementById('toggle-bar');
+            const btnPie = document.getElementById('toggle-pie');
+            if (type === 'bar') {
+                btnBar.className = 'w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 text-xs flex items-center justify-center transition-all';
+                btnPie.className = 'w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-indigo-400 text-xs flex items-center justify-center transition-all';
+                
+                activeChart.config.type = 'bar';
+                activeChart.config.data.datasets[0].backgroundColor = 'rgba(99, 102, 241, 0.6)';
+                activeChart.config.data.datasets[0].borderColor = '#6366f1';
+                activeChart.config.data.datasets[0].borderWidth = 1;
+                activeChart.config.options.scales.x.display = true;
+                activeChart.config.options.scales.y.display = true;
+            } else {
+                btnPie.className = 'w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 text-xs flex items-center justify-center transition-all';
+                btnBar.className = 'w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-indigo-400 text-xs flex items-center justify-center transition-all';
+                
+                activeChart.config.type = 'pie';
+                activeChart.config.data.datasets[0].backgroundColor = [
+                    'rgba(99, 102, 241, 0.7)',
+                    'rgba(16, 185, 129, 0.7)',
+                    'rgba(245, 158, 11, 0.7)',
+                    'rgba(239, 68, 68, 0.7)',
+                    'rgba(168, 85, 247, 0.7)',
+                ];
+                activeChart.config.data.datasets[0].borderColor = 'rgba(255, 255, 255, 0.1)';
+                activeChart.config.data.datasets[0].borderWidth = 1;
+                activeChart.config.options.scales.x.display = false;
+                activeChart.config.options.scales.y.display = false;
+            }
+            activeChart.update();
+        };
     });
 </script>
 {% endblock %}

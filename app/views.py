@@ -4,6 +4,21 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .models import Team, TeamMember, DataPoint
 
+def create_team_for_user(user):
+    """
+    Creates a default team for a user, registers them as admin, and seeds initial data.
+    """
+    team = Team.objects.create(name=f"{user.username}'s Team", owner=user)
+    TeamMember.objects.create(user=user, team=team, role='admin')
+    
+    # Seed default datapoints to render stunning reports out-of-the-box
+    DataPoint.objects.create(label='Organic Traffic', value=14.2, team=team)
+    DataPoint.objects.create(label='Web API', value=28.4, team=team)
+    DataPoint.objects.create(label='Social Media', value=8.9, team=team)
+    DataPoint.objects.create(label='Manual CSV', value=19.5, team=team)
+    DataPoint.objects.create(label='Integrations', value=22.1, team=team)
+    return team
+
 @login_required
 def dashboard_view(request):
     """
@@ -64,11 +79,8 @@ def signup_view(request):
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
                 
-                # Automatically create a new Team
-                team = Team.objects.create(name=f"{username}'s Team", owner=user)
-                
-                # Assign the user as "admin" in TeamMember
-                TeamMember.objects.create(user=user, team=team, role='admin')
+                # Provision team & seed datasets
+                create_team_for_user(user)
                 
                 # Auto log-in after registration
                 auth_login(request, user)
@@ -87,10 +99,7 @@ def team_view(request):
     membership = TeamMember.objects.filter(user=request.user).first()
     
     if not membership:
-        # Fallback: if user doesn't have a team membership (e.g. if created via manage.py createsuperuser),
-        # automatically create a team for them.
-        team = Team.objects.create(name=f"{request.user.username}'s Team", owner=request.user)
-        membership = TeamMember.objects.create(user=request.user, team=team, role='admin')
+        team = create_team_for_user(request.user)
     else:
         team = membership.team
 
@@ -167,11 +176,25 @@ def team_view(request):
 @login_required
 def analytics_view(request):
     """
-    Renders the analytics page with dynamic labels and values for Chart.js.
+    Renders the analytics page with dynamic labels and values from the user's team dataset for Chart.js.
     """
+    # Fetch current logged-in user's team membership
+    membership = TeamMember.objects.filter(user=request.user).first()
+    if not membership:
+        team = create_team_for_user(request.user)
+    else:
+        team = membership.team
+
+    # Fetch dataset records scoped strictly to the current team
+    datapoints = DataPoint.objects.filter(team=team)
+    
+    # Extract labels and values
+    labels = [d.label for d in datapoints]
+    values = [d.value for d in datapoints]
+
     context = {
-        'labels': ['Organic', 'Web API', 'Social', 'Manual CSV', 'Integrations'],
-        'values': [14.2, 28.4, 8.9, 19.5, 22.1],
+        'labels': labels,
+        'values': values,
     }
     return render(request, 'Analytics/index.html', context)
 
@@ -183,8 +206,7 @@ def datasets_view(request):
     # Fetch current logged-in user's team membership
     membership = TeamMember.objects.filter(user=request.user).first()
     if not membership:
-        team = Team.objects.create(name=f"{request.user.username}'s Team", owner=request.user)
-        membership = TeamMember.objects.create(user=request.user, team=team, role='admin')
+        team = create_team_for_user(request.user)
     else:
         team = membership.team
 
