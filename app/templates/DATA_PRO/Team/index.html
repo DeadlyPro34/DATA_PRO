@@ -54,6 +54,17 @@
 <!-- Active Toast Notifications -->
 <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3"></div>
 
+{% if messages %}
+<div class="mb-8 space-y-3">
+    {% for message in messages %}
+    <div class="glass-panel p-4 rounded-2xl border {% if message.tags == 'error' %}border-rose-500/30 bg-rose-500/10 text-rose-300{% else %}border-emerald-500/30 bg-emerald-500/10 text-emerald-300{% endif %} text-xs flex items-center gap-3">
+        <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} text-sm"></i>
+        <p class="font-medium">{{ message.message }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- Main Interactive Content Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
     
@@ -99,6 +110,7 @@
             <div class="glass-panel p-5 rounded-[24px] border border-white/8 relative overflow-hidden group hover:-translate-y-1 hover:scale-[1.01] hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col justify-between">
                 <div>
                     <!-- Header Action Options -->
+                    {% if is_admin %}
                     <div class="absolute top-4 right-4">
                         <form method="POST" action="" class="inline">
                             {% csrf_token %}
@@ -109,6 +121,7 @@
                             </button>
                         </form>
                     </div>
+                    {% endif %}
 
                     <!-- Avatar & Role row -->
                     <div class="flex items-center gap-4 mb-4">
@@ -169,7 +182,7 @@
 
     <!-- Right Section: Invite Terminal -->
     <div class="space-y-6">
-        
+        {% if is_admin %}
         <!-- Form Container -->
         <div class="glass-panel p-6 rounded-[28px] border border-white/10 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -z-10"></div>
@@ -284,7 +297,21 @@
                 {% endfor %}
             </div>
         </div>
-
+        {% else %}
+        <!-- Standard Member Display -->
+        <div class="glass-panel p-6 rounded-[28px] border border-white/10 relative overflow-hidden text-center py-10">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -z-10"></div>
+            <div class="w-12 h-12 bg-slate-500/15 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                <i class="fa-solid fa-shield text-slate-400 text-xl"></i>
+            </div>
+            <h2 class="text-base font-bold text-slate-200 mb-2">Member Workspace</h2>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4">You have active standard member authorization. Only team administrators can manage invites, delete datasets, or configure workspace members.</p>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wide">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                <span>Active Connection</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
 </div>

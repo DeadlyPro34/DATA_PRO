@@ -303,8 +303,10 @@ def datasets_view(request):
     membership = TeamMember.objects.filter(user=request.user).first()
     if not membership:
         team = create_team_for_user(request.user)
+        is_admin = True
     else:
         team = membership.team
+        is_admin = (membership.role == 'admin') or (team.owner == request.user)
 
     # Form Submission Handling
     if request.method == 'POST':
@@ -371,14 +373,17 @@ def datasets_view(request):
                     messages.error(request, f"Error parsing CSV: {str(e)}")
 
         elif action == 'delete_dataset':
-            dataset_id = request.POST.get('dataset_id')
-            if dataset_id:
-                try:
-                    # Guarantee isolation: only allow deleting points within the user's team
-                    DataPoint.objects.get(id=dataset_id, team=team).delete()
-                    messages.success(request, "Data entry deleted.")
-                except DataPoint.DoesNotExist:
-                    pass
+            if not is_admin:
+                messages.error(request, "Only team admins can delete data.")
+            else:
+                dataset_id = request.POST.get('dataset_id')
+                if dataset_id:
+                    try:
+                        # Guarantee isolation: only allow deleting points within the user's team
+                        DataPoint.objects.get(id=dataset_id, team=team).delete()
+                        messages.success(request, "Data entry deleted.")
+                    except DataPoint.DoesNotExist:
+                        pass
                     
         return redirect('datasets')
 
@@ -396,6 +401,7 @@ def datasets_view(request):
 
     context = {
         'dataset': dataset,
+        'is_admin': is_admin,
     }
     return render(request, 'Data_Sets/index.html', context)
 

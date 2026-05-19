@@ -196,3 +196,42 @@ class DatasetSystemTest(TestCase):
         
         # 3. Verify invitation record is deleted
         self.assertFalse(TeamInvitation.objects.filter(id=invitation.id).exists())
+
+    def test_role_based_permissions(self):
+        # Create a standard member user
+        member_user = User.objects.create_user(username='std_member', email='std@vortex.io', password='Password123')
+        TeamMember.objects.create(user=member_user, team=self.team, role='member')
+        
+        # Log in as the standard member
+        self.client.login(username='std_member', password='Password123')
+        
+        # 1. Try to invite a user
+        invite_data = {
+            'action': 'invite_member',
+            'email': 'should_fail@vortex.io',
+            'role': 'member'
+        }
+        response = self.client.post('/team/', invite_data, follow=True)
+        self.assertContains(response, "Only team admins can invite new members.")
+        self.assertFalse(TeamInvitation.objects.filter(email='should_fail@vortex.io').exists())
+        
+        # 2. Try to remove a member (try to remove the admin)
+        remove_data = {
+            'action': 'remove_member',
+            'member_id': self.membership.id
+        }
+        response2 = self.client.post('/team/', remove_data, follow=True)
+        self.assertContains(response2, "Only team admins can remove members.")
+        # Verify the admin is still a member
+        self.assertTrue(TeamMember.objects.filter(id=self.membership.id).exists())
+        
+        # 3. Try to delete a dataset point
+        data_point = DataPoint.objects.create(label='SecureData', value=100.0, team=self.team)
+        delete_data = {
+            'action': 'delete_dataset',
+            'dataset_id': data_point.id
+        }
+        response3 = self.client.post('/datasets/', delete_data, follow=True)
+        self.assertContains(response3, "Only team admins can delete data.")
+        # Verify the data point is not deleted
+        self.assertTrue(DataPoint.objects.filter(id=data_point.id).exists())
