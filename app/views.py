@@ -221,16 +221,17 @@ def datasets_view(request):
             label = request.POST.get('label', '').strip()
             value_str = request.POST.get('value', '').strip()
             
-            # Safe parsing of numeric values (e.g., "12,840 rows" -> 12840.0)
+            # Remove invalid values (non-numeric): strip commas, text, and symbols
             cleaned_val = ''.join(c for c in value_str if c.isdigit() or c == '.')
-            try:
-                value = float(cleaned_val)
-            except ValueError:
-                value = 0.0
-            
-            if label:
-                DataPoint.objects.create(label=label, value=value, team=team)
-                messages.success(request, f"Successfully created data entry '{label}'.")
+            if not cleaned_val:
+                messages.error(request, "Invalid value. Value must contain numeric digits.")
+            elif label:
+                try:
+                    value = float(cleaned_val)
+                    DataPoint.objects.create(label=label, value=value, team=team)
+                    messages.success(request, f"Successfully created data entry '{label}' with cleaned value {value}.")
+                except ValueError:
+                    messages.error(request, "Failed to parse value. Please enter a valid number.")
                 
         elif action == 'upload_csv':
             csv_file = request.FILES.get('csv_file')
@@ -244,6 +245,7 @@ def datasets_view(request):
                     csv_data = csv.reader(io.StringIO(file_data))
                     
                     count = 0
+                    skipped_count = 0
                     for row in csv_data:
                         if not row:
                             continue
@@ -252,19 +254,26 @@ def datasets_view(request):
                         if not label:
                             continue
                         
-                        value = 0.0
                         if len(row) > 1:
                             val_str = row[1].strip()
+                            # Clean value: strip commas, symbols, text, and convert safely to float
                             cleaned_val = ''.join(c for c in val_str if c.isdigit() or c == '.')
-                            try:
-                                value = float(cleaned_val)
-                            except ValueError:
-                                value = 0.0
-                                
-                        DataPoint.objects.create(label=label, value=value, team=team)
-                        count += 1
+                            if cleaned_val:
+                                try:
+                                    value = float(cleaned_val)
+                                    DataPoint.objects.create(label=label, value=value, team=team)
+                                    count += 1
+                                except ValueError:
+                                    skipped_count += 1
+                            else:
+                                skipped_count += 1
+                        else:
+                            skipped_count += 1
                     
-                    messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
+                    if count > 0:
+                        messages.success(request, f"Successfully imported {count} data entries from {csv_file.name}.")
+                    if skipped_count > 0:
+                        messages.warning(request, f"Skipped {skipped_count} row(s) containing invalid or non-numeric values.")
                 except Exception as e:
                     messages.error(request, f"Error parsing CSV: {str(e)}")
 
@@ -282,6 +291,15 @@ def datasets_view(request):
 
     # Fetch dataset records scoped strictly to the current team
     dataset = DataPoint.objects.filter(team=team)
+
+    # Sort data in view: order_by('value') or order_by('-value') based on query param (?sort=asc / ?sort=desc)
+    sort_param = request.GET.get('sort', '').lower()
+    if sort_param == 'asc':
+        dataset = dataset.order_by('value')
+    elif sort_param == 'desc':
+        dataset = dataset.order_by('-value')
+    else:
+        dataset = dataset.order_by('-id')
 
     context = {
         'dataset': dataset,
