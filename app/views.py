@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth.models import User
 
 def dashboard_view(request):
     """
@@ -8,12 +10,29 @@ def dashboard_view(request):
 
 def login_view(request):
     """
-    Renders the login page.
+    Handles user login using Django's built-in authentication.
     """
     error = None
     if request.method == 'POST':
-        # Simple POST stub login redirection to dashboard
-        return redirect('dashboard')
+        username_input = request.POST.get('username', '').strip()
+        password_input = request.POST.get('password', '')
+
+        username = username_input
+        # Support email log-in by resolving email to standard username
+        if '@' in username_input:
+            try:
+                user_obj = User.objects.get(email=username_input)
+                username = user_obj.username
+            except User.DoesNotExist:
+                pass
+
+        user = authenticate(request, username=username, password=password_input)
+        if user is not None:
+            auth_login(request, user)
+            return redirect('dashboard')
+        else:
+            error = "Invalid business email or password. Please try again."
+
     return render(request, 'Login_Signup/login.html', {'error': error})
 
 def signup_view(request):
