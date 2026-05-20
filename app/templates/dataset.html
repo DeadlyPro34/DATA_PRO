@@ -3,6 +3,8 @@
 {% block title %}{{ file.custom_name|default:file.original_filename }} - Data Pro{% endblock %}
 
 {% block content %}
+
+<!-- ───── Header ───── -->
 <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
     <div>
         <div class="flex items-center gap-4 mb-3">
@@ -18,19 +20,15 @@
                 {{ file.uploaded_at|date:"M d, Y" }}
             </p>
             <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400">
-                <span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows
-            </p>
+            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
             <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400">
-                <span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns
-            </p>
+            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
         </div>
     </div>
 </div>
 
-<!-- Cleaning Log Panel -->
-<div class="glass-panel rounded-2xl p-1 mb-8 shadow-xl opacity-0 animate-pop-in" style="animation-delay: 100ms;">
+<!-- ───── Cleaning Log ───── -->
+<div class="glass-panel rounded-2xl p-1 mb-8 shadow-xl opacity-0 animate-pop-in" style="animation-delay:100ms;">
     <details class="group bg-stone-900/40 rounded-[14px]">
         <summary class="flex justify-between items-center font-semibold cursor-pointer list-none text-stone-200 p-5">
             <div class="flex items-center gap-3">
@@ -40,70 +38,151 @@
                 <span>Data Cleaning Log <span class="ml-2 px-2 py-0.5 rounded-full bg-stone-900 text-xs text-stone-400 border border-stone-800">{{ dataset.cleaning_log|length }} actions</span></span>
             </div>
             <span class="transition-transform duration-300 group-open:rotate-180 p-1 rounded-md bg-stone-800/50 text-stone-400 group-hover:text-stone-100">
-                <svg fill="none" height="20" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
+                <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
             </span>
         </summary>
         <div class="p-5 pt-0 border-t border-stone-800 mt-1">
             <ul class="space-y-3 mt-4">
                 {% for log_item in dataset.cleaning_log %}
-                    <li class="flex items-start gap-3 text-sm font-medium text-stone-300">
-                        <div class="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
-                        {{ log_item }}
-                    </li>
+                <li class="flex items-start gap-3 text-sm font-medium text-stone-300">
+                    <div class="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
+                    {{ log_item }}
+                </li>
                 {% endfor %}
             </ul>
         </div>
     </details>
 </div>
 
-<!-- Visualization Builder -->
-<div class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay: 200ms;">
+<!-- ───── Smart Stats Panel ───── -->
+<div class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay:150ms;">
+    <div class="absolute top-0 left-0 w-[450px] h-[450px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Column Statistics</h2>
+        </div>
+        <div class="relative">
+            <select id="statsColumn" class="bg-stone-900 border border-stone-800 rounded-xl px-4 py-2.5 text-stone-200 font-medium focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors appearance-none pr-10 cursor-pointer min-w-[200px]"></select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-stone-400">
+                <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        </div>
+    </div>
+    <div id="statsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 relative z-10"></div>
+</div>
+
+<!-- ───── Enhanced Chart Builder ───── -->
+<div class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay:200ms;">
     <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-    <div class="flex items-center gap-3 mb-8 relative z-10">
+    <div class="flex items-center gap-3 mb-6 relative z-10">
         <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
         </div>
         <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
     </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 mb-8 relative z-10">
+
+    <!-- Row 1: Chart Type · X Axis · Y Axis · Time Group -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10">
+
         <div class="space-y-1.5">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Chart Type</label>
             <div class="relative">
-                <select id="chartType" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
+                <select id="chartType" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="bar">Bar Chart</option>
                     <option value="line">Line Chart</option>
                     <option value="pie">Pie Chart</option>
                     <option value="scatter">Scatter Plot</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
+
         <div class="space-y-1.5">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">X-Axis</label>
             <div class="relative">
-                <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
-                    <!-- Populated by JS -->
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
+                <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
+
         <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Y-Axis (Values)</label>
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px]">Ctrl+click = multi</span></label>
+            <select id="yAxis" multiple class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors cursor-pointer" style="height:52px;"></select>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Aggregation</label>
             <div class="relative">
-                <select id="yAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors shadow-inner appearance-none cursor-pointer">
-                    <!-- Populated by JS -->
+                <select id="aggMode" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="sum">Sum of Y</option>
+                    <option value="count">Count (with names)</option>
+                    <option value="mean">Average of Y</option>
+                    <option value="min">Min of Y</option>
+                    <option value="max">Max of Y</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
+    </div>
+
+    <!-- Row 1b: Time Group (full width, collapsible) -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4 relative z-10" id="timeGroupRow">
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Time</label>
+            <div class="relative">
+                <select id="timeGroup" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="none">No Grouping</option>
+                    <option value="year">Year</option>
+                    <option value="quarter">Quarter</option>
+                    <option value="month">Month</option>
+                    <option value="week">Week</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Filter Column · Filter Value · Top N · Render -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Column</label>
+            <div class="relative">
+                <select id="filterColumn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— No Filter —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Value</label>
+            <div class="relative">
+                <select id="filterValue" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— All —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Show Top N</label>
+            <div class="relative">
+                <select id="topN" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="10">Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="50" selected>Top 50</option>
+                    <option value="100">Top 100</option>
+                    <option value="0">All</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
         <div class="flex items-end">
             <button id="renderChartBtn" class="w-full px-4 py-3 bg-stone-200 text-stone-950 hover:bg-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(251,146,60,0.15)] hover:shadow-[0_0_25px_rgba(251,146,60,0.3)] transition-all flex justify-center items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -111,14 +190,15 @@
             </button>
         </div>
     </div>
-    
+
+    <!-- Canvas -->
     <div class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-6 h-[450px] flex items-center justify-center relative z-10 shadow-inner">
         <canvas id="myChart" class="w-full h-full"></canvas>
     </div>
 </div>
 
-<!-- Data Table -->
-<div class="glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col h-[700px] opacity-0 animate-pop-in relative" style="animation-delay: 300ms;">
+<!-- ───── Data Table ───── -->
+<div class="glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col h-[700px] opacity-0 animate-pop-in relative" style="animation-delay:300ms;">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0 relative z-10">
         <div class="flex items-center gap-3">
             <div class="p-2 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/20">
@@ -131,20 +211,16 @@
             <svg class="w-5 h-5 text-stone-500 absolute left-4 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
     </div>
-    
+
     <div class="overflow-auto flex-1 rounded-xl border border-stone-800 relative z-10 custom-scrollbar bg-stone-950/30">
         <table class="min-w-full divide-y divide-stone-800 text-sm">
             <thead class="bg-stone-900/90 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
-                <tr id="tableHeader">
-                    <!-- Populated by JS -->
-                </tr>
+                <tr id="tableHeader"></tr>
             </thead>
-            <tbody id="tableBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium">
-                <!-- Populated by JS -->
-            </tbody>
+            <tbody id="tableBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium"></tbody>
         </table>
     </div>
-    
+
     <div class="mt-6 flex flex-col sm:flex-row justify-between items-center text-sm font-medium text-stone-400 shrink-0 relative z-10 gap-4 sm:gap-0">
         <span id="showingCount" class="bg-stone-900 px-4 py-2 rounded-full border border-stone-800 whitespace-nowrap text-xs sm:text-sm">Showing 0 rows</span>
         <div class="flex items-center gap-1 sm:gap-2 bg-stone-900 p-1 sm:p-1.5 rounded-xl border border-stone-800 w-full sm:w-auto justify-between sm:justify-start">
@@ -155,270 +231,581 @@
     </div>
 </div>
 
-<!-- Data payload from Django -->
+<!-- ───── Data Payload ───── -->
 <script>
-    const columns = JSON.parse('{{ columns_json|escapejs }}');
-    const allRows = JSON.parse('{{ rows_json|escapejs }}');
+    const columns   = JSON.parse('{{ columns_json|escapejs }}');
+    const allRows   = JSON.parse('{{ rows_json|escapejs }}');
+    const FILE_ID   = {{ file_id }};   // used by chart-data API
+    const CHART_DATA_URL = `/dataset/${FILE_ID}/chart-data/`;
 </script>
 
-<!-- UI Logic -->
+<!-- ───── App Logic ───── -->
 <script>
-    // --- Table & Pagination Logic ---
-    let filteredRows = [...allRows];
-    let currentPage = 1;
-    const rowsPerPage = 50;
-    
-    const tableHeader = document.getElementById('tableHeader');
-    const tableBody = document.getElementById('tableBody');
-    const searchInput = document.getElementById('searchInput');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const pageInfo = document.getElementById('pageInfo');
-    const showingCount = document.getElementById('showingCount');
-    
-    // Sort state
-    let sortCol = null;
-    let sortAsc = true;
-    
-    function renderTable() {
-        // Render headers
-        tableHeader.innerHTML = columns.map(col => `
-            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-800 transition-colors group" onclick="sortTable('${col}')">
-                <div class="flex items-center gap-2">
-                    ${col}
-                    <span class="text-orange-500 transition-opacity ${sortCol === col ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}">
-                        ${sortCol === col ? (sortAsc ? '↑' : '↓') : '↕'}
-                    </span>
-                </div>
-            </th>
-        `).join('');
-        
-        // Calculate pagination
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
-        if (currentPage > totalPages) currentPage = totalPages;
-        
-        const startIdx = (currentPage - 1) * rowsPerPage;
-        const endIdx = startIdx + rowsPerPage;
-        const pageData = filteredRows.slice(startIdx, endIdx);
-        
-        // Render body
-        tableBody.innerHTML = pageData.map((row, idx) => `
-            <tr class="hover:bg-stone-800/30 transition-colors duration-150">
-                ${columns.map(col => `<td class="px-6 py-3 whitespace-nowrap text-stone-300 ${idx % 2 === 0 ? '' : 'bg-stone-900/30'}">${row[col] !== null ? row[col] : '<span class="text-stone-600">-</span>'}</td>`).join('')}
-            </tr>
-        `).join('');
-        
-        // Update controls
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-        showingCount.textContent = `Showing ${pageData.length} of ${filteredRows.length} rows`;
-        prevPageBtn.disabled = currentPage === 1;
-        nextPageBtn.disabled = currentPage === totalPages;
-    }
-    
-    function sortTable(col) {
-        if (sortCol === col) {
-            sortAsc = !sortAsc;
-        } else {
-            sortCol = col;
-            sortAsc = true;
-        }
-        
-        filteredRows.sort((a, b) => {
-            let valA = a[col];
-            let valB = b[col];
-            if (valA === null) valA = '';
-            if (valB === null) valB = '';
-            
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                return sortAsc ? valA - valB : valB - valA;
-            }
-            return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
-        });
-        
-        renderTable();
-    }
-    
-    searchInput.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        filteredRows = allRows.filter(row => {
-            return columns.some(col => String(row[col] || '').toLowerCase().includes(term));
-        });
-        currentPage = 1;
-        renderTable();
+// ════════════════════════════════════════════════
+// TABLE
+// ════════════════════════════════════════════════
+let filteredRows = [...allRows];
+let currentPage  = 1;
+const rowsPerPage = 50;
+let sortCol = null, sortAsc = true;
+
+const tableHeader  = document.getElementById('tableHeader');
+const tableBody    = document.getElementById('tableBody');
+const searchInput  = document.getElementById('searchInput');
+const prevPageBtn  = document.getElementById('prevPage');
+const nextPageBtn  = document.getElementById('nextPage');
+const pageInfoEl   = document.getElementById('pageInfo');
+const showingCount = document.getElementById('showingCount');
+
+function renderTable() {
+    tableHeader.innerHTML = columns.map(col => `
+        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-800 transition-colors group whitespace-nowrap" onclick="sortTable('${col.replace(/'/g,"\\'")}')">
+            <div class="flex items-center gap-2">
+                ${col}
+                <span class="text-orange-500 transition-opacity ${sortCol===col?'opacity-100':'opacity-0 group-hover:opacity-50'}">
+                    ${sortCol===col?(sortAsc?'↑':'↓'):'↕'}
+                </span>
+            </div>
+        </th>`).join('');
+
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start   = (currentPage - 1) * rowsPerPage;
+    const pageData = filteredRows.slice(start, start + rowsPerPage);
+
+    tableBody.innerHTML = pageData.map((row, idx) => `
+        <tr class="hover:bg-stone-800/30 transition-colors duration-150">
+            ${columns.map(col => {
+                const v = row[col];
+                const display = (v !== null && v !== undefined) ? String(v) : '<span class="text-stone-600">—</span>';
+                return `<td class="px-6 py-3 whitespace-nowrap text-stone-300 ${idx%2===0?'':'bg-stone-900/30'}">${display}</td>`;
+            }).join('')}
+        </tr>`).join('');
+
+    pageInfoEl.textContent   = `Page ${currentPage} of ${totalPages}`;
+    showingCount.textContent = `Showing ${pageData.length} of ${filteredRows.length} rows`;
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages;
+}
+
+function sortTable(col) {
+    if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+    filteredRows.sort((a, b) => {
+        let vA = a[col] ?? '', vB = b[col] ?? '';
+        if (typeof vA === 'number' && typeof vB === 'number') return sortAsc ? vA-vB : vB-vA;
+        return sortAsc ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
     });
-    
-    prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
-        }
-    });
-    
-    nextPageBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
-        }
-    });
-    
-    // Initial render
     renderTable();
+}
 
-    // --- Chart Logic ---
-    const xAxisSelect = document.getElementById('xAxis');
-    const yAxisSelect = document.getElementById('yAxis');
-    const chartTypeSelect = document.getElementById('chartType');
-    const renderChartBtn = document.getElementById('renderChartBtn');
-    
-    // Populate select dropdowns
-    columns.forEach(col => {
-        xAxisSelect.add(new Option(col, col));
-        yAxisSelect.add(new Option(col, col));
+searchInput.addEventListener('input', e => {
+    const term = e.target.value.toLowerCase();
+    filteredRows = allRows.filter(row => columns.some(col => String(row[col]??'').toLowerCase().includes(term)));
+    currentPage = 1; renderTable();
+});
+prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
+nextPageBtn.addEventListener('click', () => { const tp = Math.ceil(filteredRows.length/rowsPerPage); if (currentPage < tp) { currentPage++; renderTable(); } });
+renderTable();
+
+// ════════════════════════════════════════════════
+// COLUMN DETECTION
+// ════════════════════════════════════════════════
+const numericCols = columns.filter(col =>
+    allRows.some(r => r[col] !== null && r[col] !== undefined && typeof r[col] === 'number' && !isNaN(r[col]))
+);
+const dateCols = columns.filter(col => {
+    const samples = allRows.slice(0, 30).map(r => r[col]).filter(v => v !== null && v !== undefined && v !== '');
+    if (!samples.length) return false;
+    const parseable = samples.filter(v => {
+        const d = Date.parse(String(v));
+        return !isNaN(d) && d > Date.parse('1900-01-01');
     });
-    
-    // Try to smartly default Y axis to a numeric column if available
-    const numericCols = columns.filter(col => allRows.some(r => typeof r[col] === 'number'));
-    if (numericCols.length > 0) {
-        yAxisSelect.value = numericCols[0];
+    return parseable.length > samples.length * 0.6;
+});
+
+// ════════════════════════════════════════════════
+// STATS PANEL
+// ════════════════════════════════════════════════
+const statsColEl = document.getElementById('statsColumn');
+const statsGrid  = document.getElementById('statsGrid');
+
+numericCols.forEach(col => statsColEl.add(new Option(col, col)));
+if (!numericCols.length) {
+    statsColEl.add(new Option('No numeric columns', ''));
+    statsColEl.disabled = true;
+    statsGrid.innerHTML = '<p class="text-stone-500 text-sm col-span-full text-center py-4">Upload a file with numeric columns to see statistics.</p>';
+}
+
+function fmtNum(n) {
+    if (n === undefined || n === null || (typeof n === 'number' && isNaN(n))) return '—';
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if (abs >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if (abs >= 1e3) return (n/1e3).toFixed(2) + 'K';
+    return Number.isInteger(n) ? n.toLocaleString() : parseFloat(n.toFixed(4)).toLocaleString();
+}
+
+function computeStats(col) {
+    const vals = allRows.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+    if (!vals.length) return null;
+    const count  = vals.length;
+    const sum    = vals.reduce((a, b) => a + b, 0);
+    const mean   = sum / count;
+    const sorted = [...vals].sort((a, b) => a - b);
+    const median = count % 2 === 0
+        ? (sorted[count/2 - 1] + sorted[count/2]) / 2
+        : sorted[Math.floor(count/2)];
+    const min      = sorted[0];
+    const max      = sorted[sorted.length - 1];
+    const variance = vals.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / count;
+    const std      = Math.sqrt(variance);
+    return { count, sum, mean, median, min, max, std, variance };
+}
+
+const STAT_DEFS = [
+    { key:'count',    label:'Count',    sym:'#',  clr:'blue'   },
+    { key:'sum',      label:'Sum',      sym:'Σ',  clr:'orange' },
+    { key:'mean',     label:'Mean',     sym:'μ',  clr:'amber'  },
+    { key:'median',   label:'Median',   sym:'M',  clr:'emerald'},
+    { key:'min',      label:'Min',      sym:'↓',  clr:'sky'    },
+    { key:'max',      label:'Max',      sym:'↑',  clr:'rose'   },
+    { key:'std',      label:'Std Dev',  sym:'σ',  clr:'violet' },
+    { key:'variance', label:'Variance', sym:'σ²', clr:'pink'   },
+];
+const CLR = {
+    blue:   'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    orange: 'bg-orange-500/10 border-orange-500/20 text-orange-400',
+    amber:  'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    emerald:'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    sky:    'bg-sky-500/10 border-sky-500/20 text-sky-400',
+    rose:   'bg-rose-500/10 border-rose-500/20 text-rose-400',
+    violet: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
+    pink:   'bg-pink-500/10 border-pink-500/20 text-pink-400',
+};
+
+function renderStats(col) {
+    if (!col) return;
+    const s = computeStats(col);
+    if (!s) { statsGrid.innerHTML = '<p class="text-stone-500 text-sm col-span-full text-center py-4">No numeric data in this column.</p>'; return; }
+    statsGrid.innerHTML = STAT_DEFS.map(d => `
+        <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-4 flex flex-col gap-1 hover:border-stone-700 transition-colors">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">${d.label}</span>
+                <span class="w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-bold ${CLR[d.clr]}">${d.sym}</span>
+            </div>
+            <span class="text-lg font-bold text-stone-100 leading-none truncate" title="${s[d.key]}">${fmtNum(s[d.key])}</span>
+        </div>`).join('');
+}
+
+statsColEl.addEventListener('change', () => renderStats(statsColEl.value));
+if (numericCols.length) renderStats(numericCols[0]);
+
+// ════════════════════════════════════════════════
+// CHART BUILDER
+// ════════════════════════════════════════════════
+const xAxisSel      = document.getElementById('xAxis');
+const yAxisSel      = document.getElementById('yAxis');
+const chartTypeSel  = document.getElementById('chartType');
+const timeGroupSel  = document.getElementById('timeGroup');
+const filterColSel  = document.getElementById('filterColumn');
+const filterValSel  = document.getElementById('filterValue');
+const topNSel       = document.getElementById('topN');
+const aggModeSel    = document.getElementById('aggMode');
+const renderBtn     = document.getElementById('renderChartBtn');
+
+// Populate X: all columns
+columns.forEach(col => xAxisSel.add(new Option(col, col)));
+// Populate Y: all columns (count mode works on any col, numeric modes need numbers)
+columns.forEach(col => yAxisSel.add(new Option(col, col)));
+// Pre-select first numeric col in Y
+if (numericCols.length) yAxisSel.value = numericCols[0];
+// Populate Filter: all columns
+columns.forEach(col => filterColSel.add(new Option(col, col)));
+
+// Smart default: prefer detected date col for X axis
+if (dateCols.length) xAxisSel.value = dateCols[0];
+
+// When filter column changes → load unique values
+filterColSel.addEventListener('change', () => {
+    const col = filterColSel.value;
+    filterValSel.innerHTML = '<option value="">— All —</option>';
+    if (col) {
+        const unique = [...new Set(allRows.map(r => String(r[col]??'')).filter(v => v && v !== 'null' && v !== 'undefined'))].sort();
+        unique.forEach(v => filterValSel.add(new Option(v, v)));
     }
-    
-    let currentChart = null;
-    
-    function renderChart() {
-        const xCol = xAxisSelect.value;
-        const yCol = yAxisSelect.value;
-        const type = chartTypeSelect.value;
-        
-        if (!xCol || !yCol) return;
-        
-        // Aggregate data
-        let chartData = {};
-        let scatterData = [];
-        
-        if (type === 'scatter') {
-            scatterData = allRows.map(r => {
-                return { 
-                    x: parseFloat(r[xCol]), 
-                    y: parseFloat(r[yCol]) 
-                };
-            }).filter(p => !isNaN(p.x) && !isNaN(p.y));
-            
-            if (scatterData.length === 0) {
-                showCustomAlert("Scatter plots require numeric data for both X and Y axes. The selected columns don't contain valid numbers.");
-                return;
-            }
-        } else {
-            const aggregates = {};
-            allRows.forEach(r => {
-                const label = String(r[xCol] || 'Unknown');
-                const val = parseFloat(r[yCol]) || 0;
-                aggregates[label] = (aggregates[label] || 0) + val;
-            });
-            
-            const sortedKeys = Object.keys(aggregates).sort((a,b) => aggregates[b] - aggregates[a]).slice(0, 50);
-            chartData.labels = sortedKeys;
-            chartData.data = sortedKeys.map(k => aggregates[k]);
-        }
-        
-        const ctx = document.getElementById('myChart').getContext('2d');
-        
-        if (currentChart) {
-            currentChart.destroy();
-        }
-        
-        // Premium Chart Colors (Warm)
-        const brandColor = '#f97316'; // orange-500
-        const brandColorAlpha = 'rgba(249, 115, 22, 0.6)';
-        
-        // Gradient for Bar/Line charts
-        let gradient = null;
-        if (type === 'bar' || type === 'line') {
-            gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(249, 115, 22, 0.8)'); // orange
-            gradient.addColorStop(1, 'rgba(244, 63, 94, 0.1)'); // rose
-        }
+});
 
-        // Warm pie colors
-        const pieColors = ['#f97316', '#f43f5e', '#d946ef', '#8b5cf6', '#eab308', '#ec4899', '#f87171', '#fb923c'];
+// Disable time grouping for pie / scatter / count
+function syncControls() {
+    const t   = chartTypeSel.value;
+    const agg = aggModeSel.value;
+    timeGroupSel.disabled = (t === 'pie' || t === 'scatter' || agg === 'count');
+    if (timeGroupSel.disabled) timeGroupSel.value = 'none';
+}
+chartTypeSel.addEventListener('change', syncControls);
+aggModeSel.addEventListener('change', syncControls);
 
-        const config = {
-            type: type,
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: yCol,
-                    data: type === 'scatter' ? scatterData : chartData.data,
-                    backgroundColor: type === 'pie' ? pieColors : (gradient || brandColorAlpha),
-                    borderColor: type === 'pie' ? '#1c1917' : brandColor,
-                    borderWidth: type === 'line' ? 3 : 1,
-                    pointBackgroundColor: type === 'scatter' ? brandColorAlpha : brandColor,
-                    pointBorderColor: type === 'scatter' ? brandColor : '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: brandColor,
-                    fill: type === 'line' ? true : false,
-                    tension: 0.4 // Smooth curves for line chart
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: { color: '#a8a29e', font: { family: 'Inter', weight: '500' } },
-                        position: 'top'
+let currentChart = null;
+
+// 8 vivid brand colours
+const PALETTE = [
+    { b:'#f97316', bg:'rgba(249,115,22,0.65)'  },
+    { b:'#3b82f6', bg:'rgba(59,130,246,0.65)'  },
+    { b:'#10b981', bg:'rgba(16,185,129,0.65)'  },
+    { b:'#f43f5e', bg:'rgba(244,63,94,0.65)'   },
+    { b:'#8b5cf6', bg:'rgba(139,92,246,0.65)'  },
+    { b:'#eab308', bg:'rgba(234,179,8,0.65)'   },
+    { b:'#06b6d4', bg:'rgba(6,182,212,0.65)'   },
+    { b:'#ec4899', bg:'rgba(236,72,153,0.65)'  },
+];
+
+function dateKey(val, grp) {
+    const d = new Date(val);
+    if (isNaN(d)) return null;
+    if (grp === 'year')    return String(d.getFullYear());
+    if (grp === 'quarter') return `${d.getFullYear()} Q${Math.ceil((d.getMonth()+1)/3)}`;
+    if (grp === 'month') {
+        const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${M[d.getMonth()]} ${d.getFullYear()}`;
+    }
+    if (grp === 'week') {
+        const t = new Date(d); t.setHours(0,0,0,0);
+        t.setDate(t.getDate() + 4 - (t.getDay()||7));
+        const ys = new Date(t.getFullYear(),0,1);
+        const wk = Math.ceil((((t-ys)/86400000)+1)/7);
+        return `${t.getFullYear()}-W${String(wk).padStart(2,'0')}`;
+    }
+    return null;
+}
+
+function sortDateLabels(labels, grp) {
+    if (grp === 'year') return [...labels].sort();
+    if (grp === 'quarter') return [...labels].sort((a,b) => {
+        const [ayStr, aqStr] = a.split(' Q'); const [byStr, bqStr] = b.split(' Q');
+        return (parseInt(ayStr)*4+parseInt(aqStr)) - (parseInt(byStr)*4+parseInt(bqStr));
+    });
+    if (grp === 'month') {
+        const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return [...labels].sort((a,b) => {
+            const [am,ay] = a.split(' '), [bm,by] = b.split(' ');
+            return (parseInt(ay)*12 + M.indexOf(am)) - (parseInt(by)*12 + M.indexOf(bm));
+        });
+    }
+    return [...labels].sort();
+}
+
+function makeDataset(label, data, type, c, ctx, len) {
+    let bg = c.bg;
+    if (ctx && (type === 'bar' || type === 'line')) {
+        try {
+            const g = ctx.createLinearGradient(0, 0, 0, 380);
+            g.addColorStop(0, c.bg);
+            g.addColorStop(1, c.bg.replace(/[\d.]+\)$/, '0.04)'));
+            bg = g;
+        } catch(_) {}
+    }
+    return {
+        label, data,
+        backgroundColor: bg,
+        borderColor: c.b,
+        borderWidth: type === 'line' ? 2.5 : 1,
+        fill: type === 'line',
+        tension: 0.4,
+        pointBackgroundColor: c.b,
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: c.b,
+        pointRadius: len > 60 ? 2 : 4,
+        pointHoverRadius: 6,
+    };
+}
+
+// membersMap stores { label → "Ali, Ahmed, Sara" } for count-mode tooltips
+let membersMap = {};
+
+function chartOpts(type, yLabel = '') {
+    const isCount = aggModeSel.value === 'count';
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color:'#a8a29e', font:{ family:'Inter', weight:'500' }, boxWidth:12, boxHeight:12 }, position:'top' },
+            tooltip: {
+                backgroundColor:'rgba(28,25,23,0.97)',
+                titleColor:'#fff', bodyColor:'#d6d3d1',
+                borderColor:'rgba(253,186,116,0.15)', borderWidth:1,
+                padding:14, cornerRadius:10,
+                titleFont:{ family:'Inter', size:13, weight:'bold' },
+                bodyFont:{ family:'Inter', size:12 },
+                callbacks: {
+                    title(items) {
+                        // Show the X label (marks value, category, etc.)
+                        return items[0]?.label ?? '';
                     },
-                    tooltip: {
-                        backgroundColor: 'rgba(28, 25, 23, 0.95)',
-                        titleColor: '#fff',
-                        bodyColor: '#d6d3d1',
-                        borderColor: 'rgba(253, 186, 116, 0.15)',
-                        borderWidth: 1,
-                        padding: 12,
-                        cornerRadius: 8,
-                        displayColors: type === 'pie',
-                        titleFont: { family: 'Inter', size: 14, weight: 'bold' },
-                        bodyFont: { family: 'Inter', size: 13 }
-                    }
-                },
-                scales: type === 'pie' ? {} : {
-                    x: {
-                        ticks: { color: '#78716c', font: { family: 'Inter' } },
-                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
-                        type: type === 'scatter' ? 'linear' : 'category'
+                    label(ctx) {
+                        const v = ctx.parsed?.y ?? ctx.parsed;
+                        if (isCount) {
+                            return ` Count: ${typeof v==='number' ? v.toLocaleString() : v}`;
+                        }
+                        const aggLabel = aggModeSel.options[aggModeSel.selectedIndex].text;
+                        return ` ${aggLabel}: ${typeof v==='number' ? v.toLocaleString(undefined,{maximumFractionDigits:4}) : v}`;
                     },
-                    y: {
-                        ticks: { color: '#78716c', font: { family: 'Inter' } },
-                        grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
-                    }
-                },
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutElastic',
-                    delay: (context) => {
-                        let delay = 0;
-                        if (context.type === 'data' && context.mode === 'default' && !currentChart?.isAnimating) {
-                            delay = context.dataIndex * 50 + context.datasetIndex * 100;
-                        }
-                        return delay;
-                    }
-                },
-                transitions: {
-                    active: {
-                        animation: {
-                            duration: 300
-                        }
+                    afterBody(items) {
+                        // In count mode: show member names below the count
+                        if (!isCount) return [];
+                        const lbl = items[0]?.label ?? '';
+                        const memberData = membersMap[lbl];
+                        if (!memberData) return [];
+                        
+                        const members = memberData.list;
+                        if (!members || !Array.isArray(members)) return [];
+                        
+                        // Format as bullet list (max 10 shown)
+                        const lines = members.slice(0, 10).map(n => `  • ${n}`);
+                        if (members.length > 10) lines.push(`  … and ${members.length - 10} more`);
+                        
+                        // Use the dynamically detected column name (e.g. 'student_name')
+                        return ['', `  ${memberData.col}:`, ...lines];
                     }
                 }
             }
-        };
-        
-        currentChart = new Chart(ctx, config);
-        currentChart.isAnimating = true;
-        setTimeout(() => { if(currentChart) currentChart.isAnimating = false; }, 2000);
+        },
+        scales: type === 'pie' ? {} : {
+            x: {
+                ticks: {
+                    color:'#78716c', font:{ family:'Inter', size:11 },
+                    maxRotation:45, minRotation:0,
+                    autoSkip:true, maxTicksLimit:25,
+                    callback(val) {
+                        const lbl = this.getLabelForValue(val);
+                        return typeof lbl==='string' && lbl.length>16 ? lbl.slice(0,16)+'…' : lbl;
+                    }
+                },
+                grid:{ color:'rgba(255,255,255,0.03)', drawBorder:false },
+                type: type === 'scatter' ? 'linear' : 'category'
+            },
+            y: {
+                ticks:{
+                    color:'#78716c', font:{ family:'Inter', size:11 },
+                    callback: v => typeof v==='number' ? v.toLocaleString() : v
+                },
+                grid:{ color:'rgba(255,255,255,0.05)', drawBorder:false },
+                title: {
+                    display: !!yLabel,
+                    text: yLabel,
+                    color: '#78716c',
+                    font: { family:'Inter', size:11 }
+                }
+            }
+        },
+        animation:{ duration:900, easing:'easeOutQuart' }
+    };
+}
+
+// ── Main render function ──────────────────────────────────────────────────────
+async function renderChart() {
+    const xCol   = xAxisSel.value;
+    const yCols  = [...yAxisSel.selectedOptions].map(o => o.value);
+    const type   = chartTypeSel.value;
+    const grp    = timeGroupSel.value;
+    const fCol   = filterColSel.value;
+    const fVal   = filterValSel.value;
+    const topN   = parseInt(topNSel.value) || 0;
+    const aggMode = aggModeSel.value;
+
+    if (!xCol || !yCols.length) {
+        showCustomAlert('Please select at least one X-axis and one Y-axis column.');
+        return;
     }
-    
-    renderChartBtn.addEventListener('click', renderChart);
-    chartTypeSelect.addEventListener('change', renderChart);
+
+    membersMap = {};  // reset for every render
+
+    // Apply row-level filter (client side for all modes)
+    let rows = (fCol && fVal)
+        ? allRows.filter(r => String(r[fCol]??'') === fVal)
+        : [...allRows];
+
+    if (!rows.length) { showCustomAlert('No data matches the selected filter.'); return; }
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+    if (currentChart) { currentChart.destroy(); currentChart = null; }
+
+    // ── SCATTER (always client-side) ─────────────────────────────────────
+    if (type === 'scatter') {
+        const yCol = yCols[0];
+        const pts  = rows.map(r => ({ x:parseFloat(r[xCol]), y:parseFloat(r[yCol]) }))
+                         .filter(p => !isNaN(p.x) && !isNaN(p.y));
+        if (!pts.length) { showCustomAlert('Scatter needs numeric X and Y values.'); return; }
+        currentChart = new Chart(ctx, {
+            type:'scatter',
+            data:{ datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:PALETTE[0].bg, borderColor:PALETTE[0].b, pointRadius:5, pointHoverRadius:8 }] },
+            options: chartOpts('scatter')
+        });
+        return;
+    }
+
+    // ── COUNT MODE (via backend API) ──────────────────────────────────────
+    // Uses pandas groupby so member names are computed accurately server-side.
+    if (aggMode === 'count') {
+        const yCol = yCols[0];
+        renderBtn.disabled = true;
+        renderBtn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Loading…`;
+
+        try {
+            const params = new URLSearchParams({ x: xCol, y: yCol, agg: 'count' });
+            if (fCol && fVal) params.set('filter_col', fCol), params.set('filter_val', fVal);
+
+            const resp = await fetch(`${CHART_DATA_URL}?${params}`);
+            if (!resp.ok) {
+                const err = await resp.json();
+                showCustomAlert(`Server error: ${err.error ?? resp.statusText}`);
+                return;
+            }
+            let data = await resp.json();
+            // data = [{ marks:81, count:4, students:["Student001"], label_col:"student_id" }, ...]
+
+            // Sort by count descending
+            data.sort((a, b) => b.count - a.count);
+            if (topN > 0) data = data.slice(0, topN);
+
+            const labels = data.map(d => String(d[xCol]));
+            const counts = data.map(d => d.count);
+
+            // Build membersMap for tooltip afterBody
+            // The backend always returns the list under 'students' now, and provides 'label_col'
+            let detectedLabelCol = yCol;
+            if (data.length > 0 && data[0].label_col) {
+                detectedLabelCol = data[0].label_col;
+            }
+
+            data.forEach(d => { 
+                membersMap[String(d[xCol])] = {
+                    list: d.students || [],
+                    col: detectedLabelCol
+                }; 
+            });
+
+            const c = PALETTE[0];
+            currentChart = new Chart(ctx, {
+                type: type === 'line' ? 'line' : 'bar',
+                data: {
+                    labels,
+                    datasets: [makeDataset(`Count of ${xCol}`, counts, type, c, ctx, labels.length)]
+                },
+                options: chartOpts(type, 'Count')
+            });
+
+        } catch(e) {
+            showCustomAlert(`Failed to load chart data: ${e.message}`);
+        } finally {
+            renderBtn.disabled = false;
+            renderBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Render Chart`;
+        }
+        return;
+    }
+
+    // ── TIME-GROUPED (client-side) ────────────────────────────────────────
+    if (grp !== 'none') {
+        const allKeys = new Set();
+        const aggByCol = {};
+        yCols.forEach(yCol => {
+            const agg = {};
+            rows.forEach(r => {
+                const k = dateKey(r[xCol], grp);
+                if (!k) return;
+                allKeys.add(k);
+                const v = parseFloat(r[yCol]) || 0;
+                if (aggMode === 'sum')  agg[k] = (agg[k]||0) + v;
+                if (aggMode === 'mean') { agg[k] = agg[k] || {s:0,n:0}; agg[k].s += v; agg[k].n++; }
+                if (aggMode === 'min')  agg[k] = agg[k] === undefined ? v : Math.min(agg[k], v);
+                if (aggMode === 'max')  agg[k] = agg[k] === undefined ? v : Math.max(agg[k], v);
+            });
+            if (aggMode === 'mean') Object.keys(agg).forEach(k => { agg[k] = agg[k].s / agg[k].n; });
+            aggByCol[yCol] = agg;
+        });
+        if (!allKeys.size) { showCustomAlert('No parseable date values found in the X-axis column.'); return; }
+        const labels   = sortDateLabels([...allKeys], grp);
+        const datasets = yCols.map((yCol, i) => {
+            const c = PALETTE[i % PALETTE.length];
+            return makeDataset(yCol, labels.map(k => aggByCol[yCol][k] ?? 0), type, c, ctx, labels.length);
+        });
+        currentChart = new Chart(ctx, { type: type==='bar'?'bar':'line', data:{ labels, datasets }, options: chartOpts(type) });
+        return;
+    }
+
+    // ── PIE (client-side) ─────────────────────────────────────────────────
+    if (type === 'pie') {
+        const yCol = yCols[0];
+        const agg  = {};
+        rows.forEach(r => {
+            const lbl = String(r[xCol]??'Unknown');
+            const v = parseFloat(r[yCol]) || 0;
+            if (aggMode === 'sum')  agg[lbl] = (agg[lbl]||0) + v;
+            if (aggMode === 'mean') { agg[lbl] = agg[lbl]||{s:0,n:0}; agg[lbl].s+=v; agg[lbl].n++; }
+            if (aggMode === 'min')  agg[lbl] = agg[lbl]===undefined ? v : Math.min(agg[lbl],v);
+            if (aggMode === 'max')  agg[lbl] = agg[lbl]===undefined ? v : Math.max(agg[lbl],v);
+        });
+        if (aggMode === 'mean') Object.keys(agg).forEach(k => { agg[k] = agg[k].s/agg[k].n; });
+        let entries = Object.entries(agg).sort((a,b) => b[1]-a[1]);
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k.length>22 ? k.slice(0,22)+'…' : k);
+        const data   = entries.map(([,v]) => v);
+        currentChart = new Chart(ctx, {
+            type:'pie',
+            data:{ labels, datasets:[{ label:yCol, data, backgroundColor:data.map((_,i)=>PALETTE[i%PALETTE.length].bg), borderColor:'#1c1917', borderWidth:2 }] },
+            options: chartOpts('pie')
+        });
+        return;
+    }
+
+    // ── BAR / LINE with sum/mean/min/max (client-side) ────────────────────
+    const agg = {};
+    rows.forEach(r => {
+        const lbl = String(r[xCol]??'Unknown');
+        if (!agg[lbl]) agg[lbl] = {};
+        yCols.forEach(yCol => {
+            const v = parseFloat(r[yCol]) || 0;
+            if (aggMode === 'sum') {
+                agg[lbl][yCol] = (agg[lbl][yCol]||0) + v;
+            } else if (aggMode === 'mean') {
+                agg[lbl][yCol] = agg[lbl][yCol] || {s:0,n:0};
+                agg[lbl][yCol].s += v; agg[lbl][yCol].n++;
+            } else if (aggMode === 'min') {
+                agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.min(agg[lbl][yCol],v);
+            } else if (aggMode === 'max') {
+                agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.max(agg[lbl][yCol],v);
+            }
+        });
+    });
+    // Finalise mean
+    if (aggMode === 'mean') {
+        Object.keys(agg).forEach(lbl => {
+            yCols.forEach(yCol => {
+                if (agg[lbl][yCol] && typeof agg[lbl][yCol] === 'object') {
+                    agg[lbl][yCol] = agg[lbl][yCol].s / agg[lbl][yCol].n;
+                }
+            });
+        });
+    }
+
+    let entries = Object.entries(agg).sort((a,b) => {
+        const va = typeof a[1][yCols[0]] === 'number' ? a[1][yCols[0]] : 0;
+        const vb = typeof b[1][yCols[0]] === 'number' ? b[1][yCols[0]] : 0;
+        return vb - va;
+    });
+    if (topN > 0) entries = entries.slice(0, topN);
+    const labels   = entries.map(([k]) => k);
+    const datasets = yCols.map((yCol, i) => {
+        const c = PALETTE[i % PALETTE.length];
+        const data = entries.map(([,v]) => typeof v[yCol] === 'number' ? v[yCol] : (v[yCol]||0));
+        return makeDataset(yCol, data, type, c, ctx, labels.length);
+    });
+    currentChart = new Chart(ctx, { type, data:{ labels, datasets }, options: chartOpts(type) });
+}
+
+renderBtn.addEventListener('click', renderChart);
+// Auto-render on load
+if (columns.length && numericCols.length) renderChart();
 </script>
+
 {% endblock %}

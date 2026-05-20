@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class UploadedFile(models.fields.Field):
-    pass # Wait I need to use Model, hold on.
-
 class UploadedFile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     original_filename = models.CharField(max_length=255)
