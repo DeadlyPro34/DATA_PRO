@@ -9,7 +9,9 @@ from .utils.file_parser import parse_file
 from .utils.data_cleaner import clean_dataframe
 import json
 import os
+import math
 import pandas as pd
+import numpy as np
 
 def register(request):
     if request.method == 'POST':
@@ -253,3 +255,216 @@ def _agg_numeric(df: pd.DataFrame, x_col: str, y_col: str, mode: str) -> list:
         }
         for _, row in grouped.iterrows()
     ]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ADVANCED STATS ENDPOINT
+# ──────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def advanced_stats(request, file_id):
+    """
+    JSON API — returns advanced statistical data for charting.
+
+    Query parameters
+    ----------------
+    col    : str   — Column name to analyse (required)
+    type   : str   — Analysis type:
+                     histogram | boxplot | violin | correlation
+    bins   : int   — Number of histogram bins (default 20, max 100)
+    group  : str   — Optional grouping column (for grouped boxplot/violin)
+    cols   : str   — Comma-separated list for correlation matrix
+
+    Response shapes
+    ---------------
+    histogram:
+        { bins: [{x0, x1, count, density}], stats: {mean, std, min, max} }
+
+    boxplot:
+        { groups: [{name, q1, q2, q3, min, max, mean, outliers:[]}] }
+
+    violin:
+        { groups: [{name, kde: [{x, density}], q1, q2, q3, min, max}] }
+
+    correlation:
+        { columns: [...], matrix: [[...]] }
+    """
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+
+    col = request.GET.get('col', '').strip()
+    analysis_type = request.GET.get('type', 'histogram').strip().lower()
+    bins_param = min(int(request.GET.get('bins', 20)), 100)
+    group_col = request.GET.get('group', '').strip()
+    cols_param = request.GET.get('cols', '').strip()
+
+    valid_cols = dataset.columns
+
+    # Rebuild DataFrame
+    df = pd.DataFrame(dataset.rows)
+    if df.empty:
+        return JsonResponse({'error': 'Dataset is empty'}, status=400)
+
+    try:
+        if analysis_type == 'histogram':
+            if not col or col not in valid_cols:
+                return JsonResponse({'error': f"Invalid column: '{col}'"}, status=400)
+            result = _compute_histogram(df, col, bins_param)
+
+        elif analysis_type == 'boxplot':
+            if not col or col not in valid_cols:
+                return JsonResponse({'error': f"Invalid column: '{col}'"}, status=400)
+            grp = group_col if group_col and group_col in valid_cols else None
+            result = _compute_boxplot(df, col, grp)
+
+        elif analysis_type == 'violin':
+            if not col or col not in valid_cols:
+                return JsonResponse({'error': f"Invalid column: '{col}'"}, status=400)
+            grp = group_col if group_col and group_col in valid_cols else None
+            result = _compute_violin(df, col, grp)
+
+        elif analysis_type == 'correlation':
+            if cols_param:
+                corr_cols = [c.strip() for c in cols_param.split(',') if c.strip() in valid_cols]
+            else:
+                corr_cols = [c for c in valid_cols if c in df.columns and pd.api.types.is_numeric_dtype(df[c])]
+            if len(corr_cols) < 2:
+                return JsonResponse({'error': 'Need at least 2 numeric columns for correlation'}, status=400)
+            result = _compute_correlation(df, corr_cols)
+
+        else:
+            return JsonResponse({'error': f"Unknown analysis type: '{analysis_type}'"}, status=400)
+
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
+
+    return JsonResponse(result, safe=False)
+
+
+def _safe_float(v):
+    """Convert numpy/pandas scalar to Python float, handling NaN/Inf."""
+    try:
+        f = float(v)
+        if math.isnan(f) or math.isinf(f):
+            return None
+        return round(f, 6)
+    except (TypeError, ValueError):
+        return None
+
+
+def _compute_histogram(df: pd.DataFrame, col: str, bins: int) -> dict:
+    """Compute histogram bins with count and density."""
+    series = pd.to_numeric(df[col], errors='coerce').dropna()
+    if series.empty:
+        raise ValueError(f"Column '{col}' has no numeric values")
+
+    counts, edges = np.histogram(series.values, bins=bins)
+    total = len(series)
+    result_bins = []
+    for i in range(len(counts)):
+        width = edges[i + 1] - edges[i]
+        result_bins.append({
+            'x0': _safe_float(edges[i]),
+            'x1': _safe_float(edges[i + 1]),
+            'count': int(counts[i]),
+            'density': _safe_float(counts[i] / (total * width)) if total > 0 and width > 0 else 0,
+        })
+
+    return {
+        'bins': result_bins,
+        'stats': {
+            'mean': _safe_float(series.mean()),
+            'std': _safe_float(series.std()),
+            'min': _safe_float(series.min()),
+            'max': _safe_float(series.max()),
+            'count': total,
+        }
+    }
+
+
+def _compute_boxplot(df: pd.DataFrame, col: str, group_col: str | None) -> dict:
+    """Compute box plot quartiles, whiskers, and outliers (per group)."""
+    df = df.copy()
+    df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = df.dropna(subset=[col])
+    if df.empty:
+        raise ValueError(f"Column '{col}' has no numeric values")
+
+    def _box_stats(series, name):
+        vals = np.sort(series.values)
+        q1 = float(np.percentile(vals, 25))
+        q2 = float(np.percentile(vals, 50))
+        q3 = float(np.percentile(vals, 75))
+        iqr = q3 - q1
+        lower_fence = q1 - 1.5 * iqr
+        upper_fence = q3 + 1.5 * iqr
+        whisker_low = float(vals[vals >= lower_fence].min()) if any(vals >= lower_fence) else q1
+        whisker_high = float(vals[vals <= upper_fence].max()) if any(vals <= upper_fence) else q3
+        outliers = [_safe_float(v) for v in vals if v < lower_fence or v > upper_fence]
+        return {
+            'name': str(name),
+            'q1': _safe_float(q1), 'q2': _safe_float(q2), 'q3': _safe_float(q3),
+            'min': _safe_float(whisker_low), 'max': _safe_float(whisker_high),
+            'mean': _safe_float(series.mean()),
+            'outliers': outliers[:50],  # cap at 50 outliers for transfer size
+        }
+
+    if group_col:
+        groups = []
+        for name, grp_df in df.groupby(group_col, dropna=False):
+            if len(grp_df) > 0:
+                groups.append(_box_stats(grp_df[col], name))
+        return {'groups': groups}
+    else:
+        return {'groups': [_box_stats(df[col], col)]}
+
+
+def _compute_violin(df: pd.DataFrame, col: str, group_col: str | None) -> dict:
+    """Compute KDE density for violin plots (per group)."""
+    df = df.copy()
+    df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = df.dropna(subset=[col])
+    if df.empty:
+        raise ValueError(f"Column '{col}' has no numeric values")
+
+    def _kde_points(series, name):
+        vals = series.values
+        if len(vals) < 2:
+            return {'name': str(name), 'kde': [], 'q1': None, 'q2': None, 'q3': None, 'min': None, 'max': None}
+
+        # Scott's bandwidth
+        std = np.std(vals)
+        h = 1.06 * std * (len(vals) ** -0.2) if std > 0 else 1.0
+        vmin, vmax = vals.min(), vals.max()
+        x_pts = np.linspace(vmin - 3 * h, vmax + 3 * h, 80)
+        # Gaussian KDE
+        kde = np.array([np.mean(np.exp(-0.5 * ((x - vals) / h) ** 2) / (h * np.sqrt(2 * np.pi))) for x in x_pts])
+
+        return {
+            'name': str(name),
+            'kde': [{'x': _safe_float(x), 'density': _safe_float(d)} for x, d in zip(x_pts, kde)],
+            'q1': _safe_float(np.percentile(vals, 25)),
+            'q2': _safe_float(np.percentile(vals, 50)),
+            'q3': _safe_float(np.percentile(vals, 75)),
+            'min': _safe_float(vals.min()),
+            'max': _safe_float(vals.max()),
+        }
+
+    if group_col:
+        groups = []
+        for name, grp_df in df.groupby(group_col, dropna=False):
+            if len(grp_df) > 0:
+                groups.append(_kde_points(grp_df[col], name))
+        return {'groups': groups}
+    else:
+        return {'groups': [_kde_points(df[col], col)]}
+
+
+def _compute_correlation(df: pd.DataFrame, cols: list) -> dict:
+    """Compute Pearson correlation matrix for given columns."""
+    sub = df[cols].apply(pd.to_numeric, errors='coerce').dropna()
+    if sub.shape[0] < 2:
+        raise ValueError("Not enough rows with numeric values to compute correlation")
+    corr = sub.corr(method='pearson')
+    matrix = [[_safe_float(corr.iloc[i][j]) for j in range(len(cols))] for i in range(len(cols))]
+    return {'columns': cols, 'matrix': matrix}

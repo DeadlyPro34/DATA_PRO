@@ -392,8 +392,21 @@ def parse_excel_smart(file_path: str) -> pd.DataFrame:
         # ── 2f. Convert numeric-looking object columns ──────────────────────
         #        read_excel with dtype=object keeps everything as strings;
         #        we coerce columns that look numeric so stats work correctly.
+        #
+        #        NOTE: pd.to_numeric(errors='ignore') was removed in pandas 2.0.
+        #        We replicate its behaviour manually: coerce to numeric, then
+        #        only apply if no new NaN values were introduced (i.e. the whole
+        #        column was genuinely numeric).
         for col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='ignore')
+            try:
+                converted = pd.to_numeric(df[col], errors='coerce')
+                original_nulls = df[col].isna().sum()
+                new_nulls = converted.isna().sum()
+                if new_nulls == original_nulls:
+                    # Every value converted cleanly — safe to adopt
+                    df[col] = converted
+            except Exception:
+                pass  # leave the column as-is if anything goes wrong
 
         # ── 2g. Validate the sheet ─────────────────────────────────────────
         valid, reason = is_valid_sheet(df, sheet_name)

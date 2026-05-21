@@ -75,46 +75,66 @@
 </div>
 
 <!-- ───── Enhanced Chart Builder ───── -->
-<div class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay:200ms;">
+<div id="chartBuilderPanel" class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay:200ms;">
     <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-    <div class="flex items-center gap-3 mb-6 relative z-10">
-        <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+    <div class="flex items-center justify-between gap-3 mb-6 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
+            <span id="chartTypeBadge" class="hidden text-xs font-bold px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400"></span>
         </div>
-        <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
+        <!-- Export Toolbar -->
+        <div class="flex items-center gap-2 relative z-10">
+            <span class="hidden sm:block text-xs text-stone-500 font-medium mr-1">Export</span>
+            <button id="exportPngBtn" title="Export as PNG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </button>
+            <button id="exportSvgBtn" title="Export as SVG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </button>
+            <button id="exportCsvBtn" title="Download CSV" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </button>
+            <div class="w-px h-5 bg-stone-800 mx-1"></div>
+            <button id="fullscreenBtn" title="Fullscreen" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            </button>
+        </div>
     </div>
 
-    <!-- Row 1: Chart Type · X Axis · Y Axis · Time Group -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10">
-
-        <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Chart Type</label>
-            <div class="relative">
-                <select id="chartType" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="pie">Pie Chart</option>
-                    <option value="scatter">Scatter Plot</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+    <!-- Chart Type Selector — pill groups -->
+    <div class="mb-5 relative z-10">
+        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2 ml-1">Chart Type</label>
+        <div class="flex flex-wrap gap-1.5" id="chartTypePills">
+            <!-- Basic -->
+            <div class="flex items-center gap-1 mr-2">
+                <span class="text-[10px] text-stone-600 font-bold uppercase tracking-wider whitespace-nowrap">Basic</span>
+                <div class="w-px h-4 bg-stone-800 mx-1"></div>
             </div>
+            <!-- Pills injected by JS -->
         </div>
+    </div>
 
-        <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">X-Axis</label>
+    <!-- Row 1: X Axis · Y Axis · Aggregation · Time Group -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10" id="axisRow">
+
+        <div class="space-y-1.5" id="xAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="xAxisLabel">X-Axis</label>
             <div class="relative">
                 <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
-        <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px]">Ctrl+click = multi</span></label>
+        <div class="space-y-1.5" id="yAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px]">Ctrl+click = multi</span></label>
             <select id="yAxis" multiple class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors cursor-pointer" style="height:52px;"></select>
         </div>
 
-        <div class="space-y-1.5">
+        <div class="space-y-1.5" id="aggModeWrap">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Aggregation</label>
             <div class="relative">
                 <select id="aggMode" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
@@ -123,15 +143,13 @@
                     <option value="mean">Average of Y</option>
                     <option value="min">Min of Y</option>
                     <option value="max">Max of Y</option>
+                    <option value="median">Median of Y</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
-    </div>
 
-    <!-- Row 1b: Time Group (full width, collapsible) -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4 relative z-10" id="timeGroupRow">
-        <div class="space-y-1.5">
+        <div class="space-y-1.5" id="timeGroupWrap">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Time</label>
             <div class="relative">
                 <select id="timeGroup" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
@@ -146,7 +164,31 @@
         </div>
     </div>
 
-    <!-- Row 2: Filter Column · Filter Value · Top N · Render -->
+    <!-- Row 2: Extra axis selectors (size/value/group cols for bubble, histogram, etc.) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10 hidden" id="extraAxisRow">
+        <div class="space-y-1.5" id="sizeAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="sizeAxisLabel">Size / Value</label>
+            <div class="relative">
+                <select id="sizeAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+        <div class="space-y-1.5" id="groupAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Column</label>
+            <div class="relative">
+                <select id="groupAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— None —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+        <div class="space-y-1.5" id="binsWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Bins (Histogram)</label>
+            <input type="number" id="binsInput" value="20" min="2" max="100" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+        </div>
+    </div>
+
+    <!-- Row 3: Filter · Filter Value · Top N · Render -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
 
         <div class="space-y-1.5">
@@ -191,9 +233,38 @@
         </div>
     </div>
 
-    <!-- Canvas -->
-    <div class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-6 h-[450px] flex items-center justify-center relative z-10 shadow-inner">
+    <!-- Canvas Container (shared by Chart.js; Plotly/D3 create their own) -->
+    <div id="chartContainer" class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-4 h-[480px] flex items-center justify-center relative z-10 shadow-inner overflow-hidden">
+        <!-- Chart.js canvas -->
         <canvas id="myChart" class="w-full h-full"></canvas>
+        <!-- Plotly / D3 mount point -->
+        <div id="advancedChartMount" class="w-full h-full hidden"></div>
+        <!-- Empty / loading states -->
+        <div id="chartEmptyState" class="absolute inset-0 flex flex-col items-center justify-center text-center hidden">
+            <div class="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-orange-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <p id="chartEmptyMsg" class="text-stone-500 text-sm max-w-xs">Select columns and click Render Chart to visualize your data.</p>
+        </div>
+        <div id="chartLoadingState" class="absolute inset-0 flex flex-col items-center justify-center hidden">
+            <div class="w-10 h-10 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-3"></div>
+            <p class="text-stone-400 text-sm">Loading chart…</p>
+        </div>
+        <!-- Unavailable overlay for geo/network charts -->
+        <div id="chartUnavailableState" class="absolute inset-0 flex flex-col items-center justify-center text-center px-8 hidden">
+            <div class="w-16 h-16 rounded-2xl bg-stone-800 border border-stone-700 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <p id="chartUnavailableMsg" class="text-stone-400 text-sm max-w-sm"></p>
+        </div>
+    </div>
+
+    <!-- Zoom controls (visible only for Chart.js charts) -->
+    <div id="zoomControls" class="flex items-center gap-2 mt-3 relative z-10 hidden">
+        <span class="text-xs text-stone-500">Zoom:</span>
+        <button id="zoomInBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">+</button>
+        <button id="zoomOutBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">−</button>
+        <button id="resetZoomBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">Reset</button>
     </div>
 </div>
 
@@ -235,15 +306,16 @@
 <script>
     const columns   = JSON.parse('{{ columns_json|escapejs }}');
     const allRows   = JSON.parse('{{ rows_json|escapejs }}');
-    const FILE_ID   = {{ file_id }};   // used by chart-data API
-    const CHART_DATA_URL = `/dataset/${FILE_ID}/chart-data/`;
+    const FILE_ID   = {{ file_id }};
+    const CHART_DATA_URL    = `/dataset/${FILE_ID}/chart-data/`;
+    const ADVANCED_STATS_URL = `/dataset/${FILE_ID}/advanced-stats/`;
 </script>
 
 <!-- ───── App Logic ───── -->
 <script>
-// ════════════════════════════════════════════════
-// TABLE
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+// 1. TABLE
+// ════════════════════════════════════════════════════════════════════════════
 let filteredRows = [...allRows];
 let currentPage  = 1;
 const rowsPerPage = 50;
@@ -307,9 +379,9 @@ prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage
 nextPageBtn.addEventListener('click', () => { const tp = Math.ceil(filteredRows.length/rowsPerPage); if (currentPage < tp) { currentPage++; renderTable(); } });
 renderTable();
 
-// ════════════════════════════════════════════════
-// COLUMN DETECTION
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+// 2. COLUMN DETECTION
+// ════════════════════════════════════════════════════════════════════════════
 const numericCols = columns.filter(col =>
     allRows.some(r => r[col] !== null && r[col] !== undefined && typeof r[col] === 'number' && !isNaN(r[col]))
 );
@@ -323,9 +395,9 @@ const dateCols = columns.filter(col => {
     return parseable.length > samples.length * 0.6;
 });
 
-// ════════════════════════════════════════════════
-// STATS PANEL
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+// 3. STATS PANEL
+// ════════════════════════════════════════════════════════════════════════════
 const statsColEl = document.getElementById('statsColumn');
 const statsGrid  = document.getElementById('statsGrid');
 
@@ -400,54 +472,90 @@ function renderStats(col) {
 statsColEl.addEventListener('change', () => renderStats(statsColEl.value));
 if (numericCols.length) renderStats(numericCols[0]);
 
-// ════════════════════════════════════════════════
-// CHART BUILDER
-// ════════════════════════════════════════════════
-const xAxisSel      = document.getElementById('xAxis');
-const yAxisSel      = document.getElementById('yAxis');
-const chartTypeSel  = document.getElementById('chartType');
-const timeGroupSel  = document.getElementById('timeGroup');
-const filterColSel  = document.getElementById('filterColumn');
-const filterValSel  = document.getElementById('filterValue');
-const topNSel       = document.getElementById('topN');
-const aggModeSel    = document.getElementById('aggMode');
-const renderBtn     = document.getElementById('renderChartBtn');
+// ════════════════════════════════════════════════════════════════════════════
+// 4. CHART ENGINE — Registry + Universal Interface
+// ════════════════════════════════════════════════════════════════════════════
 
-// Populate X: all columns
-columns.forEach(col => xAxisSel.add(new Option(col, col)));
-// Populate Y: all columns (count mode works on any col, numeric modes need numbers)
-columns.forEach(col => yAxisSel.add(new Option(col, col)));
-// Pre-select first numeric col in Y
-if (numericCols.length) yAxisSel.value = numericCols[0];
-// Populate Filter: all columns
-columns.forEach(col => filterColSel.add(new Option(col, col)));
+// ── 4a. Chart Type Registry ───────────────────────────────────────────────
+const CHART_REGISTRY = [
+    // id, label, category, engine (chartjs|plotly|d3|unavailable), needsX, needsY, needsSize, needsBins, needsGroup
+    // ── Basic ───────────────────────────────────────────────────────────────
+    { id:'bar',           label:'Bar',           cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'📊' },
+    { id:'column',        label:'Column',        cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'📊' },
+    { id:'line',          label:'Line',          cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'📈' },
+    { id:'area',          label:'Area',          cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'🏔️' },
+    { id:'stepLine',      label:'Step Line',     cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'↗️' },
+    { id:'scatter',       label:'Scatter',       cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'⚪' },
+    { id:'bubble',        label:'Bubble',        cat:'Basic',        engine:'chartjs',    needsX:true,  needsY:true,  needsSize:true, icon:'🫧' },
+    // ── Distribution ───────────────────────────────────────────────────────
+    { id:'histogram',     label:'Histogram',     cat:'Distribution', engine:'plotly',     needsX:true,  needsY:false, needsBins:true, icon:'📉' },
+    { id:'boxPlot',       label:'Box Plot',      cat:'Distribution', engine:'plotly',     needsX:false, needsY:true,  needsGroup:true, icon:'📦' },
+    { id:'violin',        label:'Violin',        cat:'Distribution', engine:'plotly',     needsX:false, needsY:true,  needsGroup:true, icon:'🎻' },
+    { id:'densityPlot',   label:'Density',       cat:'Distribution', engine:'plotly',     needsX:true,  needsY:false, icon:'〰️' },
+    { id:'dotPlot',       label:'Dot Plot',      cat:'Distribution', engine:'chartjs',    needsX:true,  needsY:true,  icon:'⚫' },
+    // ── Part-to-Whole ───────────────────────────────────────────────────────
+    { id:'pie',           label:'Pie',           cat:'Part-to-Whole',engine:'chartjs',    needsX:true,  needsY:true,  icon:'🥧' },
+    { id:'doughnut',      label:'Doughnut',      cat:'Part-to-Whole',engine:'chartjs',    needsX:true,  needsY:true,  icon:'🍩' },
+    { id:'polarArea',     label:'Polar Area',    cat:'Part-to-Whole',engine:'chartjs',    needsX:true,  needsY:true,  icon:'🎯' },
+    { id:'treemap',       label:'Treemap',       cat:'Part-to-Whole',engine:'plotly',     needsX:true,  needsY:true,  icon:'🗺️' },
+    { id:'sunburst',      label:'Sunburst',      cat:'Part-to-Whole',engine:'plotly',     needsX:true,  needsY:true,  icon:'☀️' },
+    { id:'funnel',        label:'Funnel',        cat:'Part-to-Whole',engine:'plotly',     needsX:true,  needsY:true,  icon:'🔻' },
+    { id:'pyramid',       label:'Pyramid',       cat:'Part-to-Whole',engine:'plotly',     needsX:true,  needsY:true,  icon:'🔺' },
+    { id:'wordCloud',     label:'Word Cloud',    cat:'Part-to-Whole',engine:'d3',         needsX:true,  needsY:false, icon:'💬' },
+    { id:'packedBubble',  label:'Packed Bubble', cat:'Part-to-Whole',engine:'plotly',     needsX:true,  needsY:true,  icon:'🫧' },
+    // ── Comparison ─────────────────────────────────────────────────────────
+    { id:'radar',         label:'Radar',         cat:'Comparison',   engine:'chartjs',    needsX:true,  needsY:true,  icon:'🕸️' },
+    { id:'lollipop',      label:'Lollipop',      cat:'Comparison',   engine:'chartjs',    needsX:true,  needsY:true,  icon:'🍭' },
+    { id:'errorBar',      label:'Error Bar',     cat:'Comparison',   engine:'plotly',     needsX:true,  needsY:true,  icon:'⊥' },
+    { id:'rangeArea',     label:'Range Area',    cat:'Comparison',   engine:'plotly',     needsX:true,  needsY:true,  needsSize:true, icon:'↕️' },
+    { id:'parallelCoords',label:'Parallel Coords',cat:'Comparison',  engine:'plotly',     needsX:false, needsY:true,  icon:'〣' },
+    // ── Correlation ─────────────────────────────────────────────────────────
+    { id:'heatmap',       label:'Heatmap',       cat:'Correlation',  engine:'plotly',     needsX:false, needsY:false, icon:'🌡️' },
+    { id:'hexbin',        label:'Hexbin',        cat:'Correlation',  engine:'plotly',     needsX:true,  needsY:true,  icon:'⬡' },
+    // ── Stacked ─────────────────────────────────────────────────────────────
+    { id:'stackedBar',    label:'Stacked Bar',   cat:'Stacked',      engine:'chartjs',    needsX:true,  needsY:true,  icon:'📊' },
+    { id:'stackedArea',   label:'Stacked Area',  cat:'Stacked',      engine:'chartjs',    needsX:true,  needsY:true,  icon:'🏔️' },
+    { id:'streamGraph',   label:'Stream Graph',  cat:'Stacked',      engine:'d3',         needsX:true,  needsY:true,  icon:'🌊' },
+    { id:'marimekko',     label:'Marimekko',     cat:'Stacked',      engine:'plotly',     needsX:true,  needsY:true,  needsSize:true, icon:'🧩' },
+    // ── Financial ───────────────────────────────────────────────────────────
+    { id:'candlestick',   label:'Candlestick',   cat:'Financial',    engine:'plotly',     needsX:true,  needsY:true,  icon:'🕯️' },
+    { id:'waterfall',     label:'Waterfall',     cat:'Financial',    engine:'plotly',     needsX:true,  needsY:true,  icon:'💧' },
+    { id:'pareto',        label:'Pareto',        cat:'Financial',    engine:'plotly',     needsX:true,  needsY:true,  icon:'📐' },
+    { id:'controlChart',  label:'Control Chart', cat:'Financial',    engine:'plotly',     needsX:true,  needsY:true,  icon:'🎛️' },
+    { id:'gauge',         label:'Gauge',         cat:'Financial',    engine:'plotly',     needsX:false, needsY:true,  icon:'⏱️' },
+    // ── Flow ───────────────────────────────────────────────────────────────
+    { id:'sankey',        label:'Sankey',        cat:'Flow',         engine:'plotly',     needsX:true,  needsY:true,  needsSize:true, icon:'🌀' },
+    { id:'chord',         label:'Chord',         cat:'Flow',         engine:'d3',         needsX:true,  needsY:true,  icon:'⭕' },
+    // ── Combo ──────────────────────────────────────────────────────────────
+    { id:'combo',         label:'Combo',         cat:'Combo',        engine:'chartjs',    needsX:true,  needsY:true,  icon:'🔀' },
+    // ── Special ─────────────────────────────────────────────────────────────
+    { id:'calendarHeatmap',label:'Calendar Heatmap',cat:'Special',   engine:'d3',         needsX:true,  needsY:true,  icon:'📅' },
+    { id:'timeline',      label:'Timeline',      cat:'Special',      engine:'plotly',     needsX:true,  needsY:true,  needsSize:true, icon:'⏱️' },
+    { id:'mosaic',        label:'Mosaic',        cat:'Special',      engine:'plotly',     needsX:true,  needsY:true,  icon:'🧩' },
+    // ── Unavailable ─────────────────────────────────────────────────────────
+    { id:'geoMap',        label:'Geo Map',       cat:'Unavailable',  engine:'unavailable', unavailableMsg:'Geographic Map requires latitude/longitude columns in your data.', icon:'🗺️' },
+    { id:'choropleth',    label:'Choropleth',    cat:'Unavailable',  engine:'unavailable', unavailableMsg:'Choropleth Map requires ISO country/region codes and GeoJSON boundary files.', icon:'🌍' },
+    { id:'networkGraph',  label:'Network Graph', cat:'Unavailable',  engine:'unavailable', unavailableMsg:'Network Graph requires source/target edge columns in your data.', icon:'🕸️' },
+    { id:'gantt',         label:'Gantt',         cat:'Unavailable',  engine:'unavailable', unavailableMsg:'Gantt Chart requires start date, end date, and task name columns.', icon:'📅' },
+];
 
-// Smart default: prefer detected date col for X axis
-if (dateCols.length) xAxisSel.value = dateCols[0];
-
-// When filter column changes → load unique values
-filterColSel.addEventListener('change', () => {
-    const col = filterColSel.value;
-    filterValSel.innerHTML = '<option value="">— All —</option>';
-    if (col) {
-        const unique = [...new Set(allRows.map(r => String(r[col]??'')).filter(v => v && v !== 'null' && v !== 'undefined'))].sort();
-        unique.forEach(v => filterValSel.add(new Option(v, v)));
+// ChartRegistry object
+const ChartRegistry = {
+    _map: Object.fromEntries(CHART_REGISTRY.map(c => [c.id, c])),
+    get(id) { return this._map[id]; },
+    all() { return CHART_REGISTRY; },
+    byCategory() {
+        const cats = {};
+        CHART_REGISTRY.forEach(c => {
+            if (c.cat === 'Unavailable') return;
+            if (!cats[c.cat]) cats[c.cat] = [];
+            cats[c.cat].push(c);
+        });
+        return cats;
     }
-});
+};
 
-// Disable time grouping for pie / scatter / count
-function syncControls() {
-    const t   = chartTypeSel.value;
-    const agg = aggModeSel.value;
-    timeGroupSel.disabled = (t === 'pie' || t === 'scatter' || agg === 'count');
-    if (timeGroupSel.disabled) timeGroupSel.value = 'none';
-}
-chartTypeSel.addEventListener('change', syncControls);
-aggModeSel.addEventListener('change', syncControls);
-
-let currentChart = null;
-
-// 8 vivid brand colours
+// ── 4b. Colour Palette ────────────────────────────────────────────────────
 const PALETTE = [
     { b:'#f97316', bg:'rgba(249,115,22,0.65)'  },
     { b:'#3b82f6', bg:'rgba(59,130,246,0.65)'  },
@@ -457,8 +565,76 @@ const PALETTE = [
     { b:'#eab308', bg:'rgba(234,179,8,0.65)'   },
     { b:'#06b6d4', bg:'rgba(6,182,212,0.65)'   },
     { b:'#ec4899', bg:'rgba(236,72,153,0.65)'  },
+    { b:'#14b8a6', bg:'rgba(20,184,166,0.65)'  },
+    { b:'#a855f7', bg:'rgba(168,85,247,0.65)'  },
+    { b:'#f59e0b', bg:'rgba(245,158,11,0.65)'  },
+    { b:'#ef4444', bg:'rgba(239,68,68,0.65)'   },
 ];
 
+// Plotly dark theme layout base
+const PLOTLY_LAYOUT_BASE = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Inter, sans-serif', color: '#a8a29e', size: 11 },
+    margin: { t: 30, r: 20, b: 50, l: 60 },
+    xaxis: { gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.1)', tickfont: { color: '#78716c' }, titlefont: { color: '#78716c' } },
+    yaxis: { gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.1)', tickfont: { color: '#78716c' }, titlefont: { color: '#78716c' } },
+    legend: { font: { color: '#a8a29e' }, bgcolor: 'rgba(0,0,0,0)' },
+    colorway: PALETTE.map(p => p.b),
+};
+const PLOTLY_CONFIG = { responsive: true, displayModeBar: false };
+
+// ── 4c. Lazy Library Loaders ──────────────────────────────────────────────
+let _plotlyLoaded = false, _plotlyPromise = null;
+function loadPlotly() {
+    if (_plotlyLoaded) return Promise.resolve();
+    if (_plotlyPromise) return _plotlyPromise;
+    _plotlyPromise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+        s.onload = () => { _plotlyLoaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+    return _plotlyPromise;
+}
+
+let _d3Loaded = false, _d3Promise = null;
+function loadD3() {
+    if (_d3Loaded) return Promise.resolve();
+    if (_d3Promise) return _d3Promise;
+    _d3Promise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js';
+        s.onload = () => { _d3Loaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+    return _d3Promise;
+}
+
+// ── 4d. UI State Helpers ──────────────────────────────────────────────────
+const $chartCanvas       = document.getElementById('myChart');
+const $advMount          = document.getElementById('advancedChartMount');
+const $emptyState        = document.getElementById('chartEmptyState');
+const $loadingState      = document.getElementById('chartLoadingState');
+const $unavailableState  = document.getElementById('chartUnavailableState');
+const $unavailableMsg    = document.getElementById('chartUnavailableMsg');
+const $emptyMsg          = document.getElementById('chartEmptyMsg');
+const $zoomControls      = document.getElementById('zoomControls');
+
+function showChartState(state, msg = '') {
+    $chartCanvas.classList.toggle('hidden', state !== 'chart');
+    $advMount.classList.toggle('hidden', state !== 'advanced');
+    $emptyState.classList.toggle('hidden', state !== 'empty');
+    $loadingState.classList.toggle('hidden', state !== 'loading');
+    $unavailableState.classList.toggle('hidden', state !== 'unavailable');
+    if (state === 'unavailable') $unavailableMsg.textContent = msg;
+    if (state === 'empty') $emptyMsg.textContent = msg || 'Select columns and click Render Chart.';
+    $zoomControls.classList.toggle('hidden', state !== 'chart');
+}
+
+// ── 4e. Date Helpers ─────────────────────────────────────────────────────
 function dateKey(val, grp) {
     const d = new Date(val);
     if (isNaN(d)) return null;
@@ -494,9 +670,10 @@ function sortDateLabels(labels, grp) {
     return [...labels].sort();
 }
 
+// ── 4f. Chart.js Dataset Builder ─────────────────────────────────────────
 function makeDataset(label, data, type, c, ctx, len) {
     let bg = c.bg;
-    if (ctx && (type === 'bar' || type === 'line')) {
+    if (ctx && (type === 'bar' || type === 'column' || type === 'line' || type === 'area' || type === 'stepLine' || type === 'stackedArea')) {
         try {
             const g = ctx.createLinearGradient(0, 0, 0, 380);
             g.addColorStop(0, c.bg);
@@ -504,13 +681,15 @@ function makeDataset(label, data, type, c, ctx, len) {
             bg = g;
         } catch(_) {}
     }
+    const isFilled = ['area','stackedArea','stackedBar'].includes(type);
     return {
         label, data,
         backgroundColor: bg,
         borderColor: c.b,
-        borderWidth: type === 'line' ? 2.5 : 1,
-        fill: type === 'line',
+        borderWidth: (type === 'line' || type === 'area' || type === 'stepLine') ? 2.5 : 1,
+        fill: isFilled,
         tension: 0.4,
+        stepped: type === 'stepLine' ? 'before' : false,
         pointBackgroundColor: c.b,
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
@@ -520,11 +699,42 @@ function makeDataset(label, data, type, c, ctx, len) {
     };
 }
 
-// membersMap stores { label → "Ali, Ahmed, Sara" } for count-mode tooltips
+// ── 4g. Chart.js Options Builder ──────────────────────────────────────────
 let membersMap = {};
 
-function chartOpts(type, yLabel = '') {
+function chartOpts(type, yLabel = '', extraOpts = {}) {
     const isCount = aggModeSel.value === 'count';
+    const isRadial = ['pie','doughnut','polarArea'].includes(type);
+    const isRadar  = type === 'radar';
+
+    const scales = isRadial ? {} : isRadar ? {
+        r: {
+            ticks: { color:'#78716c', font:{ family:'Inter', size:10 }, backdropColor:'transparent' },
+            grid: { color:'rgba(255,255,255,0.07)' },
+            pointLabels: { color:'#a8a29e', font:{ family:'Inter', size:11 } },
+        }
+    } : {
+        x: {
+            stacked: ['stackedBar','stackedArea'].includes(type),
+            ticks: {
+                color:'#78716c', font:{ family:'Inter', size:11 },
+                maxRotation:45, minRotation:0, autoSkip:true, maxTicksLimit:25,
+                callback(val) {
+                    const lbl = this.getLabelForValue(val);
+                    return typeof lbl==='string' && lbl.length>16 ? lbl.slice(0,16)+'…' : lbl;
+                }
+            },
+            grid:{ color:'rgba(255,255,255,0.03)', drawBorder:false },
+            type: type === 'scatter' ? 'linear' : 'category'
+        },
+        y: {
+            stacked: ['stackedBar','stackedArea'].includes(type),
+            ticks:{ color:'#78716c', font:{ family:'Inter', size:11 }, callback: v => typeof v==='number' ? v.toLocaleString() : v },
+            grid:{ color:'rgba(255,255,255,0.05)', drawBorder:false },
+            title: { display: !!yLabel, text: yLabel, color:'#78716c', font:{ family:'Inter', size:11 } }
+        }
+    };
+
     return {
         responsive: true,
         maintainAspectRatio: false,
@@ -538,173 +748,410 @@ function chartOpts(type, yLabel = '') {
                 titleFont:{ family:'Inter', size:13, weight:'bold' },
                 bodyFont:{ family:'Inter', size:12 },
                 callbacks: {
-                    title(items) {
-                        // Show the X label (marks value, category, etc.)
-                        return items[0]?.label ?? '';
-                    },
+                    title(items) { return items[0]?.label ?? ''; },
                     label(ctx) {
                         const v = ctx.parsed?.y ?? ctx.parsed;
-                        if (isCount) {
-                            return ` Count: ${typeof v==='number' ? v.toLocaleString() : v}`;
-                        }
+                        if (isCount) return ` Count: ${typeof v==='number' ? v.toLocaleString() : v}`;
                         const aggLabel = aggModeSel.options[aggModeSel.selectedIndex].text;
                         return ` ${aggLabel}: ${typeof v==='number' ? v.toLocaleString(undefined,{maximumFractionDigits:4}) : v}`;
                     },
                     afterBody(items) {
-                        // In count mode: show member names below the count
                         if (!isCount) return [];
                         const lbl = items[0]?.label ?? '';
                         const memberData = membersMap[lbl];
                         if (!memberData) return [];
-                        
                         const members = memberData.list;
                         if (!members || !Array.isArray(members)) return [];
-                        
-                        // Format as bullet list (max 10 shown)
                         const lines = members.slice(0, 10).map(n => `  • ${n}`);
                         if (members.length > 10) lines.push(`  … and ${members.length - 10} more`);
-                        
-                        // Use the dynamically detected column name (e.g. 'student_name')
                         return ['', `  ${memberData.col}:`, ...lines];
                     }
                 }
             }
         },
-        scales: type === 'pie' ? {} : {
-            x: {
-                ticks: {
-                    color:'#78716c', font:{ family:'Inter', size:11 },
-                    maxRotation:45, minRotation:0,
-                    autoSkip:true, maxTicksLimit:25,
-                    callback(val) {
-                        const lbl = this.getLabelForValue(val);
-                        return typeof lbl==='string' && lbl.length>16 ? lbl.slice(0,16)+'…' : lbl;
-                    }
-                },
-                grid:{ color:'rgba(255,255,255,0.03)', drawBorder:false },
-                type: type === 'scatter' ? 'linear' : 'category'
-            },
-            y: {
-                ticks:{
-                    color:'#78716c', font:{ family:'Inter', size:11 },
-                    callback: v => typeof v==='number' ? v.toLocaleString() : v
-                },
-                grid:{ color:'rgba(255,255,255,0.05)', drawBorder:false },
-                title: {
-                    display: !!yLabel,
-                    text: yLabel,
-                    color: '#78716c',
-                    font: { family:'Inter', size:11 }
-                }
-            }
-        },
-        animation:{ duration:900, easing:'easeOutQuart' }
+        scales,
+        animation:{ duration:900, easing:'easeOutQuart' },
+        ...extraOpts
     };
 }
 
-// ── Main render function ──────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// 5. CHART BUILDER UI
+// ════════════════════════════════════════════════════════════════════════════
+const xAxisSel      = document.getElementById('xAxis');
+const yAxisSel      = document.getElementById('yAxis');
+const timeGroupSel  = document.getElementById('timeGroup');
+const filterColSel  = document.getElementById('filterColumn');
+const filterValSel  = document.getElementById('filterValue');
+const topNSel       = document.getElementById('topN');
+const aggModeSel    = document.getElementById('aggMode');
+const renderBtn     = document.getElementById('renderChartBtn');
+const sizeAxisSel   = document.getElementById('sizeAxis');
+const groupAxisSel  = document.getElementById('groupAxis');
+const binsInput     = document.getElementById('binsInput');
+const extraAxisRow  = document.getElementById('extraAxisRow');
+const sizeAxisWrap  = document.getElementById('sizeAxisWrap');
+const binsWrap      = document.getElementById('binsWrap');
+const groupAxisWrap = document.getElementById('groupAxisWrap');
+const sizeAxisLabel = document.getElementById('sizeAxisLabel');
+const $badge        = document.getElementById('chartTypeBadge');
+
+// Populate dropdowns
+columns.forEach(col => xAxisSel.add(new Option(col, col)));
+columns.forEach(col => yAxisSel.add(new Option(col, col)));
+columns.forEach(col => { sizeAxisSel.add(new Option(col, col)); groupAxisSel.add(new Option(col, col)); });
+if (numericCols.length) yAxisSel.value = numericCols[0];
+columns.forEach(col => filterColSel.add(new Option(col, col)));
+if (dateCols.length) xAxisSel.value = dateCols[0];
+
+filterColSel.addEventListener('change', () => {
+    const col = filterColSel.value;
+    filterValSel.innerHTML = '<option value="">— All —</option>';
+    if (col) {
+        const unique = [...new Set(allRows.map(r => String(r[col]??'')).filter(v => v && v !== 'null' && v !== 'undefined'))].sort();
+        unique.forEach(v => filterValSel.add(new Option(v, v)));
+    }
+});
+
+// ── 5a. Chart Type Pills Builder ─────────────────────────────────────────
+let activeChartId = 'bar';
+
+function buildPills() {
+    const container = document.getElementById('chartTypePills');
+    container.innerHTML = '';
+    const byCategory = ChartRegistry.byCategory();
+    Object.entries(byCategory).forEach(([cat, charts], catIdx) => {
+        if (catIdx > 0) {
+            const sep = document.createElement('div');
+            sep.className = 'flex items-center gap-1 mr-2';
+            sep.innerHTML = `<span class="text-[10px] text-stone-600 font-bold uppercase tracking-wider whitespace-nowrap">${cat}</span><div class="w-px h-4 bg-stone-800 mx-1"></div>`;
+            container.appendChild(sep);
+        }
+        charts.forEach(chart => {
+            const btn = document.createElement('button');
+            btn.id = `pill-${chart.id}`;
+            btn.dataset.chartId = chart.id;
+            btn.title = chart.label;
+            btn.className = `px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 cursor-pointer whitespace-nowrap ${
+                chart.id === activeChartId
+                    ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30'
+                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
+            }`;
+            btn.innerHTML = `<span class="mr-1 text-[11px]">${chart.icon}</span>${chart.label}`;
+            btn.addEventListener('click', () => setActiveChart(chart.id));
+            container.appendChild(btn);
+        });
+    });
+    // Unavailable group (no pills, skip)
+}
+
+function setActiveChart(id) {
+    activeChartId = id;
+    // Update pill styles
+    document.querySelectorAll('[data-chart-id]').forEach(btn => {
+        const isActive = btn.dataset.chartId === id;
+        btn.className = `px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 cursor-pointer whitespace-nowrap ${
+            isActive
+                ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30'
+                : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
+        }`;
+    });
+    // Update badge
+    const meta = ChartRegistry.get(id);
+    $badge.textContent = meta?.label ?? id;
+    $badge.classList.remove('hidden');
+    syncControls();
+}
+
+// ── 5b. syncControls ─────────────────────────────────────────────────────
+function syncControls() {
+    const id = activeChartId;
+    const meta = ChartRegistry.get(id) || {};
+    const agg = aggModeSel.value;
+
+    // Radial + scatter disable time grouping
+    const radialLike = ['pie','doughnut','polarArea','radar','scatter','bubble',
+                        'histogram','boxPlot','violin','gauge','heatmap','treemap',
+                        'sunburst','packedBubble','chord','wordCloud','calendarHeatmap',
+                        'mosaic','parallelCoords','hexbin','densityPlot','waterfall',
+                        'funnel','pyramid','sankey','marimekko','gantt','networkGraph'].includes(id);
+    timeGroupSel.disabled = radialLike || agg === 'count';
+    if (timeGroupSel.disabled) timeGroupSel.value = 'none';
+
+    // Aggregation: disable for histogram, violin, boxPlot, scatter, bubble, candlestick
+    const noAgg = ['histogram','violin','boxPlot','scatter','bubble','candlestick','heatmap','parallelCoords','chord','streamGraph'].includes(id);
+    aggModeSel.disabled = noAgg;
+
+    // Extra row visibility
+    const needsExtra = meta.needsSize || meta.needsBins || meta.needsGroup;
+    extraAxisRow.classList.toggle('hidden', !needsExtra);
+    sizeAxisWrap.classList.toggle('hidden', !meta.needsSize);
+    binsWrap.classList.toggle('hidden', !meta.needsBins);
+    groupAxisWrap.classList.toggle('hidden', !meta.needsGroup);
+
+    // X/Y axis labels
+    if (id === 'histogram') {
+        document.getElementById('xAxisLabel').textContent = 'Value Column';
+    } else if (id === 'gauge') {
+        document.getElementById('xAxisLabel').textContent = 'Value Column';
+    } else {
+        document.getElementById('xAxisLabel').textContent = 'X-Axis';
+    }
+    if (meta.needsSize) sizeAxisLabel.textContent = id === 'bubble' ? 'Bubble Size' : id === 'sankey' ? 'Flow Value' : 'Size / Value';
+
+    // Y axis: hide for some types
+    document.getElementById('yAxisWrap').classList.toggle('hidden', ['histogram','wordCloud','gauge','geoMap','choropleth'].includes(id));
+    document.getElementById('xAxisWrap').classList.toggle('hidden', ['gauge','parallelCoords'].includes(id));
+}
+
+// ── 5c. Render Button State ───────────────────────────────────────────────
+function setRenderBtnLoading(loading) {
+    renderBtn.disabled = loading;
+    renderBtn.innerHTML = loading
+        ? `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Loading…`
+        : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Render Chart`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 6. UNIVERSAL RENDER FUNCTION
+// ════════════════════════════════════════════════════════════════════════════
+let currentChart = null;
+
+function destroyCurrentChart() {
+    if (currentChart) { currentChart.destroy(); currentChart = null; }
+    if (_plotlyLoaded && $advMount._plotlyInstance) {
+        try { Plotly.purge($advMount); } catch(_) {}
+        $advMount._plotlyInstance = false;
+    }
+}
+
+// Filter rows helper
+function applyFilter(rows, fCol, fVal) {
+    if (!fCol || !fVal) return [...rows];
+    return rows.filter(r => String(r[fCol]??'') === fVal);
+}
+
+// Client-side aggregation helper
+function aggregateRows(rows, xCol, yCols, aggMode) {
+    const agg = {};
+    rows.forEach(r => {
+        const lbl = String(r[xCol]??'Unknown');
+        if (!agg[lbl]) agg[lbl] = {};
+        yCols.forEach(yCol => {
+            const v = parseFloat(r[yCol]) || 0;
+            if (aggMode === 'sum')    agg[lbl][yCol] = (agg[lbl][yCol]||0) + v;
+            else if (aggMode === 'count') agg[lbl][yCol] = (agg[lbl][yCol]||0) + 1;
+            else if (aggMode === 'mean') { agg[lbl][yCol] = agg[lbl][yCol]||{s:0,n:0}; agg[lbl][yCol].s += v; agg[lbl][yCol].n++; }
+            else if (aggMode === 'min')  agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.min(agg[lbl][yCol],v);
+            else if (aggMode === 'max')  agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.max(agg[lbl][yCol],v);
+            else if (aggMode === 'median') { agg[lbl][yCol] = agg[lbl][yCol]||[]; agg[lbl][yCol].push(v); }
+        });
+    });
+    // Finalise
+    if (aggMode === 'mean') Object.keys(agg).forEach(lbl => yCols.forEach(yCol => { if (agg[lbl][yCol] && typeof agg[lbl][yCol] === 'object') agg[lbl][yCol] = agg[lbl][yCol].s / agg[lbl][yCol].n; }));
+    if (aggMode === 'median') Object.keys(agg).forEach(lbl => yCols.forEach(yCol => {
+        const arr = (agg[lbl][yCol]||[]).sort((a,b)=>a-b);
+        const n = arr.length;
+        agg[lbl][yCol] = n ? (n%2===0?(arr[n/2-1]+arr[n/2])/2:arr[Math.floor(n/2)]) : 0;
+    }));
+    return agg;
+}
+
+// ── Main entry point ──────────────────────────────────────────────────────
 async function renderChart() {
+    const type   = activeChartId;
+    const meta   = ChartRegistry.get(type);
     const xCol   = xAxisSel.value;
     const yCols  = [...yAxisSel.selectedOptions].map(o => o.value);
-    const type   = chartTypeSel.value;
     const grp    = timeGroupSel.value;
     const fCol   = filterColSel.value;
     const fVal   = filterValSel.value;
     const topN   = parseInt(topNSel.value) || 0;
     const aggMode = aggModeSel.value;
+    const sizeCol = sizeAxisSel.value;
+    const groupCol = groupAxisSel.value;
+    const bins    = parseInt(binsInput.value) || 20;
 
-    if (!xCol || !yCols.length) {
-        showCustomAlert('Please select at least one X-axis and one Y-axis column.');
+    // Unavailable charts
+    if (meta.engine === 'unavailable') {
+        destroyCurrentChart();
+        showChartState('unavailable', meta.unavailableMsg);
         return;
     }
 
-    membersMap = {};  // reset for every render
+    membersMap = {};
+    showChartState('loading');
+    setRenderBtnLoading(true);
 
-    // Apply row-level filter (client side for all modes)
-    let rows = (fCol && fVal)
-        ? allRows.filter(r => String(r[fCol]??'') === fVal)
-        : [...allRows];
+    try {
+        let rows = applyFilter(allRows, fCol, fVal);
+        if (!rows.length) { showCustomAlert('No data matches the selected filter.'); showChartState('empty'); return; }
 
-    if (!rows.length) { showCustomAlert('No data matches the selected filter.'); return; }
+        const ctx = $chartCanvas.getContext('2d');
 
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (currentChart) { currentChart.destroy(); currentChart = null; }
+        // Route to engine
+        if (meta.engine === 'chartjs') {
+            await renderChartJS(type, rows, xCol, yCols, grp, topN, aggMode, sizeCol, ctx);
+        } else if (meta.engine === 'plotly') {
+            await renderPlotly(type, rows, xCol, yCols, topN, aggMode, sizeCol, groupCol, bins);
+        } else if (meta.engine === 'd3') {
+            await renderD3(type, rows, xCol, yCols, topN, aggMode);
+        }
+    } catch(e) {
+        showCustomAlert(`Chart error: ${e.message}`);
+        showChartState('empty', 'An error occurred. Try different columns or chart type.');
+    } finally {
+        setRenderBtnLoading(false);
+    }
+}
 
-    // ── SCATTER (always client-side) ─────────────────────────────────────
-    if (type === 'scatter') {
+// ════════════════════════════════════════════════════════════════════════════
+// 7. CHART.JS RENDERERS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderChartJS(type, rows, xCol, yCols, grp, topN, aggMode, sizeCol, ctx) {
+    destroyCurrentChart();
+    showChartState('chart');
+
+    // ── SCATTER ──────────────────────────────────────────────────────────
+    if (type === 'scatter' || type === 'dotPlot') {
         const yCol = yCols[0];
-        const pts  = rows.map(r => ({ x:parseFloat(r[xCol]), y:parseFloat(r[yCol]) }))
-                         .filter(p => !isNaN(p.x) && !isNaN(p.y));
-        if (!pts.length) { showCustomAlert('Scatter needs numeric X and Y values.'); return; }
+        if (!xCol || !yCol) { showCustomAlert('Scatter needs numeric X and Y columns.'); return; }
+        const pts = rows.map(r => ({ x:parseFloat(r[xCol]), y:parseFloat(r[yCol]) })).filter(p => !isNaN(p.x) && !isNaN(p.y));
+        if (!pts.length) { showCustomAlert('No numeric data found for scatter.'); return; }
         currentChart = new Chart(ctx, {
-            type:'scatter',
-            data:{ datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:PALETTE[0].bg, borderColor:PALETTE[0].b, pointRadius:5, pointHoverRadius:8 }] },
+            type: 'scatter',
+            data: { datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:PALETTE[0].bg, borderColor:PALETTE[0].b, pointRadius:type==='dotPlot'?6:5, pointHoverRadius:8 }] },
             options: chartOpts('scatter')
         });
         return;
     }
 
-    // ── COUNT MODE (via backend API) ──────────────────────────────────────
-    // Uses pandas groupby so member names are computed accurately server-side.
-    if (aggMode === 'count') {
+    // ── BUBBLE ───────────────────────────────────────────────────────────
+    if (type === 'bubble') {
         const yCol = yCols[0];
-        renderBtn.disabled = true;
-        renderBtn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Loading…`;
-
-        try {
-            const params = new URLSearchParams({ x: xCol, y: yCol, agg: 'count' });
-            if (fCol && fVal) params.set('filter_col', fCol), params.set('filter_val', fVal);
-
-            const resp = await fetch(`${CHART_DATA_URL}?${params}`);
-            if (!resp.ok) {
-                const err = await resp.json();
-                showCustomAlert(`Server error: ${err.error ?? resp.statusText}`);
-                return;
-            }
-            let data = await resp.json();
-            // data = [{ marks:81, count:4, students:["Student001"], label_col:"student_id" }, ...]
-
-            // Sort by count descending
-            data.sort((a, b) => b.count - a.count);
-            if (topN > 0) data = data.slice(0, topN);
-
-            const labels = data.map(d => String(d[xCol]));
-            const counts = data.map(d => d.count);
-
-            // Build membersMap for tooltip afterBody
-            // The backend always returns the list under 'students' now, and provides 'label_col'
-            let detectedLabelCol = yCol;
-            if (data.length > 0 && data[0].label_col) {
-                detectedLabelCol = data[0].label_col;
-            }
-
-            data.forEach(d => { 
-                membersMap[String(d[xCol])] = {
-                    list: d.students || [],
-                    col: detectedLabelCol
-                }; 
-            });
-
-            const c = PALETTE[0];
-            currentChart = new Chart(ctx, {
-                type: type === 'line' ? 'line' : 'bar',
-                data: {
-                    labels,
-                    datasets: [makeDataset(`Count of ${xCol}`, counts, type, c, ctx, labels.length)]
-                },
-                options: chartOpts(type, 'Count')
-            });
-
-        } catch(e) {
-            showCustomAlert(`Failed to load chart data: ${e.message}`);
-        } finally {
-            renderBtn.disabled = false;
-            renderBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Render Chart`;
-        }
+        if (!xCol || !yCol || !sizeCol) { showCustomAlert('Bubble chart needs X, Y, and Size columns.'); return; }
+        const rawPts = rows.map(r => ({ x:parseFloat(r[xCol]), y:parseFloat(r[yCol]), r:parseFloat(r[sizeCol]) })).filter(p => !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.r));
+        if (!rawPts.length) { showCustomAlert('No numeric data for bubble chart.'); return; }
+        const maxR = Math.max(...rawPts.map(p=>p.r));
+        const pts = rawPts.map(p => ({ ...p, r: Math.max(3, (p.r/maxR)*30) }));
+        currentChart = new Chart(ctx, {
+            type: 'bubble',
+            data: { datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:PALETTE[0].bg, borderColor:PALETTE[0].b }] },
+            options: chartOpts('scatter', '')
+        });
         return;
     }
 
-    // ── TIME-GROUPED (client-side) ────────────────────────────────────────
+    // ── COUNT MODE via backend ────────────────────────────────────────────
+    if (aggMode === 'count' && !['pie','doughnut','polarArea','radar'].includes(type)) {
+        const yCol = yCols[0];
+        const params = new URLSearchParams({ x: xCol, y: yCol, agg: 'count' });
+        if (filterColSel.value && filterValSel.value) { params.set('filter_col', filterColSel.value); params.set('filter_val', filterValSel.value); }
+
+        const resp = await fetch(`${CHART_DATA_URL}?${params}`);
+        if (!resp.ok) { const err = await resp.json(); showCustomAlert(`Server error: ${err.error ?? resp.statusText}`); return; }
+        let data = await resp.json();
+        data.sort((a,b) => b.count - a.count);
+        if (topN > 0) data = data.slice(0, topN);
+
+        const labels = data.map(d => String(d[xCol]));
+        const counts = data.map(d => d.count);
+        let detectedLabelCol = yCol;
+        if (data.length > 0 && data[0].label_col) detectedLabelCol = data[0].label_col;
+        data.forEach(d => { membersMap[String(d[xCol])] = { list: d.students||[], col: detectedLabelCol }; });
+
+        const c = PALETTE[0];
+        const chartJsType = ['stackedBar','column'].includes(type) ? 'bar' : (type === 'line' ? 'line' : type === 'radar' ? 'radar' : 'bar');
+        currentChart = new Chart(ctx, {
+            type: chartJsType,
+            data: { labels, datasets:[makeDataset(`Count of ${xCol}`, counts, type, c, ctx, labels.length)] },
+            options: chartOpts(type, 'Count')
+        });
+        return;
+    }
+
+    // ── RADIAL CHARTS (pie, doughnut, polarArea) ──────────────────────────
+    if (['pie','doughnut','polarArea'].includes(type)) {
+        const yCol = yCols[0];
+        const rawAgg = {};
+        rows.forEach(r => {
+            const lbl = String(r[xCol]??'Unknown');
+            const v = parseFloat(r[yCol]) || 0;
+            if (aggMode === 'sum')    rawAgg[lbl] = (rawAgg[lbl]||0) + v;
+            else if (aggMode === 'mean')  { rawAgg[lbl] = rawAgg[lbl]||{s:0,n:0}; rawAgg[lbl].s+=v; rawAgg[lbl].n++; }
+            else if (aggMode === 'min')   rawAgg[lbl] = rawAgg[lbl]===undefined ? v : Math.min(rawAgg[lbl],v);
+            else if (aggMode === 'max')   rawAgg[lbl] = rawAgg[lbl]===undefined ? v : Math.max(rawAgg[lbl],v);
+            else if (aggMode === 'count') rawAgg[lbl] = (rawAgg[lbl]||0) + 1;
+            else if (aggMode === 'median') { rawAgg[lbl] = rawAgg[lbl]||[]; rawAgg[lbl].push(v); }
+        });
+        if (aggMode === 'mean') Object.keys(rawAgg).forEach(k => { rawAgg[k] = rawAgg[k].s/rawAgg[k].n; });
+        if (aggMode === 'median') Object.keys(rawAgg).forEach(k => { const arr=(rawAgg[k]||[]).sort((a,b)=>a-b); const n=arr.length; rawAgg[k]=n?(n%2===0?(arr[n/2-1]+arr[n/2])/2:arr[Math.floor(n/2)]):0; });
+        let entries = Object.entries(rawAgg).sort((a,b) => b[1]-a[1]);
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k.length>22 ? k.slice(0,22)+'…' : k);
+        const data   = entries.map(([,v]) => typeof v==='object' ? (v.s/v.n) : v);
+        currentChart = new Chart(ctx, {
+            type: type === 'doughnut' ? 'doughnut' : type === 'polarArea' ? 'polarArea' : 'pie',
+            data: { labels, datasets:[{ label:yCol, data, backgroundColor:data.map((_,i)=>PALETTE[i%PALETTE.length].bg), borderColor:'#1c1917', borderWidth:2 }] },
+            options: chartOpts(type)
+        });
+        return;
+    }
+
+    // ── RADAR ─────────────────────────────────────────────────────────────
+    if (type === 'radar') {
+        if (!xCol || !yCols.length) { showCustomAlert('Radar needs X and at least one Y column.'); return; }
+        const agg = aggregateRows(rows, xCol, yCols, aggMode);
+        let entries = Object.entries(agg).sort((a,b) => {
+            const va = typeof a[1][yCols[0]] === 'number' ? a[1][yCols[0]] : 0;
+            const vb = typeof b[1][yCols[0]] === 'number' ? b[1][yCols[0]] : 0;
+            return vb-va;
+        });
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k);
+        const datasets = yCols.map((yCol, i) => {
+            const c = PALETTE[i%PALETTE.length];
+            const data = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
+            return { label:yCol, data, backgroundColor:c.bg, borderColor:c.b, borderWidth:2, pointBackgroundColor:c.b, pointBorderColor:'#fff', pointHoverBackgroundColor:'#fff', pointHoverBorderColor:c.b, fill:true };
+        });
+        currentChart = new Chart(ctx, { type:'radar', data:{ labels, datasets }, options: chartOpts('radar') });
+        return;
+    }
+
+    // ── LOLLIPOP ─────────────────────────────────────────────────────────
+    if (type === 'lollipop') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, yCols, aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k);
+        const data   = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
+        const c = PALETTE[0];
+        // Render as bar with max width trick + point overlay
+        const barDs = { type:'bar', label:yCol, data, backgroundColor:'transparent', borderColor:c.b, borderWidth:1.5, barThickness:2 };
+        const dotDs = { type:'scatter', label:'', data:labels.map((l,i)=>({x:l,y:data[i]})), backgroundColor:c.b, borderColor:'#1c1917', borderWidth:2, pointRadius:6, pointHoverRadius:8, showLine:false };
+        currentChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[barDs, dotDs] }, options: chartOpts('bar') });
+        return;
+    }
+
+    // ── COMBO ─────────────────────────────────────────────────────────────
+    if (type === 'combo') {
+        if (!xCol || yCols.length < 2) { showCustomAlert('Combo chart needs X and at least 2 Y columns.'); return; }
+        const agg = aggregateRows(rows, xCol, yCols, aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCols[0]]||0)-(a[1][yCols[0]]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k);
+        const datasets = yCols.map((yCol, i) => {
+            const c = PALETTE[i%PALETTE.length];
+            const data = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
+            const dsType = i === 0 ? 'bar' : 'line';
+            return { type:dsType, label:yCol, data, backgroundColor:c.bg, borderColor:c.b, borderWidth:2, fill:false, tension:0.4, pointRadius:4 };
+        });
+        currentChart = new Chart(ctx, { type:'bar', data:{ labels, datasets }, options: chartOpts('bar') });
+        return;
+    }
+
+    // ── TIME-GROUPED ──────────────────────────────────────────────────────
     if (grp !== 'none') {
         const allKeys = new Set();
         const aggByCol = {};
@@ -715,97 +1162,719 @@ async function renderChart() {
                 if (!k) return;
                 allKeys.add(k);
                 const v = parseFloat(r[yCol]) || 0;
-                if (aggMode === 'sum')  agg[k] = (agg[k]||0) + v;
-                if (aggMode === 'mean') { agg[k] = agg[k] || {s:0,n:0}; agg[k].s += v; agg[k].n++; }
-                if (aggMode === 'min')  agg[k] = agg[k] === undefined ? v : Math.min(agg[k], v);
-                if (aggMode === 'max')  agg[k] = agg[k] === undefined ? v : Math.max(agg[k], v);
+                if (aggMode === 'sum')    agg[k] = (agg[k]||0) + v;
+                else if (aggMode === 'mean')  { agg[k] = agg[k] || {s:0,n:0}; agg[k].s += v; agg[k].n++; }
+                else if (aggMode === 'min')   agg[k] = agg[k] === undefined ? v : Math.min(agg[k], v);
+                else if (aggMode === 'max')   agg[k] = agg[k] === undefined ? v : Math.max(agg[k], v);
+                else if (aggMode === 'median') { agg[k] = agg[k]||[]; agg[k].push(v); }
             });
             if (aggMode === 'mean') Object.keys(agg).forEach(k => { agg[k] = agg[k].s / agg[k].n; });
+            if (aggMode === 'median') Object.keys(agg).forEach(k => { const arr=(agg[k]||[]).sort((a,b)=>a-b); const n=arr.length; agg[k]=n?(n%2===0?(arr[n/2-1]+arr[n/2])/2:arr[Math.floor(n/2)]):0; });
             aggByCol[yCol] = agg;
         });
-        if (!allKeys.size) { showCustomAlert('No parseable date values found in the X-axis column.'); return; }
-        const labels   = sortDateLabels([...allKeys], grp);
+        if (!allKeys.size) { showCustomAlert('No parseable date values in X-axis column.'); return; }
+        const labels = sortDateLabels([...allKeys], grp);
         const datasets = yCols.map((yCol, i) => {
-            const c = PALETTE[i % PALETTE.length];
+            const c = PALETTE[i%PALETTE.length];
             return makeDataset(yCol, labels.map(k => aggByCol[yCol][k] ?? 0), type, c, ctx, labels.length);
         });
-        currentChart = new Chart(ctx, { type: type==='bar'?'bar':'line', data:{ labels, datasets }, options: chartOpts(type) });
+        const cjsType = ['area','stackedArea'].includes(type) ? 'line' : ['stackedBar','column'].includes(type) ? 'bar' : type === 'line' ? 'line' : 'bar';
+        currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type) });
         return;
     }
 
-    // ── PIE (client-side) ─────────────────────────────────────────────────
-    if (type === 'pie') {
-        const yCol = yCols[0];
-        const agg  = {};
-        rows.forEach(r => {
-            const lbl = String(r[xCol]??'Unknown');
-            const v = parseFloat(r[yCol]) || 0;
-            if (aggMode === 'sum')  agg[lbl] = (agg[lbl]||0) + v;
-            if (aggMode === 'mean') { agg[lbl] = agg[lbl]||{s:0,n:0}; agg[lbl].s+=v; agg[lbl].n++; }
-            if (aggMode === 'min')  agg[lbl] = agg[lbl]===undefined ? v : Math.min(agg[lbl],v);
-            if (aggMode === 'max')  agg[lbl] = agg[lbl]===undefined ? v : Math.max(agg[lbl],v);
-        });
-        if (aggMode === 'mean') Object.keys(agg).forEach(k => { agg[k] = agg[k].s/agg[k].n; });
-        let entries = Object.entries(agg).sort((a,b) => b[1]-a[1]);
-        if (topN > 0) entries = entries.slice(0, topN);
-        const labels = entries.map(([k]) => k.length>22 ? k.slice(0,22)+'…' : k);
-        const data   = entries.map(([,v]) => v);
-        currentChart = new Chart(ctx, {
-            type:'pie',
-            data:{ labels, datasets:[{ label:yCol, data, backgroundColor:data.map((_,i)=>PALETTE[i%PALETTE.length].bg), borderColor:'#1c1917', borderWidth:2 }] },
-            options: chartOpts('pie')
-        });
-        return;
-    }
-
-    // ── BAR / LINE with sum/mean/min/max (client-side) ────────────────────
-    const agg = {};
-    rows.forEach(r => {
-        const lbl = String(r[xCol]??'Unknown');
-        if (!agg[lbl]) agg[lbl] = {};
-        yCols.forEach(yCol => {
-            const v = parseFloat(r[yCol]) || 0;
-            if (aggMode === 'sum') {
-                agg[lbl][yCol] = (agg[lbl][yCol]||0) + v;
-            } else if (aggMode === 'mean') {
-                agg[lbl][yCol] = agg[lbl][yCol] || {s:0,n:0};
-                agg[lbl][yCol].s += v; agg[lbl][yCol].n++;
-            } else if (aggMode === 'min') {
-                agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.min(agg[lbl][yCol],v);
-            } else if (aggMode === 'max') {
-                agg[lbl][yCol] = agg[lbl][yCol]===undefined ? v : Math.max(agg[lbl][yCol],v);
-            }
-        });
-    });
-    // Finalise mean
-    if (aggMode === 'mean') {
-        Object.keys(agg).forEach(lbl => {
-            yCols.forEach(yCol => {
-                if (agg[lbl][yCol] && typeof agg[lbl][yCol] === 'object') {
-                    agg[lbl][yCol] = agg[lbl][yCol].s / agg[lbl][yCol].n;
-                }
-            });
-        });
-    }
-
+    // ── BAR / COLUMN / LINE / AREA / STEP LINE / STACKED ─────────────────
+    const agg = aggregateRows(rows, xCol, yCols, aggMode);
     let entries = Object.entries(agg).sort((a,b) => {
-        const va = typeof a[1][yCols[0]] === 'number' ? a[1][yCols[0]] : 0;
-        const vb = typeof b[1][yCols[0]] === 'number' ? b[1][yCols[0]] : 0;
+        const va = typeof a[1][yCols[0]] === 'number' ? a[1][yCols[0]] : (a[1][yCols[0]]||0);
+        const vb = typeof b[1][yCols[0]] === 'number' ? b[1][yCols[0]] : (b[1][yCols[0]]||0);
         return vb - va;
     });
     if (topN > 0) entries = entries.slice(0, topN);
     const labels   = entries.map(([k]) => k);
     const datasets = yCols.map((yCol, i) => {
-        const c = PALETTE[i % PALETTE.length];
-        const data = entries.map(([,v]) => typeof v[yCol] === 'number' ? v[yCol] : (v[yCol]||0));
+        const c = PALETTE[i%PALETTE.length];
+        const data = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
         return makeDataset(yCol, data, type, c, ctx, labels.length);
     });
-    currentChart = new Chart(ctx, { type, data:{ labels, datasets }, options: chartOpts(type) });
+
+    // Map internal type → Chart.js type
+    const cjsTypeMap = { bar:'bar', column:'bar', line:'line', area:'line', stepLine:'line', stackedBar:'bar', stackedArea:'line' };
+    const cjsType = cjsTypeMap[type] || 'bar';
+
+    currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type) });
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// 8. PLOTLY RENDERERS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderPlotly(type, rows, xCol, yCols, topN, aggMode, sizeCol, groupCol, bins) {
+    await loadPlotly();
+    destroyCurrentChart();
+    showChartState('advanced');
+    $advMount._plotlyInstance = true;
+
+    const layout = { ...PLOTLY_LAYOUT_BASE, height: 440 };
+
+    // ── HISTOGRAM ─────────────────────────────────────────────────────────
+    if (type === 'histogram') {
+        const col = xCol;
+        const vals = rows.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+        if (!vals.length) { showCustomAlert('No numeric data for histogram.'); return; }
+        const trace = {
+            type: 'histogram', x: vals, nbinsx: bins,
+            marker: { color: PALETTE[0].bg, line: { color: PALETTE[0].b, width: 1 } },
+            name: col, autobinx: false,
+        };
+        Plotly.react($advMount, [trace], { ...layout, bargap:0.05, xaxis:{...layout.xaxis,title:col}, yaxis:{...layout.yaxis,title:'Count'} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── BOX PLOT ──────────────────────────────────────────────────────────
+    if (type === 'boxPlot') {
+        const traces = yCols.map((yCol, i) => {
+            const vals = rows.map(r => parseFloat(r[yCol])).filter(v => !isNaN(v));
+            return {
+                type: 'box', y: vals, name: yCol, boxpoints: 'outliers',
+                marker: { color: PALETTE[i%PALETTE.length].b, size:4 },
+                line: { color: PALETTE[i%PALETTE.length].b },
+                fillcolor: PALETTE[i%PALETTE.length].bg,
+                jitter: 0.3,
+            };
+        });
+        Plotly.react($advMount, traces, { ...layout, yaxis:{...layout.yaxis,title:'Value'} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── VIOLIN ────────────────────────────────────────────────────────────
+    if (type === 'violin') {
+        const traces = yCols.map((yCol, i) => {
+            const vals = rows.map(r => parseFloat(r[yCol])).filter(v => !isNaN(v));
+            return {
+                type: 'violin', y: vals, name: yCol, box:{ visible:true }, meanline:{ visible:true },
+                fillcolor: PALETTE[i%PALETTE.length].bg,
+                line: { color: PALETTE[i%PALETTE.length].b },
+                points: 'none',
+            };
+        });
+        Plotly.react($advMount, traces, { ...layout, yaxis:{...layout.yaxis,title:'Distribution'} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── DENSITY PLOT (KDE via histogram + kde2d) ───────────────────────────
+    if (type === 'densityPlot') {
+        const vals = rows.map(r => parseFloat(r[xCol])).filter(v => !isNaN(v));
+        if (!vals.length) { showCustomAlert('No numeric data for density plot.'); return; }
+        const trace = {
+            type: 'histogram', x: vals, histnorm: 'probability density',
+            marker: { color: PALETTE[0].bg, line: { color: PALETTE[0].b, width:1 } },
+            name: xCol,
+        };
+        Plotly.react($advMount, [trace], { ...layout, bargap:0.05, xaxis:{...layout.xaxis,title:xCol}, yaxis:{...layout.yaxis,title:'Density'} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── TREEMAP ───────────────────────────────────────────────────────────
+    if (type === 'treemap') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k);
+        const values = entries.map(([,v]) => Math.max(0, typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0)));
+        const trace = {
+            type: 'treemap', labels, values, parents: labels.map(() => ''),
+            textinfo: 'label+value+percent parent',
+            marker: { colorscale: [[0,'rgba(249,115,22,0.4)'], [1,'rgba(249,115,22,0.9)']] },
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:10,r:10,b:10,l:10} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── SUNBURST ──────────────────────────────────────────────────────────
+    if (type === 'sunburst') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k]) => k);
+        const values = entries.map(([,v]) => Math.max(0, typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0)));
+        const trace = {
+            type: 'sunburst', labels, values, parents: labels.map(() => ''),
+            branchvalues: 'total',
+            marker: { colors: PALETTE.map(p => p.bg) },
+            textinfo: 'label+percent entry',
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:10,r:10,b:10,l:10} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── FUNNEL ────────────────────────────────────────────────────────────
+    if (type === 'funnel') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const trace = {
+            type: 'funnel', y: entries.map(([k])=>k), x: entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0)),
+            textinfo: 'value+percent initial',
+            marker: { color: entries.map((_,i) => PALETTE[i%PALETTE.length].bg), line: { color: entries.map((_,i) => PALETTE[i%PALETTE.length].b), width:1 } },
+        };
+        Plotly.react($advMount, [trace], { ...layout, funnelmode:'stack' }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── PYRAMID ───────────────────────────────────────────────────────────
+    if (type === 'pyramid') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (a[1][yCol]||0)-(b[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(-topN);
+        const vals = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
+        const trace = {
+            type: 'bar', orientation: 'h', y: entries.map(([k])=>k),
+            x: vals, text: vals.map(v => v.toLocaleString()), textposition: 'auto',
+            marker: { color: entries.map((_,i) => PALETTE[i%PALETTE.length].bg), line:{color:entries.map((_,i)=>PALETTE[i%PALETTE.length].b),width:1} },
+        };
+        Plotly.react($advMount, [trace], { ...layout, bargap:0.2 }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── GAUGE ─────────────────────────────────────────────────────────────
+    if (type === 'gauge') {
+        const yCol = yCols[0];
+        const vals = rows.map(r => parseFloat(r[yCol])).filter(v => !isNaN(v));
+        if (!vals.length) { showCustomAlert('No numeric data for gauge.'); return; }
+        const current = vals.reduce((a,b)=>a+b,0)/vals.length;
+        const max = Math.max(...vals);
+        const trace = {
+            type: 'indicator', mode: 'gauge+number+delta',
+            value: current, delta: { reference: max * 0.7 },
+            title: { text: yCol, font: { color: '#a8a29e' } },
+            gauge: {
+                axis: { range: [null, max], tickcolor:'#78716c' },
+                bar: { color: PALETTE[0].b },
+                bgcolor: 'rgba(28,25,23,0.5)',
+                bordercolor: '#292524',
+                steps: [
+                    { range:[0, max*0.4], color:'rgba(16,185,129,0.2)' },
+                    { range:[max*0.4, max*0.7], color:'rgba(234,179,8,0.2)' },
+                    { range:[max*0.7, max], color:'rgba(244,63,94,0.2)' },
+                ],
+                threshold: { line:{color:'#f97316',width:4}, thickness:0.75, value:max*0.85 }
+            }
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:60,r:40,b:40,l:40} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── WATERFALL ─────────────────────────────────────────────────────────
+    if (type === 'waterfall') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg);
+        if (topN > 0) entries = entries.slice(0, topN);
+        const trace = {
+            type: 'waterfall', x: entries.map(([k])=>k),
+            y: entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0)),
+            connector: { line: { color: '#78716c', width:1 } },
+            increasing: { marker: { color: 'rgba(16,185,129,0.7)', line:{color:'#10b981',width:1} } },
+            decreasing: { marker: { color: 'rgba(244,63,94,0.7)', line:{color:'#f43f5e',width:1} } },
+            totals: { marker: { color: 'rgba(249,115,22,0.7)', line:{color:'#f97316',width:1} } },
+        };
+        Plotly.react($advMount, [trace], layout, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── PARETO ─────────────────────────────────────────────────────────────
+    if (type === 'pareto') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b) => (b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const vals = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
+        const total = vals.reduce((a,b)=>a+b,0);
+        let cumSum = 0;
+        const cumPct = vals.map(v => { cumSum += v; return total > 0 ? (cumSum/total)*100 : 0; });
+        const bar = { type:'bar', x:entries.map(([k])=>k), y:vals, name:yCol, marker:{color:PALETTE[0].bg, line:{color:PALETTE[0].b,width:1}}, yaxis:'y' };
+        const line = { type:'scatter', x:entries.map(([k])=>k), y:cumPct, name:'Cumulative %', yaxis:'y2', mode:'lines+markers', line:{color:PALETTE[3].b,width:2}, marker:{size:5,color:PALETTE[3].b} };
+        const paretoLayout = { ...layout, yaxis:{...layout.yaxis,title:yCol}, yaxis2:{title:'Cumulative %',overlaying:'y',side:'right',range:[0,100],ticksuffix:'%',gridcolor:'rgba(0,0,0,0)',tickfont:{color:'#78716c'}} };
+        Plotly.react($advMount, [bar, line], paretoLayout, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── CONTROL CHART ─────────────────────────────────────────────────────
+    if (type === 'controlChart') {
+        const yCol = yCols[0];
+        const vals = rows.map(r => parseFloat(r[yCol])).filter(v => !isNaN(v));
+        if (!vals.length) { showCustomAlert('No numeric data for control chart.'); return; }
+        const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+        const std  = Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/vals.length);
+        const ucl = mean + 3*std, lcl = mean - 3*std;
+        const xLabels = rows.slice(0, vals.length).map((r, i) => String(r[xCol] ?? i+1));
+        const dataLine  = { type:'scatter', x:xLabels, y:vals, mode:'lines+markers', name:yCol, line:{color:PALETTE[0].b,width:2}, marker:{size:5,color:PALETTE[0].b} };
+        const meanLine  = { type:'scatter', x:xLabels, y:vals.map(()=>mean), mode:'lines', name:'Mean', line:{color:'rgba(234,179,8,0.8)',width:1.5,dash:'dash'} };
+        const uclLine   = { type:'scatter', x:xLabels, y:vals.map(()=>ucl), mode:'lines', name:'UCL (+3σ)', line:{color:'rgba(244,63,94,0.6)',width:1,dash:'dot'} };
+        const lclLine   = { type:'scatter', x:xLabels, y:vals.map(()=>lcl), mode:'lines', name:'LCL (−3σ)', line:{color:'rgba(244,63,94,0.6)',width:1,dash:'dot'} };
+        Plotly.react($advMount, [dataLine,meanLine,uclLine,lclLine], layout, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── CANDLESTICK ───────────────────────────────────────────────────────
+    if (type === 'candlestick') {
+        if (yCols.length < 4) { showCustomAlert('Candlestick needs 4 Y columns: Open, High, Low, Close.'); return; }
+        const [openCol, highCol, lowCol, closeCol] = yCols;
+        const trace = {
+            type: 'candlestick',
+            x: rows.map(r => String(r[xCol])),
+            open:  rows.map(r => parseFloat(r[openCol])),
+            high:  rows.map(r => parseFloat(r[highCol])),
+            low:   rows.map(r => parseFloat(r[lowCol])),
+            close: rows.map(r => parseFloat(r[closeCol])),
+            increasing: { line:{color:'#10b981'} },
+            decreasing: { line:{color:'#f43f5e'} },
+        };
+        Plotly.react($advMount, [trace], { ...layout, xaxis:{...layout.xaxis,rangeslider:{visible:false}} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── ERROR BAR ─────────────────────────────────────────────────────────
+    if (type === 'errorBar') {
+        const yCol = yCols[0];
+        const agg = {};
+        rows.forEach(r => {
+            const lbl = String(r[xCol]??'Unknown');
+            const v = parseFloat(r[yCol]);
+            if (!isNaN(v)) { if (!agg[lbl]) agg[lbl] = []; agg[lbl].push(v); }
+        });
+        let entries = Object.entries(agg).sort((a,b)=>b[1].reduce((s,v)=>s+v,0)/b[1].length - a[1].reduce((s,v)=>s+v,0)/a[1].length);
+        if (topN > 0) entries = entries.slice(0, topN);
+        const means = entries.map(([,arr]) => arr.reduce((a,b)=>a+b,0)/arr.length);
+        const stds  = entries.map(([,arr]) => { const m=arr.reduce((a,b)=>a+b,0)/arr.length; return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); });
+        const trace = {
+            type:'bar', x:entries.map(([k])=>k), y:means, name:yCol,
+            error_y: { type:'data', array:stds, visible:true, color:PALETTE[0].b },
+            marker: { color:PALETTE[0].bg, line:{color:PALETTE[0].b,width:1} },
+        };
+        Plotly.react($advMount, [trace], layout, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── RANGE AREA ────────────────────────────────────────────────────────
+    if (type === 'rangeArea') {
+        const yCol = yCols[0]; const sCol = sizeCol || (yCols[1] || yCols[0]);
+        const xVals = rows.map(r => String(r[xCol]??''));
+        const y1 = rows.map(r => parseFloat(r[yCol])).map(v => isNaN(v)?0:v);
+        const y2 = rows.map(r => parseFloat(r[sCol])).map(v => isNaN(v)?0:v);
+        const traceUpper = { type:'scatter', x:xVals, y:y2, name:sCol, fill:'tonexty', fillcolor:PALETTE[0].bg, line:{color:PALETTE[0].b,width:1.5}, mode:'lines' };
+        const traceLower = { type:'scatter', x:xVals, y:y1, name:yCol, fill:'tozeroy', fillcolor:'rgba(249,115,22,0.1)', line:{color:'rgba(249,115,22,0.4)',width:1.5}, mode:'lines' };
+        Plotly.react($advMount, [traceLower, traceUpper], layout, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── HEATMAP (correlation matrix) ──────────────────────────────────────
+    if (type === 'heatmap') {
+        const selCols = numericCols.length >= 2 ? numericCols.slice(0, Math.min(numericCols.length, 15)) : [];
+        if (selCols.length < 2) { showCustomAlert('Heatmap needs at least 2 numeric columns for correlation.'); return; }
+        const subRows = rows.map(r => selCols.map(c => parseFloat(r[c]) || 0));
+        const n = selCols.length;
+        const matrix = [];
+        for (let i = 0; i < n; i++) {
+            const row = [];
+            for (let j = 0; j < n; j++) {
+                const xi = subRows.map(r=>r[i]), xj = subRows.map(r=>r[j]);
+                const mx = xi.reduce((a,b)=>a+b,0)/xi.length, my = xj.reduce((a,b)=>a+b,0)/xj.length;
+                const num = xi.reduce((s,v,k)=>s+(v-mx)*(xj[k]-my),0);
+                const dx  = Math.sqrt(xi.reduce((s,v)=>s+(v-mx)**2,0));
+                const dy  = Math.sqrt(xj.reduce((s,v)=>s+(v-my)**2,0));
+                row.push(dx>0&&dy>0 ? Math.round(num/(dx*dy)*1000)/1000 : (i===j?1:0));
+            }
+            matrix.push(row);
+        }
+        const trace = {
+            type:'heatmap', x:selCols, y:selCols, z:matrix,
+            colorscale:[[0,'rgba(59,130,246,0.8)'],[0.5,'rgba(28,25,23,0.9)'],[1,'rgba(249,115,22,0.9)']],
+            zmid:0, texttemplate:'%{z:.2f}', text:matrix, hovertemplate:'%{y} ↔ %{x}: %{z:.3f}<extra></extra>',
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:20,r:20,b:120,l:120} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── HEXBIN ────────────────────────────────────────────────────────────
+    if (type === 'hexbin') {
+        const yCol = yCols[0];
+        const xVals = rows.map(r => parseFloat(r[xCol])).filter((_,i) => !isNaN(parseFloat(rows[i][xCol])));
+        const yVals = rows.map(r => parseFloat(r[yCol])).filter((_,i) => !isNaN(parseFloat(rows[i][yCol])));
+        const trace = { type:'histogram2d', x:xVals, y:yVals, colorscale:[[0,'rgba(28,25,23,0)'],[0.5,PALETTE[1].bg],[1,PALETTE[0].b]], nbinsx:30, nbinsy:30 };
+        Plotly.react($advMount, [trace], { ...layout, xaxis:{...layout.xaxis,title:xCol}, yaxis:{...layout.yaxis,title:yCol} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── PARALLEL COORDINATES ──────────────────────────────────────────────
+    if (type === 'parallelCoords') {
+        const selCols = yCols.length ? yCols : numericCols.slice(0, 6);
+        if (selCols.length < 2) { showCustomAlert('Parallel Coords needs at least 2 Y columns.'); return; }
+        const dims = selCols.map(c => ({
+            label: c,
+            values: rows.map(r => parseFloat(r[c]) || 0),
+        }));
+        const trace = {
+            type:'parcoords',
+            line: { colorscale:'Oranges', color:rows.map(r => parseFloat(r[selCols[0]])||0), showscale:true },
+            dimensions: dims,
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:50,r:20,b:30,l:20} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── SANKEY ────────────────────────────────────────────────────────────
+    if (type === 'sankey') {
+        const yCol = yCols[0]; const valCol = sizeCol || yCol;
+        // Build source→target→value from x col → y col
+        const uniqueNodes = [...new Set(rows.flatMap(r => [String(r[xCol]??''), String(r[yCol]??'')]))];
+        const nodeIdx = Object.fromEntries(uniqueNodes.map((n,i) => [n,i]));
+        const links = { source:[], target:[], value:[] };
+        rows.forEach(r => {
+            const s = String(r[xCol]??''), t = String(r[yCol]??'');
+            const v = parseFloat(r[valCol]) || 1;
+            if (s && t && s !== t) { links.source.push(nodeIdx[s]); links.target.push(nodeIdx[t]); links.value.push(v); }
+        });
+        const trace = {
+            type:'sankey',
+            node: { pad:15, thickness:20, line:{color:'#1c1917',width:0.5}, label:uniqueNodes, color:uniqueNodes.map((_,i)=>PALETTE[i%PALETTE.length].bg) },
+            link: { source:links.source, target:links.target, value:links.value, color:links.source.map(i=>PALETTE[i%PALETTE.length].bg) },
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:10,r:10,b:10,l:10} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── TIMELINE ──────────────────────────────────────────────────────────
+    if (type === 'timeline') {
+        const startCol = xCol, endCol = sizeCol || yCols[0], taskCol = yCols[0];
+        const traces = rows.slice(0, topN||50).map((r, i) => ({
+            type:'scatter', mode:'lines',
+            x:[String(r[startCol]??''), String(r[endCol]??'')],
+            y:[String(r[taskCol]??i), String(r[taskCol]??i)],
+            line: { color:PALETTE[i%PALETTE.length].b, width:8 },
+            name: String(r[taskCol]??i),
+        }));
+        Plotly.react($advMount, traces, { ...layout, showlegend:false }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── MOSAIC ────────────────────────────────────────────────────────────
+    if (type === 'mosaic') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b)=>(b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const labels = entries.map(([k])=>k);
+        const values = entries.map(([,v])=>typeof v[yCol]==='number'?v[yCol]:(v[yCol]||0));
+        const trace = {
+            type:'treemap', labels, values, parents:labels.map(()=>''),
+            branchvalues:'total', tiling:{packing:'squarify'},
+            textinfo:'label+value+percent parent',
+            marker:{colorscale:[[0,PALETTE[2].bg],[1,PALETTE[0].b]]},
+        };
+        Plotly.react($advMount, [trace], { ...layout, margin:{t:10,r:10,b:10,l:10} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── MARIMEKKO ────────────────────────────────────────────────────────
+    if (type === 'marimekko') {
+        const yCol = yCols[0]; const valCol = sizeCol || yCol;
+        const agg = aggregateRows(rows, xCol, [yCol, valCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b)=>(b[1][valCol]||0)-(a[1][valCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const trace = {
+            type:'bar', x:entries.map(([k])=>k), y:entries.map(([,v])=>v[yCol]||0),
+            width:entries.map(([,v])=>Math.max(0.1,(v[valCol]||1)/Math.max(...Object.values(agg).map(x=>x[valCol]||1)))),
+            marker:{color:entries.map((_,i)=>PALETTE[i%PALETTE.length].bg), line:{color:entries.map((_,i)=>PALETTE[i%PALETTE.length].b),width:1}},
+            offset:0,
+        };
+        Plotly.react($advMount, [trace], { ...layout, bargap:0, xaxis:{...layout.xaxis,title:xCol}, yaxis:{...layout.yaxis,title:yCol} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    // ── PACKED BUBBLE ─────────────────────────────────────────────────────
+    if (type === 'packedBubble') {
+        const yCol = yCols[0];
+        const agg = aggregateRows(rows, xCol, [yCol], aggMode);
+        let entries = Object.entries(agg).sort((a,b)=>(b[1][yCol]||0)-(a[1][yCol]||0));
+        if (topN > 0) entries = entries.slice(0, topN);
+        const trace = {
+            type:'scatter', mode:'markers',
+            x: entries.map((_,i) => Math.cos(i/entries.length*2*Math.PI)),
+            y: entries.map((_,i) => Math.sin(i/entries.length*2*Math.PI)),
+            text: entries.map(([k])=>k), hovertemplate:'%{text}: %{marker.size}<extra></extra>',
+            marker: {
+                size: entries.map(([,v])=>{const s=typeof v[yCol]==='number'?v[yCol]:(v[yCol]||0); return Math.max(10, Math.min(80, s/Math.max(...entries.map(([,x])=>x[yCol]||0))*60));}),
+                color: entries.map((_,i)=>PALETTE[i%PALETTE.length].bg),
+                line: { color: entries.map((_,i)=>PALETTE[i%PALETTE.length].b), width:1.5 },
+                sizemode:'diameter',
+            },
+        };
+        Plotly.react($advMount, [trace], { ...layout, showlegend:false, xaxis:{...layout.xaxis,visible:false}, yaxis:{...layout.yaxis,visible:false} }, PLOTLY_CONFIG);
+        return;
+    }
+
+    showCustomAlert(`Chart type "${type}" not yet fully implemented for Plotly. Try another chart type.`);
+    showChartState('empty', 'This chart type is coming soon.');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 9. D3 RENDERERS
+// ════════════════════════════════════════════════════════════════════════════
+async function renderD3(type, rows, xCol, yCols, topN, aggMode) {
+    await loadD3();
+    destroyCurrentChart();
+    showChartState('advanced');
+    $advMount.innerHTML = '';
+    $advMount._plotlyInstance = false;
+
+    const w = $advMount.clientWidth || 800;
+    const h = $advMount.clientHeight || 440;
+
+    // ── WORD CLOUD ────────────────────────────────────────────────────────
+    if (type === 'wordCloud') {
+        // Count word frequencies from xCol
+        const freq = {};
+        rows.forEach(r => {
+            const text = String(r[xCol]??'');
+            text.split(/\s+/).forEach(word => {
+                const w = word.toLowerCase().replace(/[^a-z0-9]/g,'');
+                if (w.length > 2) freq[w] = (freq[w]||0) + 1;
+            });
+        });
+        let words = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0, topN || 80);
+        const maxFreq = words[0]?.[1] || 1;
+        const svg = d3.select($advMount).append('svg').attr('width',w).attr('height',h).style('background','transparent');
+        const g = svg.append('g').attr('transform',`translate(${w/2},${h/2})`);
+        const fontScale = d3.scaleLinear().domain([1, maxFreq]).range([12, 55]);
+        const colorFn = (i) => PALETTE[i%PALETTE.length].b;
+
+        // Naive placement (spiral)
+        let placed = [];
+        words.forEach(([word, count], i) => {
+            const fontSize = fontScale(count);
+            let placed_ = false;
+            for (let r_ = 0; r_ < 200; r_ += 5) {
+                const angle = r_ * 0.5;
+                const x = r_ * Math.cos(angle);
+                const y = r_ * Math.sin(angle) * 0.6;
+                placed_.push && null;
+                placed_ = true;
+                g.append('text')
+                    .attr('x', x).attr('y', y)
+                    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+                    .style('font-size', fontSize+'px').style('font-family','Inter,sans-serif')
+                    .style('font-weight', count > maxFreq*0.5 ? 'bold':'500')
+                    .style('fill', colorFn(i)).style('opacity','0.85')
+                    .text(word);
+                break;
+            }
+        });
+        return;
+    }
+
+    // ── STREAM GRAPH ──────────────────────────────────────────────────────
+    if (type === 'streamGraph') {
+        const yCol = yCols[0]; const seriesCols = yCols.length > 1 ? yCols : [yCol];
+        const allXVals = [...new Set(rows.map(r => String(r[xCol]??'')))].sort();
+        const agg = {};
+        rows.forEach(r => {
+            const x = String(r[xCol]??'');
+            if (!agg[x]) agg[x] = {};
+            seriesCols.forEach(c => { agg[x][c] = (agg[x][c]||0) + (parseFloat(r[c])||0); });
+        });
+        const stackData = d3.stack().keys(seriesCols).offset(d3.stackOffsetWiggle)(allXVals.map(x => { const obj={x}; seriesCols.forEach(c=>obj[c]=agg[x]?.[c]||0); return obj; }));
+        const margin = {top:10,right:20,bottom:40,left:40};
+        const innerW = w - margin.left - margin.right, innerH = h - margin.top - margin.bottom;
+        const xScale = d3.scalePoint().domain(allXVals).range([0, innerW]);
+        const yScale = d3.scaleLinear().domain([d3.min(stackData,l=>d3.min(l,d=>d[0])), d3.max(stackData,l=>d3.max(l,d=>d[1]))]).range([innerH,0]);
+        const area = d3.area().x(d=>xScale(d.data.x)).y0(d=>yScale(d[0])).y1(d=>yScale(d[1])).curve(d3.curveCatmullRom);
+        const svg = d3.select($advMount).append('svg').attr('width',w).attr('height',h).style('background','transparent');
+        const g = svg.append('g').attr('transform',`translate(${margin.left},${margin.top})`);
+        stackData.forEach((layer, i) => {
+            g.append('path').datum(layer).attr('d',area).attr('fill',PALETTE[i%PALETTE.length].bg).attr('stroke',PALETTE[i%PALETTE.length].b).attr('stroke-width',1).attr('opacity',0.85);
+        });
+        g.append('g').attr('transform',`translate(0,${innerH})`).call(d3.axisBottom(xScale).tickSize(4)).selectAll('text').style('fill','#78716c').style('font-size','10px');
+        g.append('g').call(d3.axisLeft(yScale).tickSize(4)).selectAll('text').style('fill','#78716c').style('font-size','10px');
+        return;
+    }
+
+    // ── CHORD DIAGRAM ─────────────────────────────────────────────────────
+    if (type === 'chord') {
+        const yCol = yCols[0];
+        const uniqueX = [...new Set(rows.map(r => String(r[xCol]??'')))];
+        const uniqueY = [...new Set(rows.map(r => String(r[yCol]??'')))];
+        const nodes = [...new Set([...uniqueX, ...uniqueY])].slice(0, 20);
+        const idx = Object.fromEntries(nodes.map((n,i)=>[n,i]));
+        const matrix = Array.from({length:nodes.length},()=>new Array(nodes.length).fill(0));
+        rows.forEach(r => {
+            const s = idx[String(r[xCol]??'')], t = idx[String(r[yCol]??'')];
+            if (s !== undefined && t !== undefined && s !== t) matrix[s][t]++;
+        });
+        const margin=30, svgSize=Math.min(w,h)-margin*2;
+        const svg = d3.select($advMount).append('svg').attr('width',w).attr('height',h).style('background','transparent');
+        const g = svg.append('g').attr('transform',`translate(${w/2},${h/2})`);
+        const chord = d3.chord().padAngle(0.04).sortSubgroups(d3.descending)(matrix);
+        const arc = d3.arc().innerRadius(svgSize/2-20).outerRadius(svgSize/2);
+        const ribbon = d3.ribbon().radius(svgSize/2-20);
+        g.selectAll('path.group').data(chord.groups).join('path').attr('class','group').attr('d',arc).attr('fill',d=>PALETTE[d.index%PALETTE.length].bg).attr('stroke',d=>PALETTE[d.index%PALETTE.length].b).attr('stroke-width',0.5).attr('opacity',0.85);
+        g.selectAll('path.chord').data(chord).join('path').attr('class','chord').attr('d',ribbon).attr('fill',d=>PALETTE[d.source.index%PALETTE.length].bg).attr('stroke','#1c1917').attr('stroke-width',0.5).attr('opacity',0.7);
+        g.selectAll('text.label').data(chord.groups).join('text').attr('class','label').each(function(d){ d.angle=(d.startAngle+d.endAngle)/2; }).attr('dy','0.35em').attr('transform',d=>`rotate(${d.angle*180/Math.PI-90}) translate(${svgSize/2+8}) ${d.angle>Math.PI?'rotate(180)':''}`).attr('text-anchor',d=>d.angle>Math.PI?'end':'start').style('fill','#a8a29e').style('font-size','10px').text(d=>nodes[d.index]);
+        return;
+    }
+
+    // ── CALENDAR HEATMAP ──────────────────────────────────────────────────
+    if (type === 'calendarHeatmap') {
+        const yCol = yCols[0];
+        const dayMap = {};
+        rows.forEach(r => {
+            const d = new Date(r[xCol]);
+            if (isNaN(d)) return;
+            const key = d.toISOString().slice(0,10);
+            const v = parseFloat(r[yCol]) || 0;
+            dayMap[key] = (dayMap[key]||0) + v;
+        });
+        const allDates = Object.keys(dayMap).sort();
+        if (!allDates.length) { showCustomAlert('No parseable dates in X column.'); return; }
+        const maxVal = Math.max(...Object.values(dayMap));
+        const colorScale = d3.scaleSequential().domain([0, maxVal]).interpolator(d3.interpolateOranges);
+        const cellSize = Math.min(18, Math.floor((w-120)/55));
+        const svg = d3.select($advMount).append('svg').attr('width',w).attr('height',h).style('background','transparent');
+        const g = svg.append('g').attr('transform','translate(40,30)');
+        allDates.forEach(dateStr => {
+            const d = new Date(dateStr+'T00:00:00');
+            const week = d3.timeWeek.count(d3.timeYear(d), d);
+            const day = d.getDay();
+            g.append('rect')
+                .attr('x', week*cellSize).attr('y', day*cellSize)
+                .attr('width', cellSize-1).attr('height', cellSize-1)
+                .attr('rx', 2).attr('ry', 2)
+                .attr('fill', colorScale(dayMap[dateStr]))
+                .attr('opacity', 0.9)
+                .append('title').text(`${dateStr}: ${dayMap[dateStr].toLocaleString()}`);
+        });
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+        days.forEach((day,i) => g.append('text').attr('x',-5).attr('y',i*cellSize+cellSize/2).attr('text-anchor','end').attr('dominant-baseline','middle').style('fill','#78716c').style('font-size','8px').text(day));
+        return;
+    }
+
+    showCustomAlert(`D3 chart "${type}" is not yet implemented. Try another type.`);
+    showChartState('empty', 'This advanced chart type is coming soon.');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 10. EXPORT FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════
+document.getElementById('exportPngBtn').addEventListener('click', () => {
+    if (currentChart) {
+        // Chart.js
+        const url = currentChart.toBase64Image('image/png', 1.0);
+        const a = document.createElement('a'); a.href = url; a.download = 'chart.png'; a.click();
+    } else if (_plotlyLoaded && $advMount._plotlyInstance) {
+        Plotly.downloadImage($advMount, { format:'png', filename:'chart', width:1200, height:800 });
+    } else if ($advMount.querySelector('svg')) {
+        // D3 SVG → PNG
+        const svg = $advMount.querySelector('svg');
+        const canvas = document.createElement('canvas');
+        canvas.width = svg.clientWidth || 800; canvas.height = svg.clientHeight || 480;
+        const ctx2 = canvas.getContext('2d');
+        const data = new XMLSerializer().serializeToString(svg);
+        const img = new Image();
+        img.onload = () => { ctx2.drawImage(img,0,0); const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='chart.png'; a.click(); };
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+    } else {
+        showCustomAlert('No chart to export. Render a chart first.');
+    }
+});
+
+document.getElementById('exportSvgBtn').addEventListener('click', () => {
+    const svg = $advMount.querySelector('svg');
+    if (svg) {
+        const data = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([data], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'chart.svg'; a.click();
+        URL.revokeObjectURL(url);
+    } else if (currentChart) {
+        // Chart.js doesn't natively export SVG; export PNG instead
+        const url = currentChart.toBase64Image(); const a = document.createElement('a'); a.href = url; a.download = 'chart.png'; a.click();
+        showCustomAlert('Chart.js charts export as PNG. Use Plotly/D3 chart types for SVG export.');
+    } else {
+        showCustomAlert('No SVG chart to export. Render a chart first.');
+    }
+});
+
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const fCol = filterColSel.value, fVal = filterValSel.value;
+    const exportRows = applyFilter(allRows, fCol, fVal);
+    const csv = [columns.join(','), ...exportRows.map(row => columns.map(c => {
+        const v = row[c] === null || row[c] === undefined ? '' : String(row[c]);
+        return v.includes(',') || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v;
+    }).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'dataset.csv'; a.click();
+    URL.revokeObjectURL(url);
+});
+
+// ── Fullscreen ────────────────────────────────────────────────────────────
+const $chartContainer = document.getElementById('chartContainer');
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        $chartContainer.requestFullscreen().then(() => {
+            $chartContainer.style.cssText = 'height:100vh;border-radius:0;background:#0c0a09;';
+            if (currentChart) currentChart.resize();
+            if (_plotlyLoaded && $advMount._plotlyInstance) Plotly.relayout($advMount, {});
+        }).catch(() => showCustomAlert('Fullscreen not available.'));
+    } else {
+        document.exitFullscreen();
+    }
+});
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        $chartContainer.style.cssText = '';
+        if (currentChart) currentChart.resize();
+    }
+});
+
+// ── Zoom Controls ─────────────────────────────────────────────────────────
+document.getElementById('zoomInBtn').addEventListener('click', () => {
+    // Simple client-side zoom: scale the canvas
+    if (!currentChart) return;
+    $chartCanvas.style.transform = `scale(${(parseFloat($chartCanvas.style.transform.match(/[\d.]+/)?.[0]||1)+0.1).toFixed(1)})`;
+    $chartCanvas.style.transformOrigin = 'top center';
+});
+document.getElementById('zoomOutBtn').addEventListener('click', () => {
+    if (!currentChart) return;
+    const cur = parseFloat($chartCanvas.style.transform.match(/[\d.]+/)?.[0]||1);
+    $chartCanvas.style.transform = `scale(${Math.max(0.3, cur-0.1).toFixed(1)})`;
+    $chartCanvas.style.transformOrigin = 'top center';
+});
+document.getElementById('resetZoomBtn').addEventListener('click', () => {
+    $chartCanvas.style.transform = 'scale(1)';
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// 11. INIT
+// ════════════════════════════════════════════════════════════════════════════
+aggModeSel.addEventListener('change', syncControls);
+
+buildPills();
+setActiveChart('bar');
 renderBtn.addEventListener('click', renderChart);
+
 // Auto-render on load
-if (columns.length && numericCols.length) renderChart();
+if (columns.length && numericCols.length) {
+    showChartState('empty', 'Click "Render Chart" to visualize your data.');
+    setTimeout(renderChart, 400);
+} else {
+    showChartState('empty', 'This dataset has no numeric columns. Upload a dataset with numeric data to use charts.');
+}
 </script>
 
 {% endblock %}
