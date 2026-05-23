@@ -105,21 +105,35 @@
         </div>
     </div>
 
-    <!-- Chart Type Selector — pill groups -->
-    <div class="mb-5 relative z-10">
-        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2 ml-1">Chart Type</label>
-        <div class="flex flex-wrap gap-1.5" id="chartTypePills">
-            <!-- Basic -->
-            <div class="flex items-center gap-1 mr-2">
-                <span class="text-[10px] text-stone-600 font-bold uppercase tracking-wider whitespace-nowrap">Basic</span>
-                <div class="w-px h-4 bg-stone-800 mx-1"></div>
+    <!-- Chart Type Selector — 2-step select -->
+    <div class="mb-5 relative z-40 p-5 rounded-2xl bg-stone-900/40 border border-stone-800 shadow-inner flex flex-col md:flex-row gap-6 md:items-center">
+        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider min-w-max ml-1 md:ml-0">Chart Type</label>
+        
+        <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">1. Category</label>
+                <div class="relative">
+                    <select id="chartCategorySelect" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2.5 text-stone-300 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer text-sm">
+                        <!-- Options injected by JS -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                </div>
             </div>
-            <!-- Pills injected by JS -->
+            
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">2. Chart</label>
+                <div class="relative">
+                    <select id="chartTypeSelect" class="w-full bg-stone-900 border border-orange-500 ring-1 ring-orange-500 rounded-xl px-4 py-2.5 text-stone-100 font-medium focus:outline-none transition-colors appearance-none cursor-pointer text-sm shadow-[0_4px_12px_rgba(249,115,22,0.15)]">
+                        <!-- Options injected by JS -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Row 1: X Axis · Y Axis · Aggregation · Time Group -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10" id="axisRow">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-30" id="axisRow">
 
         <div class="space-y-1.5" id="xAxisWrap">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="xAxisLabel">X-Axis</label>
@@ -130,8 +144,16 @@
         </div>
 
         <div class="space-y-1.5" id="yAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px]">Ctrl+click = multi</span></label>
-            <select id="yAxis" multiple class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors cursor-pointer" style="height:52px;"></select>
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px] ml-1">Select one or more</span></label>
+            <div class="relative" id="yAxisDropdownWrapper">
+                <button type="button" id="yAxisBtn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
+                    <span id="yAxisBtnText" class="truncate font-medium text-stone-300">None selected</span>
+                    <svg class="fill-current h-4 w-4 text-stone-500 flex-shrink-0 ml-2" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </button>
+                <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-stone-900 border border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+            </div>
         </div>
 
         <div class="space-y-1.5" id="aggModeWrap">
@@ -165,7 +187,7 @@
     </div>
 
     <!-- Row 2: Extra axis selectors (size/value/group cols for bubble, histogram, etc.) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-10 hidden" id="extraAxisRow">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-20 hidden" id="extraAxisRow">
         <div class="space-y-1.5" id="sizeAxisWrap">
             <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="sizeAxisLabel">Size / Value</label>
             <div class="relative">
@@ -779,7 +801,10 @@ function chartOpts(type, yLabel = '', extraOpts = {}) {
 // 5. CHART BUILDER UI
 // ════════════════════════════════════════════════════════════════════════════
 const xAxisSel      = document.getElementById('xAxis');
-const yAxisSel      = document.getElementById('yAxis');
+const yAxisPanel    = document.getElementById('yAxisPanel');
+const yAxisBtn      = document.getElementById('yAxisBtn');
+const yAxisBtnText  = document.getElementById('yAxisBtnText');
+const yAxisWrapper  = document.getElementById('yAxisDropdownWrapper');
 const timeGroupSel  = document.getElementById('timeGroup');
 const filterColSel  = document.getElementById('filterColumn');
 const filterValSel  = document.getElementById('filterValue');
@@ -798,9 +823,46 @@ const $badge        = document.getElementById('chartTypeBadge');
 
 // Populate dropdowns
 columns.forEach(col => xAxisSel.add(new Option(col, col)));
-columns.forEach(col => yAxisSel.add(new Option(col, col)));
+
+function updateYAxisText() {
+    const selected = Array.from(yAxisPanel.querySelectorAll('input:checked')).map(cb => cb.value);
+    if (selected.length === 0) yAxisBtnText.textContent = 'None selected';
+    else if (selected.length === 1) yAxisBtnText.textContent = selected[0];
+    else yAxisBtnText.textContent = selected.length + ' columns selected';
+}
+
+columns.forEach(col => {
+    const lbl = document.createElement('label');
+    lbl.className = 'flex items-center px-3 py-2 hover:bg-stone-800 rounded-lg cursor-pointer text-sm text-stone-300 transition-colors';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = col;
+    cb.className = 'mr-3 w-4 h-4 rounded border-stone-600 bg-stone-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-stone-900 cursor-pointer';
+    cb.addEventListener('change', updateYAxisText);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(col));
+    yAxisPanel.appendChild(lbl);
+});
+
+yAxisBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    yAxisPanel.classList.toggle('hidden');
+});
+
+document.addEventListener('click', (e) => {
+    if (yAxisWrapper && !yAxisWrapper.contains(e.target)) {
+        yAxisPanel.classList.add('hidden');
+    }
+});
+
 columns.forEach(col => { sizeAxisSel.add(new Option(col, col)); groupAxisSel.add(new Option(col, col)); });
-if (numericCols.length) yAxisSel.value = numericCols[0];
+
+if (numericCols.length && numericCols[0]) {
+    const checkboxes = Array.from(yAxisPanel.querySelectorAll('input'));
+    const target = checkboxes.find(cb => cb.value === numericCols[0]);
+    if (target) target.checked = true;
+    updateYAxisText();
+}
 columns.forEach(col => filterColSel.add(new Option(col, col)));
 if (dateCols.length) xAxisSel.value = dateCols[0];
 
@@ -813,51 +875,80 @@ filterColSel.addEventListener('change', () => {
     }
 });
 
-// ── 5a. Chart Type Pills Builder ─────────────────────────────────────────
+// ── 5a. Chart Type Dropdown Builder ──────────────────────────────────────
 let activeChartId = 'bar';
 
-function buildPills() {
-    const container = document.getElementById('chartTypePills');
-    container.innerHTML = '';
+function buildDropdown() {
+    const catSelect = document.getElementById('chartCategorySelect');
+    const chartSelect = document.getElementById('chartTypeSelect');
+    
+    catSelect.innerHTML = '';
     const byCategory = ChartRegistry.byCategory();
-    Object.entries(byCategory).forEach(([cat, charts], catIdx) => {
-        if (catIdx > 0) {
-            const sep = document.createElement('div');
-            sep.className = 'flex items-center gap-1 mr-2';
-            sep.innerHTML = `<span class="text-[10px] text-stone-600 font-bold uppercase tracking-wider whitespace-nowrap">${cat}</span><div class="w-px h-4 bg-stone-800 mx-1"></div>`;
-            container.appendChild(sep);
-        }
-        charts.forEach(chart => {
-            const btn = document.createElement('button');
-            btn.id = `pill-${chart.id}`;
-            btn.dataset.chartId = chart.id;
-            btn.title = chart.label;
-            btn.className = `px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                chart.id === activeChartId
-                    ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30'
-                    : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
-            }`;
-            btn.innerHTML = `<span class="mr-1 text-[11px]">${chart.icon}</span>${chart.label}`;
-            btn.addEventListener('click', () => setActiveChart(chart.id));
-            container.appendChild(btn);
-        });
+    
+    Object.keys(byCategory).forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        catSelect.appendChild(opt);
     });
-    // Unavailable group (no pills, skip)
+
+    function populateCharts(category) {
+        chartSelect.innerHTML = '';
+        const charts = byCategory[category] || [];
+        charts.forEach(chart => {
+            const opt = document.createElement('option');
+            opt.value = chart.id;
+            opt.textContent = `${chart.icon} ${chart.label}`;
+            chartSelect.appendChild(opt);
+        });
+    }
+
+    catSelect.addEventListener('change', (e) => {
+        populateCharts(e.target.value);
+        setActiveChart(chartSelect.value); // Select first chart in new category
+    });
+
+    chartSelect.addEventListener('change', (e) => {
+        setActiveChart(e.target.value);
+    });
+
+    // Initial population
+    const initialMeta = ChartRegistry.get(activeChartId);
+    if (initialMeta && initialMeta.cat !== 'Unavailable') {
+        catSelect.value = initialMeta.cat;
+        populateCharts(initialMeta.cat);
+        chartSelect.value = activeChartId;
+    } else {
+        populateCharts(Object.keys(byCategory)[0]);
+    }
 }
 
 function setActiveChart(id) {
     activeChartId = id;
-    // Update pill styles
-    document.querySelectorAll('[data-chart-id]').forEach(btn => {
-        const isActive = btn.dataset.chartId === id;
-        btn.className = `px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 cursor-pointer whitespace-nowrap ${
-            isActive
-                ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30'
-                : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
-        }`;
-    });
-    // Update badge
+    
+    const catSelect = document.getElementById('chartCategorySelect');
+    const chartSelect = document.getElementById('chartTypeSelect');
     const meta = ChartRegistry.get(id);
+
+    // Sync UI if changed externally
+    if (meta && meta.cat !== 'Unavailable') {
+        if (catSelect.value !== meta.cat) {
+            catSelect.value = meta.cat;
+            // Need to manually populate if category changed externally
+            chartSelect.innerHTML = '';
+            ChartRegistry.byCategory()[meta.cat].forEach(chart => {
+                const opt = document.createElement('option');
+                opt.value = chart.id;
+                opt.textContent = `${chart.icon} ${chart.label}`;
+                chartSelect.appendChild(opt);
+            });
+        }
+        if (chartSelect.value !== id) {
+            chartSelect.value = id;
+        }
+    }
+
+    // Update badge
     $badge.textContent = meta?.label ?? id;
     $badge.classList.remove('hidden');
     syncControls();
@@ -962,7 +1053,7 @@ async function renderChart() {
     const type   = activeChartId;
     const meta   = ChartRegistry.get(type);
     const xCol   = xAxisSel.value;
-    const yCols  = [...yAxisSel.selectedOptions].map(o => o.value);
+    const yCols  = Array.from(yAxisPanel.querySelectorAll('input:checked')).map(cb => cb.value);
     const grp    = timeGroupSel.value;
     const fCol   = filterColSel.value;
     const fVal   = filterValSel.value;
@@ -1864,7 +1955,7 @@ document.getElementById('resetZoomBtn').addEventListener('click', () => {
 // ════════════════════════════════════════════════════════════════════════════
 aggModeSel.addEventListener('change', syncControls);
 
-buildPills();
+buildDropdown();
 setActiveChart('bar');
 renderBtn.addEventListener('click', renderChart);
 
