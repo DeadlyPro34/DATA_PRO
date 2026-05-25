@@ -26,62 +26,63 @@
 </div>
 
 <!-- ───── Enhanced Chart Builder ───── -->
-<div id="chartBuilderPanel" class="bg-stone-900 border border-stone-800 rounded-3xl p-6 mb-8 shadow-2xl">
-    
-    <div class="flex items-center gap-3 mb-8">
-        <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-        </div>
-        <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
-    </div>
+<div id="chartBuilderPanel" class="glass-panel rounded-3xl p-6 mb-8 shadow-2xl opacity-0 animate-pop-in relative overflow-hidden" style="animation-delay:200ms;">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-    <!-- Controls Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div>
-            <label class="block mb-2 text-sm font-semibold text-stone-400 uppercase tracking-wider">
-                Chart Type
-            </label>
-            <select id="chartType" class="w-full p-3 rounded-xl bg-stone-950 border border-stone-800 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
-                <option value="">Select Chart</option>
-                <option value="bar">Bar Chart</option>
-                <option value="line">Line Chart</option>
-                <option value="pie">Pie Chart</option>
-                <option value="scatter">Scatter Plot</option>
-            </select>
+    <div class="flex items-center justify-between gap-3 mb-6 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
+            <span id="chartTypeBadge" class="hidden text-xs font-bold px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400"></span>
         </div>
-
-        <div>
-            <label class="block mb-2 text-sm font-semibold text-stone-400 uppercase tracking-wider">
-                X-Axis
-            </label>
-            <select id="xAxis" class="w-full p-3 rounded-xl bg-stone-950 border border-stone-800 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"></select>
-        </div>
-
-        <div>
-            <label class="block mb-2 text-sm font-semibold text-stone-400 uppercase tracking-wider">
-                Y-Axis
-            </label>
-            <select id="yAxis" class="w-full p-3 rounded-xl bg-stone-950 border border-stone-800 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"></select>
-        </div>
-
-        <div>
-            <label class="block mb-2 text-sm font-semibold text-stone-400 uppercase tracking-wider">
-                Filter Column
-            </label>
-            <select id="filterColumn" class="w-full p-3 rounded-xl bg-stone-950 border border-stone-800 text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"></select>
+        <!-- Export Toolbar -->
+        <div class="flex items-center gap-2 relative z-10">
+            <span class="hidden sm:block text-xs text-stone-500 font-medium mr-1">Export</span>
+            <button id="exportPngBtn" title="Export as PNG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </button>
+            <button id="exportSvgBtn" title="Export as SVG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </button>
+            <button id="exportCsvBtn" title="Download CSV" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </button>
+            <div class="w-px h-5 bg-stone-800 mx-1"></div>
+            <button id="fullscreenBtn" title="Fullscreen" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            </button>
         </div>
     </div>
 
-    <!-- Render Button -->
-    <div class="flex justify-end mb-8">
-        <button id="renderChartBtn" class="px-8 py-3 bg-stone-200 text-stone-950 hover:bg-white rounded-xl text-sm font-bold shadow-lg transition-all flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            Render Chart
-        </button>
+    <!-- Chart Type Selector — 2-step select -->
+    <div class="mb-5 relative z-40 p-5 rounded-2xl bg-stone-900/40 border border-stone-800 shadow-inner flex flex-col md:flex-row gap-6 md:items-center">
+        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider min-w-max ml-1 md:ml-0">Chart Type</label>
+        
+        <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">1. Category</label>
+                <div class="relative">
+                    <select id="chartCategorySelect" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2.5 text-stone-300 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer text-sm">
+                        <!-- Options injected by JS -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                </div>
+            </div>
+            
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">2. Chart</label>
+                <div class="relative">
+                    <select id="chartTypeSelect" class="w-full bg-stone-900 border border-orange-500 ring-1 ring-orange-500 rounded-xl px-4 py-2.5 text-stone-100 font-medium focus:outline-none transition-colors appearance-none cursor-pointer text-sm shadow-[0_4px_12px_rgba(249,115,22,0.15)]">
+                        <!-- Options injected by JS -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Canvas Container -->
-    <div id="chartContainer" class="bg-stone-950 border border-stone-800 rounded-2xl p-4 h-[500px] flex items-center justify-center w-full">
     <!-- Row 1: X Axis · Y Axis · Aggregation · Time Group -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-30" id="axisRow">
 
@@ -98,7 +99,7 @@
             <div class="relative" id="yAxisDropdownWrapper">
                 <button type="button" id="yAxisBtn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
                     <span id="yAxisBtnText" class="truncate font-medium text-stone-300">None selected</span>
-                    <svg class="w-4 h-4 text-stone-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="fill-current h-4 w-4 text-stone-500 flex-shrink-0 ml-2" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </button>
                 <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-stone-900 border border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
                     <!-- Checkboxes injected by JS -->
@@ -210,23 +211,59 @@
     <div id="chartContainer" class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-4 h-[480px] flex items-center justify-center relative z-10 shadow-inner overflow-hidden">
         <!-- Chart.js canvas -->
         <canvas id="myChart" class="w-full h-full"></canvas>
-        <p id="chartEmptyMsg" class="text-stone-500 text-sm">Select columns and click Render Chart to visualize your data.</p>
+        <!-- Plotly / D3 mount point -->
+        <div id="advancedChartMount" class="w-full h-full hidden"></div>
+        <!-- Empty / loading states -->
+        <div id="chartEmptyState" class="absolute inset-0 flex flex-col items-center justify-center text-center hidden">
+            <div class="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-orange-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <p id="chartEmptyMsg" class="text-stone-500 text-sm max-w-xs">Select columns and click Render Chart to visualize your data.</p>
+        </div>
+        <div id="chartLoadingState" class="absolute inset-0 flex flex-col items-center justify-center hidden">
+            <div class="w-10 h-10 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-3"></div>
+            <p class="text-stone-400 text-sm">Loading chart…</p>
+        </div>
+        <!-- Unavailable overlay for geo/network charts -->
+        <div id="chartUnavailableState" class="absolute inset-0 flex flex-col items-center justify-center text-center px-8 hidden">
+            <div class="w-16 h-16 rounded-2xl bg-stone-800 border border-stone-700 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <p id="chartUnavailableMsg" class="text-stone-400 text-sm max-w-sm"></p>
+        </div>
+    </div>
+
+    <!-- Zoom controls (visible only for Chart.js charts) -->
+    <div id="zoomControls" class="flex items-center gap-2 mt-3 relative z-10 hidden">
+        <span class="text-xs text-stone-500">Zoom:</span>
+        <button id="zoomInBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">+</button>
+        <button id="zoomOutBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">−</button>
+        <button id="resetZoomBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">Reset</button>
     </div>
 </div>
 
 <!-- ───── Data Payload & Scripts ───── -->
 <script>
     const columns = {{ columns_json|safe }};
-    const rows = {{ rows_json|safe }};
-    console.log(columns);
-    console.log(rows);
+    const uniqueColumns = {{ unique_columns_json|default:"[]"|safe }};
+    const allRows = {{ rows_json|safe }};
+    const FILE_ID = "{{ file_id }}";
+    const CHART_DATA_URL = `/dataset/${FILE_ID}/chart-data/`;
+    const ADVANCED_STATS_URL = `/dataset/${FILE_ID}/advanced-stats/`;
+    const stats = {{ stats_json|default:"{}"|safe }};
     
     window.APP_DATA = window.APP_DATA || {};
-    window.APP_DATA.CHART_DATA_URL = `/dataset/{{ file_id }}/chart-data/`;
+    window.APP_DATA.columns = columns;
+    window.APP_DATA.uniqueColumns = uniqueColumns;
+    window.APP_DATA.allRows = allRows;
+    window.APP_DATA.FILE_ID = FILE_ID;
+    window.APP_DATA.CHART_DATA_URL = CHART_DATA_URL;
+    window.APP_DATA.ADVANCED_STATS_URL = ADVANCED_STATS_URL;
+    window.APP_DATA.stats = stats;
 </script>
 
-<script src="{% static 'js/shared.js' %}"></script>
-<script src="{% static 'js/analytics.js' %}"></script>
+<script src="{% static 'js/shared.js' %}?v={% now 'U' %}"></script>
+<script src="{% static 'js/analytics.js' %}?v={% now 'U' %}"></script>
 
 
 {% endblock %}
