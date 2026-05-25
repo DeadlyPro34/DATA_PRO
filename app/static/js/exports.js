@@ -1,5 +1,5 @@
 // exports.js
-document.addEventListener('DOMContentLoaded', function() {
+function initExports() {
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     const exportJsonBtn = document.getElementById('exportJsonBtn');
     
@@ -21,4 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = `/dataset/${fileId}/export/json/`;
         });
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initExports);
+} else {
+    initExports();
+}

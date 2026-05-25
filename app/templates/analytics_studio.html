@@ -82,6 +82,133 @@
 
     <!-- Canvas Container -->
     <div id="chartContainer" class="bg-stone-950 border border-stone-800 rounded-2xl p-4 h-[500px] flex items-center justify-center w-full">
+    <!-- Row 1: X Axis · Y Axis · Aggregation · Time Group -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-30" id="axisRow">
+
+        <div class="space-y-1.5" id="xAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="xAxisLabel">X-Axis</label>
+            <div class="relative">
+                <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5" id="yAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px] ml-1">Select one or more</span></label>
+            <div class="relative" id="yAxisDropdownWrapper">
+                <button type="button" id="yAxisBtn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
+                    <span id="yAxisBtnText" class="truncate font-medium text-stone-300">None selected</span>
+                    <svg class="w-4 h-4 text-stone-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-stone-900 border border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5" id="aggModeWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Aggregation</label>
+            <div class="relative">
+                <select id="aggMode" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="none">Raw Values (No Aggregation)</option>
+                    <option value="sum">Sum</option>
+                    <option value="count">Count (with names)</option>
+                    <option value="mean">Average</option>
+                    <option value="min">Minimum</option>
+                    <option value="max">Maximum</option>
+                    <option value="median">Median</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5" id="timeGroupWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Time</label>
+            <div class="relative">
+                <select id="timeGroup" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="none">No Grouping</option>
+                    <option value="year">Year</option>
+                    <option value="quarter">Quarter</option>
+                    <option value="month">Month</option>
+                    <option value="week">Week</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Extra axis selectors (size/value/group cols for bubble, histogram, etc.) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-20 hidden" id="extraAxisRow">
+        <div class="space-y-1.5" id="sizeAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="sizeAxisLabel">Size / Value</label>
+            <div class="relative">
+                <select id="sizeAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+        <div class="space-y-1.5" id="groupAxisWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Column</label>
+            <div class="relative">
+                <select id="groupAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— None —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+        <div class="space-y-1.5" id="binsWrap">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Bins (Histogram)</label>
+            <input type="number" id="binsInput" value="20" min="2" max="100" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+        </div>
+    </div>
+
+    <!-- Row 3: Filter · Filter Value · Top N · Render -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Column</label>
+            <div class="relative">
+                <select id="filterColumn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— No Filter —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Value</label>
+            <div class="relative">
+                <select id="filterValue" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="">— All —</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Show Top N</label>
+            <div class="relative">
+                <select id="topN" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                    <option value="10">Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="50" selected>Top 50</option>
+                    <option value="100">Top 100</option>
+                    <option value="0">All</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            </div>
+        </div>
+
+        <div class="flex items-end">
+            <button id="renderChartBtn" class="w-full px-4 py-3 bg-stone-200 text-stone-950 hover:bg-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(251,146,60,0.15)] hover:shadow-[0_0_25px_rgba(251,146,60,0.3)] transition-all flex justify-center items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Render Chart
+            </button>
+        </div>
+    </div>
+
+    <!-- Canvas Container (shared by Chart.js; Plotly/D3 create their own) -->
+    <div id="chartContainer" class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-4 h-[480px] flex items-center justify-center relative z-10 shadow-inner overflow-hidden">
+        <!-- Chart.js canvas -->
         <canvas id="myChart" class="w-full h-full"></canvas>
         <p id="chartEmptyMsg" class="text-stone-500 text-sm">Select columns and click Render Chart to visualize your data.</p>
     </div>

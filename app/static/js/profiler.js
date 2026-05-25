@@ -1,5 +1,5 @@
 // profiler.js
-document.addEventListener('DOMContentLoaded', function() {
+function initProfiler() {
     const statsColEl = document.getElementById('statsColumn');
     const statsGrid  = document.getElementById('statsGrid');
     if (!statsColEl || !statsGrid) return;
@@ -50,8 +50,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!col || !stats[col]) return;
         const s = stats[col];
         
+        // Extract numeric values from APP_DATA.allRows for client-side fallback calculations
+        const rowVals = (APP_DATA.allRows || [])
+            .map(row => row[col])
+            .filter(v => v !== null && v !== undefined && typeof v === 'number' && !isNaN(v));
+        
         statsGrid.innerHTML = STAT_DEFS.map(d => {
-            const val = s[d.key];
+            let val = s[d.key];
+            
+            // Fallback calculations if keys are missing from stats (e.g. for existing datasets)
+            if (val === undefined || val === null) {
+                if (d.key === 'median' && s['50%'] !== undefined) {
+                    val = s['50%'];
+                } else if (d.key === 'median' && rowVals.length > 0) {
+                    const sorted = [...rowVals].sort((a, b) => a - b);
+                    const mid = Math.floor(sorted.length / 2);
+                    val = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+                } else if (d.key === 'sum' && rowVals.length > 0) {
+                    val = rowVals.reduce((a, b) => a + b, 0);
+                } else if (d.key === 'variance' && rowVals.length > 1) {
+                    const mean = rowVals.reduce((a, b) => a + b, 0) / rowVals.length;
+                    const sqDiffs = rowVals.map(v => (v - mean) ** 2);
+                    val = sqDiffs.reduce((a, b) => a + b, 0) / (rowVals.length - 1);
+                } else if (d.key === 'variance' && rowVals.length === 1) {
+                    val = 0;
+                }
+            }
+            
             const fmtVal = window.fmtNum ? window.fmtNum(val) : val;
             return `
             <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-4 flex flex-col gap-1 hover:border-stone-700 transition-colors">
@@ -59,11 +84,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">${d.label}</span>
                     <span class="w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-bold ${CLR[d.clr]}">${d.sym}</span>
                 </div>
-                <span class="text-lg font-bold text-stone-100 leading-none truncate" title="${val}">${fmtVal}</span>
+                <span class="text-lg font-bold text-stone-100 leading-none truncate" title="${val !== null && val !== undefined ? val : ''}">${fmtVal}</span>
             </div>`;
         }).join('');
     }
     
     statsColEl.addEventListener('change', () => renderStats(statsColEl.value));
     renderStats(numericCols[0]);
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfiler);
+} else {
+    initProfiler();
+}
