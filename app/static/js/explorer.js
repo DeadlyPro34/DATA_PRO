@@ -1,5 +1,5 @@
 // explorer.js
-document.addEventListener('DOMContentLoaded', function() {
+function initExplorer() {
     if (!document.getElementById('singleTableView')) return;
     const APP_DATA = window.APP_DATA || {};
     
@@ -214,4 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // INITIALIZATION
     switchDataTab(APP_DATA.rawSnapshot && APP_DATA.rawSnapshot.length > 0 ? 'raw' : 'cleaned');
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initExplorer);
+} else {
+    initExplorer();
+}

@@ -1,6 +1,5 @@
 // shared.js
-
-document.addEventListener('DOMContentLoaded', function() {
+function initShared() {
     window.APP_DATA = window.APP_DATA || {};
     
     // Shared Utilities
@@ -74,4 +73,10 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.classList.add('hidden');
         }, 300);
     };
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initShared);
+} else {
+    initShared();
+}

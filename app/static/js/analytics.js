@@ -1,5 +1,5 @@
 // analytics.js
-document.addEventListener('DOMContentLoaded', function() {
+function initAnalytics() {
     const APP_DATA = window.APP_DATA || {};
     const columns = APP_DATA.columns || [];
     const uniqueColumns = APP_DATA.uniqueColumns || [];
@@ -1494,4 +1494,10 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         showChartState('empty', 'This dataset has no numeric columns. Upload a dataset with numeric data to use charts.');
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnalytics);
+} else {
+    initAnalytics();
+}

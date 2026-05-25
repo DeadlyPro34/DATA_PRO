@@ -1,5 +1,5 @@
 // profiler.js
-document.addEventListener('DOMContentLoaded', function() {
+function initProfiler() {
     const statsColEl = document.getElementById('statsColumn');
     const statsGrid  = document.getElementById('statsGrid');
     if (!statsColEl || !statsGrid) return;
@@ -66,4 +66,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     statsColEl.addEventListener('change', () => renderStats(statsColEl.value));
     renderStats(numericCols[0]);
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfiler);
+} else {
+    initProfiler();
+}

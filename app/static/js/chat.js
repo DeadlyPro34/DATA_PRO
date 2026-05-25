@@ -1,5 +1,5 @@
 // chat.js
-document.addEventListener('DOMContentLoaded', function() {
+function initChat() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatMessages = document.getElementById('chatMessages');
@@ -58,13 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const csrf = window.getCsrfToken ? window.getCsrfToken() : '';
-            const response = await fetch(`/dataset/${APP_DATA.FILE_ID}/ai-chat/`, {
+            const response = await fetch(`/dataset/${APP_DATA.FILE_ID}/chat/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrf
                 },
-                body: JSON.stringify({ message: query })
+                body: JSON.stringify({ query: query })
             });
 
             const data = await response.json();
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.error) {
                 appendMessage(`Error: ${data.error}`, false);
             } else {
-                appendMessage(data.reply, false);
+                appendMessage(data.reply || data.response || JSON.stringify(data), false);
             }
         } catch (e) {
             document.getElementById('typingIndicator')?.remove();
@@ -87,4 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendQuery();
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChat);
+} else {
+    initChat();
+}

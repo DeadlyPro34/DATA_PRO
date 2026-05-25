@@ -92,6 +92,7 @@ def _get_dataset_context(request, file_id):
         'columns_json': json.dumps(dataset.columns),
         'rows_json': json.dumps(dataset.rows),
         'unique_columns_json': json.dumps(unique_cols),
+        'stats_json': json.dumps(dataset.stats),
         'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
         'raw_columns_json': json.dumps(dataset.raw_columns),
         'health_report_json': json.dumps(dataset.health_report),
