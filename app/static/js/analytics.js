@@ -353,6 +353,8 @@ function initAnalytics() {
                             const lbl = items[0]?.label ?? '';
                             const memberData = membersMap[lbl];
                             const xCol = xAxisSel ? xAxisSel.value : '';
+                            const candidates = ['student_name', 'student', 'name', 'student_id', 'roll_no', 'rollnumber', 'id', 'email'];
+                            if (candidates.includes(xCol.toLowerCase())) return [];
                             if (!memberData || memberData.col === xCol) return [];
                             const members = memberData.list;
                             if (!members || !Array.isArray(members)) return [];
