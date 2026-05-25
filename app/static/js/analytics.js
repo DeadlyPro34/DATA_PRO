@@ -156,7 +156,10 @@ function initAnalytics() {
     const $chartContainer    = document.getElementById('chartContainer');
 
     const xAxisSel      = document.getElementById('xAxis');
-    const yAxisSel      = document.getElementById('yAxis');
+    const yAxisPanel    = document.getElementById('yAxisPanel');
+    const yAxisBtn      = document.getElementById('yAxisBtn');
+    const yAxisBtnText  = document.getElementById('yAxisBtnText');
+    const yAxisWrapper  = document.getElementById('yAxisDropdownWrapper');
     const timeGroupSel  = document.getElementById('timeGroup');
     const filterColSel  = document.getElementById('filterColumn');
     const filterValSel  = document.getElementById('filterValue');
@@ -260,6 +263,38 @@ function initAnalytics() {
 
     let membersMap = {};
 
+    function detectLabelColumn(cols, xCol) {
+        const candidates = ['student_name', 'student', 'name', 'student_id', 'roll_no', 'rollnumber', 'id', 'email'];
+        for (const cand of candidates) {
+            const match = cols.find(c => c.toLowerCase() === cand && c !== xCol);
+            if (match) return match;
+        }
+        const nonNumeric = cols.filter(col => !numericCols.includes(col));
+        const matchFallback = nonNumeric.find(c => c !== xCol);
+        if (matchFallback) return matchFallback;
+        const anyMatch = cols.find(c => c !== xCol);
+        return anyMatch || xCol;
+    }
+
+    function populateMembersMap(rows, xCol) {
+        membersMap = {};
+        if (!xCol) return;
+        const labelCol = detectLabelColumn(columns, xCol);
+        rows.forEach(r => {
+            const lbl = String(r[xCol] ?? 'Unknown');
+            if (!membersMap[lbl]) {
+                membersMap[lbl] = { list: [], col: labelCol };
+            }
+            const nameVal = r[labelCol];
+            if (nameVal !== null && nameVal !== undefined && nameVal !== '') {
+                const nameStr = String(nameVal);
+                if (!membersMap[lbl].list.includes(nameStr)) {
+                    membersMap[lbl].list.push(nameStr);
+                }
+            }
+        });
+    }
+
     function chartOpts(type, yLabel = '', extraOpts = {}) {
         const isCount = aggModeSel ? aggModeSel.value === 'count' : false;
         const isRadial = ['pie','doughnut','polarArea'].includes(type);
@@ -315,10 +350,10 @@ function initAnalytics() {
                             return ` ${colName}: ${formatted}`;
                         },
                         afterBody(items) {
-                            if (!isCount) return [];
                             const lbl = items[0]?.label ?? '';
                             const memberData = membersMap[lbl];
-                            if (!memberData) return [];
+                            const xCol = xAxisSel ? xAxisSel.value : '';
+                            if (!memberData || memberData.col === xCol) return [];
                             const members = memberData.list;
                             if (!members || !Array.isArray(members)) return [];
                             const lines = members.slice(0, 10).map(n => `  • ${n}`);
@@ -339,12 +374,41 @@ function initAnalytics() {
         xAxisSel.innerHTML = '';
         columns.forEach(col => xAxisSel.add(new Option(col, col)));
     }
-    if (yAxisSel) {
-        yAxisSel.innerHTML = '';
-        numericCols.forEach(col => yAxisSel.add(new Option(col, col)));
-        if (numericCols.length > 0) {
-            yAxisSel.options[0].selected = true;
+    function updateYSelectText() {
+        if (!yAxisPanel || !yAxisBtnText) return;
+        const selected = Array.from(yAxisPanel.querySelectorAll('input:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            yAxisBtnText.textContent = 'None selected';
+        } else if (selected.length === 1) {
+            yAxisBtnText.textContent = selected[0];
+        } else {
+            yAxisBtnText.textContent = `${selected.length} columns selected`;
         }
+    }
+
+    if (yAxisPanel) {
+        yAxisPanel.innerHTML = '';
+        numericCols.forEach((col, idx) => {
+            const lbl = document.createElement('label');
+            lbl.className = 'flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-850 cursor-pointer text-stone-300 hover:text-stone-100 transition-colors text-sm w-full';
+            const isChecked = idx === 0 ? 'checked' : '';
+            lbl.innerHTML = `<input type="checkbox" value="${col}" ${isChecked} class="rounded border-stone-700 text-orange-500 focus:ring-orange-500/20 bg-stone-950 w-4 h-4 cursor-pointer"> <span class="select-none truncate">${col}</span>`;
+            lbl.querySelector('input').addEventListener('change', updateYSelectText);
+            yAxisPanel.appendChild(lbl);
+        });
+        updateYSelectText();
+    }
+
+    if (yAxisBtn && yAxisPanel) {
+        yAxisBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            yAxisPanel.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (yAxisWrapper && !yAxisWrapper.contains(e.target)) {
+                yAxisPanel.classList.add('hidden');
+            }
+        });
     }
     if (sizeAxisSel) {
         sizeAxisSel.innerHTML = '';
@@ -564,7 +628,7 @@ function initAnalytics() {
         const type   = activeChartId;
         const meta   = ChartRegistry.get(type);
         const xCol   = xAxisSel ? xAxisSel.value : '';
-        const yCols  = yAxisSel ? Array.from(yAxisSel.selectedOptions).map(opt => opt.value) : [];
+        const yCols  = yAxisPanel ? Array.from(yAxisPanel.querySelectorAll('input:checked')).map(cb => cb.value) : [];
         const grp    = timeGroupSel ? timeGroupSel.value : 'none';
         const fCol   = filterColSel ? filterColSel.value : '';
         const fVal   = filterValSel ? filterValSel.value : '';
@@ -615,6 +679,8 @@ function initAnalytics() {
         destroyCurrentChart();
         showChartState('chart');
 
+        populateMembersMap(rows, xCol);
+
         if (type === 'scatter' || type === 'dotPlot') {
             const yCol = yCols[0];
             if (!xCol || !yCol) {
@@ -651,40 +717,6 @@ function initAnalytics() {
                 type: 'bubble',
                 data: { datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:PALETTE[0].bg, borderColor:PALETTE[0].b }] },
                 options: chartOpts('scatter', '')
-            });
-            return;
-        }
-
-        if (aggMode === 'count' && !['pie','doughnut','polarArea','radar'].includes(type)) {
-            const yCol = yCols[0];
-            const params = new URLSearchParams({ x: xCol, y: yCol, agg: 'count' });
-            if (filterColSel && filterColSel.value && filterValSel && filterValSel.value) {
-                params.set('filter_col', filterColSel.value);
-                params.set('filter_val', filterValSel.value);
-            }
-
-            const resp = await fetch(`${CHART_DATA_URL}?${params}`);
-            if (!resp.ok) {
-                const err = await resp.json();
-                if (window.showCustomAlert) window.showCustomAlert(`Server error: ${err.error ?? resp.statusText}`);
-                return;
-            }
-            let data = await resp.json();
-            data.sort((a,b) => b.count - a.count);
-            if (topN > 0) data = data.slice(0, topN);
-
-            const labels = data.map(d => String(d[xCol]));
-            const counts = data.map(d => d.count);
-            let detectedLabelCol = yCol;
-            if (data.length > 0 && data[0].label_col) detectedLabelCol = data[0].label_col;
-            data.forEach(d => { membersMap[String(d[xCol])] = { list: d.students||[], col: detectedLabelCol }; });
-
-            const c = PALETTE[0];
-            const chartJsType = ['stackedBar','column'].includes(type) ? 'bar' : (type === 'line' ? 'line' : type === 'radar' ? 'radar' : 'bar');
-            currentChart = new Chart(ctx, {
-                type: chartJsType,
-                data: { labels, datasets:[makeDataset(`Count of ${xCol}`, counts, type, c, ctx, labels.length)] },
-                options: chartOpts(type, 'Count')
             });
             return;
         }
@@ -782,6 +814,7 @@ function initAnalytics() {
                     allKeys.add(k);
                     const v = parseFloat(r[yCol]) || 0;
                     if (aggMode === 'sum')    agg[k] = (agg[k]||0) + v;
+                    else if (aggMode === 'count') agg[k] = (agg[k]||0) + 1;
                     else if (aggMode === 'mean')  { agg[k] = agg[k] || {s:0,n:0}; agg[k].s += v; agg[k].n++; }
                     else if (aggMode === 'min')   agg[k] = agg[k] === undefined ? v : Math.min(agg[k], v);
                     else if (aggMode === 'max')   agg[k] = agg[k] === undefined ? v : Math.max(agg[k], v);
@@ -798,10 +831,11 @@ function initAnalytics() {
             const labels = sortDateLabels([...allKeys], grp);
             const datasets = yCols.map((yCol, i) => {
                 const c = PALETTE[i%PALETTE.length];
-                return makeDataset(yCol, labels.map(k => aggByCol[yCol][k] ?? 0), type, c, ctx, labels.length);
+                const dsLabel = aggMode === 'count' ? `Count of ${yCol}` : yCol;
+                return makeDataset(dsLabel, labels.map(k => aggByCol[yCol][k] ?? 0), type, c, ctx, labels.length);
             });
             const cjsType = ['area','stackedArea'].includes(type) ? 'line' : ['stackedBar','column'].includes(type) ? 'bar' : type === 'line' ? 'line' : 'bar';
-            currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type) });
+            currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type, aggMode === 'count' ? 'Count' : '') });
             return;
         }
 
@@ -816,13 +850,14 @@ function initAnalytics() {
         const datasets = yCols.map((yCol, i) => {
             const c = PALETTE[i%PALETTE.length];
             const data = entries.map(([,v]) => typeof v[yCol]==='number' ? v[yCol] : (v[yCol]||0));
-            return makeDataset(yCol, data, type, c, ctx, labels.length);
+            const dsLabel = aggMode === 'count' ? `Count of ${yCol}` : yCol;
+            return makeDataset(dsLabel, data, type, c, ctx, labels.length);
         });
 
         const cjsTypeMap = { bar:'bar', column:'bar', line:'line', area:'line', stepLine:'line', stackedBar:'bar', stackedArea:'line' };
         const cjsType = cjsTypeMap[type] || 'bar';
 
-        currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type) });
+        currentChart = new Chart(ctx, { type:cjsType, data:{ labels, datasets }, options: chartOpts(type, aggMode === 'count' ? 'Count' : '') });
     }
 
     // ── 14. PLOTLY ENGINE IMPLEMENTATION ──────────────────────────────────

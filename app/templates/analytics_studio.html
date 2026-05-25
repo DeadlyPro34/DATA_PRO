@@ -95,10 +95,15 @@
         </div>
 
         <div class="space-y-1.5" id="yAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis</label>
-            <div class="relative">
-                <select id="yAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer" multiple></select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px] ml-1">Select one or more</span></label>
+            <div class="relative" id="yAxisDropdownWrapper">
+                <button type="button" id="yAxisBtn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
+                    <span id="yAxisBtnText" class="truncate font-medium text-stone-300">None selected</span>
+                    <svg class="w-4 h-4 text-stone-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-stone-900 border border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
+                    <!-- Checkboxes injected by JS -->
+                </div>
             </div>
         </div>
 

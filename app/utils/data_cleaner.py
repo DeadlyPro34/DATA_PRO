@@ -791,6 +791,13 @@ def _compute_stats(df: pd.DataFrame) -> dict:
             safe = _to_json_safe(value)
             if safe is not None:           # skip NaN / None entries
                 col_stats[stat_name] = safe
+        
+        # Add sum, median, variance for numeric columns
+        if pd.api.types.is_numeric_dtype(df[col]):
+            col_stats['sum'] = _to_json_safe(df[col].sum())
+            col_stats['median'] = _to_json_safe(df[col].median())
+            col_stats['variance'] = _to_json_safe(df[col].var())
+
         if col_stats:
             stats[col] = col_stats
 
