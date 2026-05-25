@@ -1,31 +1,9 @@
-{% extends "base_app.html" %}
-{% load static %}
+import re
 
-{% block app_content %}
-<!-- ───── Header ───── -->
-<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
-    <div>
-        <div class="flex items-center gap-4 mb-3">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <h1 class="text-3xl font-bold text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase tracking-wider">{{ file.file_type }}</span>
-        </div>
-        <div class="flex flex-wrap items-center gap-3 sm:gap-6 ml-0 md:ml-14 mt-4 md:mt-0">
-            <p class="text-sm font-medium text-stone-400 flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                {{ file.uploaded_at|date:"M d, Y" }}
-            </p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
-        </div>
-    </div>
-</div>
+with open('app/templates/analytics_studio.html', 'r', encoding='utf-8') as f:
+    content = f.read()
 
-<!-- ───── Enhanced Chart Builder ───── -->
+clean_html = '''<!-- ───── Enhanced Chart Builder ───── -->
 <div id="chartBuilderPanel" class="bg-stone-900 border border-stone-800 rounded-3xl p-6 mb-8 shadow-2xl">
     
     <div class="flex items-center gap-3 mb-8">
@@ -86,20 +64,11 @@
         <p id="chartEmptyMsg" class="text-stone-500 text-sm">Select columns and click Render Chart to visualize your data.</p>
     </div>
 </div>
+'''
 
-<!-- ───── Data Payload & Scripts ───── -->
-<script>
-    const columns = {{ columns_json|safe }};
-    const rows = {{ rows_json|safe }};
-    console.log(columns);
-    console.log(rows);
-    
-    window.APP_DATA = window.APP_DATA || {};
-    window.APP_DATA.CHART_DATA_URL = `/dataset/{{ file_id }}/chart-data/`;
-</script>
+new_content = re.sub(r'<!-- ───── Enhanced Chart Builder ───── -->.*?<!-- ───── Data Payload & Scripts ───── -->', clean_html + '\n<!-- ───── Data Payload & Scripts ───── -->', content, flags=re.DOTALL)
 
-<script src="{% static 'js/shared.js' %}"></script>
-<script src="{% static 'js/analytics.js' %}"></script>
+with open('app/templates/analytics_studio.html', 'w', encoding='utf-8') as f:
+    f.write(new_content)
 
-
-{% endblock %}
+print("Rebuilt HTML layout.")
