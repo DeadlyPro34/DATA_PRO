@@ -26,7 +26,7 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
+    files = UploadedFile.objects.filter(user=request.user).select_related('cleaneddataset').order_by('-uploaded_at')
     for f in files:
         try:
             f.quality_score = f.cleaneddataset.quality_score
@@ -53,50 +53,22 @@ def upload_file(request):
             file=file
         )
         
-        # Process file synchronously as requested
+        # Process file safely using our task
         try:
-            df = parse_file(uploaded_file.file.path)
-            cleaned_df, cleaning_result = clean_dataframe(df)
+            from django.conf import settings
+            from app.tasks import process_uploaded_file_task
             
-            uploaded_file.row_count = len(cleaned_df)
-            uploaded_file.column_count = len(cleaned_df.columns)
-            uploaded_file.save()
-            
-            from .utils.ai_insights import generate_insights
-            ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
-
-            # Serialize safely via pandas to avoid NaN/Infinity JSON serialization errors in SQLite
-            safe_rows = json.loads(cleaned_df.to_json(orient='records', date_format='iso'))
-            # Some stats might have np floats
-            safe_stats = json.loads(pd.Series(cleaning_result['stats']).to_json()) if cleaning_result['stats'] else {}
-
-            # Create Dataset
-            CleanedDataset.objects.create(
-                uploaded_file=uploaded_file,
-                columns=list(cleaned_df.columns),
-                rows=safe_rows,
-                cleaning_log=cleaning_result['log'],
-                stats=safe_stats,
-                raw_snapshot=cleaning_result['raw_snapshot'],
-                raw_columns=cleaning_result['raw_columns'],
-                health_report=cleaning_result['health_report'],
-                quality_score=cleaning_result['quality_score'],
-                cleaning_actions=cleaning_result['actions'],
-                before_after=cleaning_result['before_after'],
-                ai_insights=ai_insights_data,
-                cell_annotations=cleaning_result['cell_annotations'],
-                cleaning_options={
-                    'remove_duplicates': True,
-                    'normalize_headers': True,
-                    'trim_whitespace': True,
-                    'remove_empty_rows': True,
-                    'remove_empty_columns': True,
-                    'coerce_numeric': True,
-                },
-            )
-            
-            messages.success(request, 'File uploaded and cleaned successfully!')
-            return redirect('cleaning_lab', file_id=uploaded_file.id)
+            if getattr(settings, 'USE_CELERY', False):
+                process_uploaded_file_task.delay(uploaded_file.id)
+                messages.success(request, 'File uploaded and is being processed in the background!')
+                return redirect('dashboard')
+            else:
+                result = process_uploaded_file_task(uploaded_file.id)
+                if result.get('status') == 'success':
+                    messages.success(request, 'File uploaded and cleaned successfully!')
+                    return redirect('cleaning_lab', file_id=uploaded_file.id)
+                else:
+                    raise Exception(result.get('error', 'Unknown error'))
             
         except Exception as e:
             uploaded_file.delete()
@@ -205,43 +177,19 @@ def reclean_dataset(request, file_id):
         return JsonResponse({'error': 'Invalid JSON body'}, status=400)
     
     try:
-        # Re-parse the original file
-        df = parse_file(uploaded_file.file.path)
+        from django.conf import settings
+        from app.tasks import process_uploaded_file_task
         
-        # Clean with options
-        cleaned_df, cleaning_result = clean_dataframe(df, options=options)
-        
-        # Generate insights
-        from .utils.ai_insights import generate_insights
-        ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
-        
-        # Serialize safely
-        safe_rows = json.loads(cleaned_df.to_json(orient='records', date_format='iso'))
-        safe_stats = json.loads(pd.Series(cleaning_result['stats']).to_json()) if cleaning_result['stats'] else {}
-        
-        # Update the dataset
-        dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
-        dataset.columns = list(cleaned_df.columns)
-        dataset.rows = safe_rows
-        dataset.cleaning_log = cleaning_result['log']
-        dataset.stats = safe_stats
-        dataset.raw_snapshot = cleaning_result['raw_snapshot']
-        dataset.raw_columns = cleaning_result['raw_columns']
-        dataset.health_report = cleaning_result['health_report']
-        dataset.quality_score = cleaning_result['quality_score']
-        dataset.cleaning_actions = cleaning_result['actions']
-        dataset.before_after = cleaning_result['before_after']
-        dataset.ai_insights = ai_insights_data
-        dataset.cell_annotations = cleaning_result['cell_annotations']
-        dataset.cleaning_options = options
-        dataset.save()
-        
-        # Update file counts
-        uploaded_file.row_count = len(cleaned_df)
-        uploaded_file.column_count = len(cleaned_df.columns)
-        uploaded_file.save()
-        
-        return JsonResponse({'success': True, 'redirect': f'/dataset/{file_id}/'})
+        if getattr(settings, 'USE_CELERY', False):
+            process_uploaded_file_task.delay(uploaded_file.id, options)
+            return JsonResponse({'success': True, 'redirect': f'/dataset/{file_id}/'})
+        else:
+            result = process_uploaded_file_task(uploaded_file.id, options)
+            if result.get('status') == 'success':
+                return JsonResponse({'success': True, 'redirect': f'/dataset/{file_id}/'})
+            else:
+                raise Exception(result.get('error', 'Unknown error'))
+                
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -603,7 +551,6 @@ def _compute_correlation(df: pd.DataFrame, cols: list) -> dict:
     matrix = [[_safe_float(corr.iloc[i][j]) for j in range(len(cols))] for i in range(len(cols))]
     return {'columns': cols, 'matrix': matrix}
 
-@login_required
 def get_unique_columns(rows):
     if not rows:
         return []
@@ -615,6 +562,7 @@ def get_unique_columns(rows):
             unique_columns.append(column)
     return unique_columns
 
+@login_required
 def data_profiler(request, file_id):
     uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
     dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
