@@ -21,6 +21,15 @@ class CleanedDataset(models.Model):
     rows = models.JSONField(default=list)
     cleaning_log = models.JSONField(default=list)
     stats = models.JSONField(default=dict) # for pandas .describe()
+    raw_snapshot = models.JSONField(default=list)      # first 200 rows pre-cleaning
+    raw_columns = models.JSONField(default=list)       # original column names
+    health_report = models.JSONField(default=dict)     # data health scan results
+    quality_score = models.IntegerField(default=100)   # 0-100 quality score
+    cleaning_actions = models.JSONField(default=list)  # structured cleaning actions
+    before_after = models.JSONField(default=dict)      # before vs after stats
+    ai_insights = models.JSONField(default=list)       # AI-generated insights
+    cell_annotations = models.JSONField(default=dict)  # cell-level issue markers
+    cleaning_options = models.JSONField(default=dict)  # user-selected cleaning toggles
 
     def __str__(self):
         return f"Cleaned Dataset for {self.uploaded_file}"

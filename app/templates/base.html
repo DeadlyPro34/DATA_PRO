@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -72,6 +73,9 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="{% static 'js/shared.js' %}"></script>
     <style>
         /* Custom scrollbar for webkit */
         ::-webkit-scrollbar {
@@ -96,6 +100,143 @@
             border: 1px solid rgba(253, 186, 116, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
+
+        /* Quality Score Gauge */
+        .quality-gauge {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        .quality-gauge svg circle {
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(120, 113, 108, 0.4);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active {
+            background: rgba(249, 115, 22, 0.8);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Pipeline Stepper */
+        .pipeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+        }
+        .pipeline-step .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            z-index: 1;
+            transition: all 0.5s;
+        }
+        .pipeline-step .step-dot.completed {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+        }
+        .pipeline-step .step-dot.active {
+            background: rgba(249, 115, 22, 0.2);
+            border: 2px solid #f97316;
+            color: #f97316;
+            animation: pulseGlow 2s infinite;
+        }
+        .pipeline-step .step-dot.pending {
+            background: rgba(120, 113, 108, 0.2);
+            border: 2px solid rgba(120, 113, 108, 0.4);
+            color: #78716c;
+        }
+        .pipeline-step .step-line {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            z-index: 0;
+        }
+        .pipeline-step .step-line.completed {
+            background: linear-gradient(90deg, #f97316, #ea580c);
+        }
+        .pipeline-step .step-line.pending {
+            background: rgba(120, 113, 108, 0.3);
+        }
+
+        /* Cell Highlighting */
+        .cell-missing {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+        .cell-duplicate {
+            background: rgba(245, 158, 11, 0.15) !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+        .cell-fixed {
+            background: rgba(59, 130, 246, 0.15) !important;
+            border-left: 3px solid #3b82f6 !important;
+        }
+
+        /* Tab Active State */
+        .data-tab {
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .data-tab.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+
+        /* Count-up animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .count-up {
+            animation: countUp 0.6s ease-out forwards;
+        }
+
+        /* Insight card */
+        .insight-card {
+            transition: all 0.3s;
+        }
+        .insight-card:hover {
+            transform: translateX(4px);
+            border-left-width: 4px;
+        }
+
+        /* Before-After delta */
+        .delta-positive { color: #10b981; }
+        .delta-negative { color: #ef4444; }
+        .delta-neutral { color: #78716c; }
     </style>
 </head>
 <body class="bg-stone-950 text-stone-200 min-h-screen flex flex-col font-sans antialiased relative overflow-x-hidden selection:bg-brand-500 selection:text-white">
@@ -191,43 +332,6 @@
         </div>
     </div>
 
-    <script>
-        function showCustomAlert(message) {
-            const modal = document.getElementById('customAlertModal');
-            const backdrop = document.getElementById('customAlertBackdrop');
-            const content = document.getElementById('customAlertContent');
-            const messageEl = document.getElementById('customAlertMessage');
-            
-            messageEl.textContent = message;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            // Trigger reflow
-            void modal.offsetWidth;
-            
-            // Animate in
-            backdrop.classList.replace('opacity-0', 'opacity-100');
-            content.classList.remove('opacity-0', 'scale-95');
-            content.classList.add('animate-pop-in');
-        }
-        
-        function closeCustomAlert() {
-            const modal = document.getElementById('customAlertModal');
-            const backdrop = document.getElementById('customAlertBackdrop');
-            const content = document.getElementById('customAlertContent');
-            
-            // Animate out
-            backdrop.classList.replace('opacity-100', 'opacity-0');
-            content.classList.remove('animate-pop-in');
-            content.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-200');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                // Reset classes for next open
-                content.classList.remove('transition-all', 'duration-200', 'scale-95');
-            }, 300);
-        }
-    </script>
+    
 </body>
 </html>

@@ -27,6 +27,11 @@ def register(request):
 @login_required
 def dashboard(request):
     files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
+    for f in files:
+        try:
+            f.quality_score = f.cleaneddataset.quality_score
+        except Exception:
+            f.quality_score = None
     return render(request, 'dashboard.html', {'files': files})
 
 @login_required
@@ -51,29 +56,47 @@ def upload_file(request):
         # Process file synchronously as requested
         try:
             df = parse_file(uploaded_file.file.path)
-            cleaned_df, cleaning_log, stats = clean_dataframe(df)
+            cleaned_df, cleaning_result = clean_dataframe(df)
             
             uploaded_file.row_count = len(cleaned_df)
             uploaded_file.column_count = len(cleaned_df.columns)
             uploaded_file.save()
             
-            
+            from .utils.ai_insights import generate_insights
+            ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
+
             # Serialize safely via pandas to avoid NaN/Infinity JSON serialization errors in SQLite
             safe_rows = json.loads(cleaned_df.to_json(orient='records', date_format='iso'))
             # Some stats might have np floats
-            safe_stats = json.loads(pd.Series(stats).to_json()) if stats else {}
+            safe_stats = json.loads(pd.Series(cleaning_result['stats']).to_json()) if cleaning_result['stats'] else {}
 
             # Create Dataset
             CleanedDataset.objects.create(
                 uploaded_file=uploaded_file,
                 columns=list(cleaned_df.columns),
                 rows=safe_rows,
-                cleaning_log=cleaning_log,
-                stats=safe_stats
+                cleaning_log=cleaning_result['log'],
+                stats=safe_stats,
+                raw_snapshot=cleaning_result['raw_snapshot'],
+                raw_columns=cleaning_result['raw_columns'],
+                health_report=cleaning_result['health_report'],
+                quality_score=cleaning_result['quality_score'],
+                cleaning_actions=cleaning_result['actions'],
+                before_after=cleaning_result['before_after'],
+                ai_insights=ai_insights_data,
+                cell_annotations=cleaning_result['cell_annotations'],
+                cleaning_options={
+                    'remove_duplicates': True,
+                    'normalize_headers': True,
+                    'trim_whitespace': True,
+                    'remove_empty_rows': True,
+                    'remove_empty_columns': True,
+                    'coerce_numeric': True,
+                },
             )
             
             messages.success(request, 'File uploaded and cleaned successfully!')
-            return redirect('dataset_view', file_id=uploaded_file.id)
+            return redirect('cleaning_lab', file_id=uploaded_file.id)
             
         except Exception as e:
             uploaded_file.delete()
@@ -82,20 +105,77 @@ def upload_file(request):
             
     return render(request, 'upload.html')
 
-@login_required
-def dataset_view(request, file_id):
+def _get_dataset_context(request, file_id):
     uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
     dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
-
-    context = {
+    
+    # Calculate unique columns using Pandas
+    df = pd.DataFrame(dataset.rows)
+    unique_cols = [col for col in df.columns if df[col].is_unique] if not df.empty else []
+    
+    return {
         'file': uploaded_file,
         'dataset': dataset,
         'file_id': file_id,
-        # Safely dump lists to JSON strings for frontend JS
         'columns_json': json.dumps(dataset.columns),
         'rows_json': json.dumps(dataset.rows),
+        'unique_columns_json': json.dumps(unique_cols),
+        'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
+        'raw_columns_json': json.dumps(dataset.raw_columns),
+        'health_report_json': json.dumps(dataset.health_report),
+        'quality_score': dataset.quality_score,
+        'cleaning_actions_json': json.dumps(dataset.cleaning_actions),
+        'before_after_json': json.dumps(dataset.before_after),
+        'ai_insights_json': json.dumps(dataset.ai_insights),
+        'cell_annotations_json': json.dumps(dataset.cell_annotations),
+        'cleaning_options_json': json.dumps(dataset.cleaning_options),
     }
-    return render(request, 'dataset.html', context)
+
+@login_required
+def cleaning_lab(request, file_id):
+    context = _get_dataset_context(request, file_id)
+    return render(request, 'cleaning_lab.html', context)
+
+@login_required
+def data_explorer(request, file_id):
+    context = _get_dataset_context(request, file_id)
+    return render(request, 'data_explorer.html', context)
+
+@login_required
+def analytics_studio(request, file_id):
+    context = _get_dataset_context(request, file_id)
+    return render(request, 'analytics_studio.html', context)
+
+@login_required
+def ai_insights_page(request, file_id):
+    context = _get_dataset_context(request, file_id)
+    return render(request, 'ai_insights_page.html', context)
+
+@login_required
+def exports_page(request, file_id):
+    context = _get_dataset_context(request, file_id)
+    return render(request, 'exports_reports.html', context)
+
+@login_required
+def ai_chat_api(request, file_id):
+    """API endpoint for Natural Language querying on the dataset."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        query = data.get('query', '')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+    
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+    
+    # Send to AI Chat utility
+    from .utils.ai_chat import process_chat_query
+    response_data = process_chat_query(query, dataset)
+    
+    return JsonResponse(response_data)
 
 
 @login_required
@@ -110,6 +190,60 @@ def delete_dataset(request, file_id):
         uploaded_file.delete()
         messages.success(request, 'Dataset deleted successfully.')
     return redirect('dashboard')
+
+@login_required
+def reclean_dataset(request, file_id):
+    """Re-run cleaning pipeline with user-selected toggles."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    
+    try:
+        options = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+    
+    try:
+        # Re-parse the original file
+        df = parse_file(uploaded_file.file.path)
+        
+        # Clean with options
+        cleaned_df, cleaning_result = clean_dataframe(df, options=options)
+        
+        # Generate insights
+        from .utils.ai_insights import generate_insights
+        ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
+        
+        # Serialize safely
+        safe_rows = json.loads(cleaned_df.to_json(orient='records', date_format='iso'))
+        safe_stats = json.loads(pd.Series(cleaning_result['stats']).to_json()) if cleaning_result['stats'] else {}
+        
+        # Update the dataset
+        dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+        dataset.columns = list(cleaned_df.columns)
+        dataset.rows = safe_rows
+        dataset.cleaning_log = cleaning_result['log']
+        dataset.stats = safe_stats
+        dataset.raw_snapshot = cleaning_result['raw_snapshot']
+        dataset.raw_columns = cleaning_result['raw_columns']
+        dataset.health_report = cleaning_result['health_report']
+        dataset.quality_score = cleaning_result['quality_score']
+        dataset.cleaning_actions = cleaning_result['actions']
+        dataset.before_after = cleaning_result['before_after']
+        dataset.ai_insights = ai_insights_data
+        dataset.cell_annotations = cleaning_result['cell_annotations']
+        dataset.cleaning_options = options
+        dataset.save()
+        
+        # Update file counts
+        uploaded_file.row_count = len(cleaned_df)
+        uploaded_file.column_count = len(cleaned_df.columns)
+        uploaded_file.save()
+        
+        return JsonResponse({'success': True, 'redirect': f'/dataset/{file_id}/'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
@@ -468,3 +602,32 @@ def _compute_correlation(df: pd.DataFrame, cols: list) -> dict:
     corr = sub.corr(method='pearson')
     matrix = [[_safe_float(corr.iloc[i][j]) for j in range(len(cols))] for i in range(len(cols))]
     return {'columns': cols, 'matrix': matrix}
+
+@login_required
+def get_unique_columns(rows):
+    if not rows:
+        return []
+    import pandas as pd
+    df = pd.DataFrame(rows)
+    unique_columns = []
+    for column in df.columns:
+        if df[column].nunique() == len(df):
+            unique_columns.append(column)
+    return unique_columns
+
+def data_profiler(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+    unique_cols = get_unique_columns(dataset.rows)
+    context = {
+        'file': uploaded_file,
+        'dataset': dataset,
+        'file_id': file_id,
+        'columns_json': json.dumps(dataset.columns),
+        'rows_json': json.dumps(dataset.rows),
+        'unique_columns_json': json.dumps(unique_cols),
+        'stats_json': json.dumps(dataset.stats),
+        'health_report_json': json.dumps(dataset.health_report),
+        'quality_score': dataset.quality_score,
+    }
+    return render(request, 'data_profiler.html', context)

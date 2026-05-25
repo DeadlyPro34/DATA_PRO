@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}Dashboard - Data Pro{% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
     <div class="opacity-0 animate-pop-in" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
         <div class="block group relative h-full">
             <!-- Full card clickable overlay -->
-            <a href="{% url 'dataset_view' file.id %}" class="absolute inset-0 z-0"></a>
+            <a href="{% url 'cleaning_lab' file.id %}" class="absolute inset-0 z-0"></a>
             
             <!-- Glow effect behind the card -->
             <div class="absolute inset-0 bg-gradient-to-r from-orange-500/0 to-rose-500/0 group-hover:from-orange-500/10 group-hover:to-rose-500/10 rounded-2xl blur-xl transition-all duration-500 pointer-events-none"></div>
@@ -56,6 +56,13 @@
                         <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Columns</p>
                         <p class="text-lg font-semibold text-stone-200">{{ file.column_count }}</p>
                     </div>
+                    {% if file.quality_score is not None %}
+                    <div class="h-8 w-px bg-stone-800"></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Quality</p>
+                        <p class="text-lg font-semibold {% if file.quality_score >= 80 %}text-emerald-400{% elif file.quality_score >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">{{ file.quality_score }}%</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
