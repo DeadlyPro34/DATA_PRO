@@ -139,7 +139,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_URL = '/accounts/login/'
 
 # Celery Configuration
-USE_CELERY = False # Fallback to sync if False
+USE_CELERY = True # Fallback to sync if False
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -157,5 +157,9 @@ CELERY_BEAT_SCHEDULE = {
     'run-folder-watcher-every-5-mins': {
         'task': 'app.tasks.run_folder_watcher_task',
         'schedule': crontab(minute='*/5'),
+    },
+    'scan-watched-inbox-every-5-minutes': {
+        'task': 'app.tasks.scan_watched_inbox',
+        'schedule': 300.0,
     },
 }
