@@ -122,9 +122,7 @@ def _get_dataset_context(request, file_id):
         'file': uploaded_file,
         'dataset': dataset,
         'columns_json': json.dumps(dataset.columns),
-        # Unique cols computation removed to save time, frontend doesn't strictly need it on initial load
         'unique_columns_json': '[]',
-        'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
         'stats_json': json.dumps(dataset.stats),
         'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
         'raw_columns_json': json.dumps(dataset.raw_columns),
