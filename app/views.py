@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from .models import UploadedFile, CleanedDataset
 from .utils.file_parser import parse_file
 from .utils.data_cleaner import clean_dataframe
+from .utils.auto_chart_suggester import get_chart_suggestions
 import json
 import os
 import math
@@ -844,3 +845,24 @@ def api_apply_cleaning(request, file_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'status': 'error', 'error': str(e)}, status=400)
+
+
+@login_required
+def chart_suggestions(request, file_id):
+    """Return AI-generated chart suggestions for the given dataset as JSON."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    uploaded_file = get_object_or_404(
+        UploadedFile.objects.filter(
+            Q(user=request.user) | Q(team__teammembership__user=request.user)
+        ).distinct(),
+        id=file_id,
+    )
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+
+    try:
+        suggestions = get_chart_suggestions(dataset)
+        return JsonResponse({'suggestions': suggestions, 'count': len(suggestions)})
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'suggestions': []}, status=500)
