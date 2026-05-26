@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .models import UploadedFile, CleanedDataset
 from .utils.file_parser import parse_file
 from .utils.data_cleaner import clean_dataframe
@@ -866,3 +866,220 @@ def chart_suggestions(request, file_id):
         return JsonResponse({'suggestions': suggestions, 'count': len(suggestions)})
     except Exception as e:
         return JsonResponse({'error': str(e), 'suggestions': []}, status=500)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXCEL EXPORT
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def export_excel(request, file_id):
+    """Generate a multi-sheet .xlsx and return it as a file download."""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+    from app.utils.parquet_helpers import get_dataframe
+
+    uploaded_file = get_object_or_404(
+        UploadedFile.objects.filter(
+            Q(user=request.user) | Q(team__teammembership__user=request.user)
+        ).distinct(),
+        id=file_id,
+    )
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+
+    wb = Workbook()
+
+    # ── Sheet 1: Cleaned Data ──────────────────────────────────────────────
+    ws1 = wb.active
+    ws1.title = 'Cleaned Data'
+
+    df = get_dataframe(dataset)
+    columns = list(df.columns) if not df.empty else (dataset.columns or [])
+
+    header_font  = Font(bold=True, color='FFFFFF')
+    header_fill  = PatternFill('solid', fgColor='1E6F50')   # dark emerald
+    header_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    for col_idx, col_name in enumerate(columns, start=1):
+        cell = ws1.cell(row=1, column=col_idx, value=str(col_name))
+        cell.font  = header_font
+        cell.fill  = header_fill
+        cell.alignment = header_align
+        ws1.column_dimensions[get_column_letter(col_idx)].width = max(len(str(col_name)) + 4, 12)
+
+    if not df.empty:
+        for row_idx, row in enumerate(df.itertuples(index=False), start=2):
+            for col_idx, value in enumerate(row, start=1):
+                ws1.cell(row=row_idx, column=col_idx, value=value)
+    ws1.freeze_panes = 'A2'   # keep header visible when scrolling
+
+    # ── Sheet 2: Stats ────────────────────────────────────────────────────
+    ws2 = wb.create_sheet('Stats')
+    stats = dataset.stats or {}
+
+    stat_keys = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max',
+                 'unique', 'top', 'freq', 'sum', 'median', 'variance']
+
+    # Header row
+    header_row = ['Column'] + stat_keys
+    for col_idx, h in enumerate(header_row, start=1):
+        cell = ws2.cell(row=1, column=col_idx, value=h)
+        cell.font  = Font(bold=True, color='FFFFFF')
+        cell.fill  = PatternFill('solid', fgColor='2563EB')   # blue
+        cell.alignment = Alignment(horizontal='center')
+        ws2.column_dimensions[get_column_letter(col_idx)].width = 14
+
+    for row_idx, (col_name, col_stats) in enumerate(stats.items(), start=2):
+        ws2.cell(row=row_idx, column=1, value=col_name)
+        for col_idx, key in enumerate(stat_keys, start=2):
+            ws2.cell(row=row_idx, column=col_idx, value=col_stats.get(key, ''))
+
+    # ── Sheet 3: Cleaning Log ──────────────────────────────────────────────
+    ws3 = wb.create_sheet('Cleaning Log')
+    log_header = ws3.cell(row=1, column=1, value='Cleaning Actions')
+    log_header.font  = Font(bold=True, color='FFFFFF')
+    log_header.fill  = PatternFill('solid', fgColor='7C3AED')   # violet
+    ws3.column_dimensions['A'].width = 80
+
+    cleaning_log = dataset.cleaning_log or []
+    for row_idx, entry in enumerate(cleaning_log, start=2):
+        ws3.cell(row=row_idx, column=1, value=str(entry))
+
+    # ── Serialise to memory and return ────────────────────────────────────
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    safe_name = uploaded_file.original_filename.rsplit('.', 1)[0]
+    filename  = f'{safe_name}_cleaned.xlsx'
+
+    response = HttpResponse(
+        buffer.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PDF EXPORT
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def export_pdf(request, file_id):
+    """Render a PDF report with WeasyPrint and return it as a file download."""
+    from weasyprint import HTML
+    from app.utils.parquet_helpers import get_dataframe
+
+    uploaded_file = get_object_or_404(
+        UploadedFile.objects.filter(
+            Q(user=request.user) | Q(team__teammembership__user=request.user)
+        ).distinct(),
+        id=file_id,
+    )
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+
+    df           = get_dataframe(dataset)
+    columns      = list(df.columns) if not df.empty else (dataset.columns or [])
+    rows_preview = df.head(20).to_dict(orient='records') if not df.empty else []
+    stats        = dataset.stats or {}
+    cleaning_log = dataset.cleaning_log or []
+    quality      = dataset.quality_score or 0
+    dataset_name = uploaded_file.custom_name or uploaded_file.original_filename
+
+    # Determine badge colour by quality score
+    if quality >= 80:
+        badge_color = '#16a34a'   # green
+    elif quality >= 50:
+        badge_color = '#d97706'   # amber
+    else:
+        badge_color = '#dc2626'   # red
+
+    # ── Build data-preview table rows ──────────────────────────────────────
+    header_cells = ''.join(f'<th>{col}</th>' for col in columns)
+    data_rows    = ''
+    for row in rows_preview:
+        cells = ''.join(f'<td>{row.get(col, "")}</td>' for col in columns)
+        data_rows += f'<tr>{cells}</tr>'
+
+    # ── Build stats table rows ──────────────────────────────────────────────
+    stat_keys   = ['count', 'mean', 'std', 'min', 'max', 'unique', 'top']
+    stats_header = ''.join(f'<th>{k}</th>' for k in ['Column'] + stat_keys)
+    stats_rows  = ''
+    for col_name, col_stats in stats.items():
+        cells = f'<td><strong>{col_name}</strong></td>'
+        cells += ''.join(f'<td>{col_stats.get(k, "-")}</td>' for k in stat_keys)
+        stats_rows += f'<tr>{cells}</tr>'
+
+    # ── Build cleaning-actions list ─────────────────────────────────────────
+    log_items = ''.join(f'<li>{entry}</li>' for entry in cleaning_log) or '<li>No cleaning actions recorded.</li>'
+
+    html_string = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>DATA_PRO Report — {dataset_name}</title>
+        <style>
+            @page {{ size: A4 landscape; margin: 15mm; }}
+            body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                   color: #1a1a2e; font-size: 11px; line-height: 1.5; }}
+            .header {{ background: linear-gradient(135deg,#1e3a5f,#0f6b3a);
+                       color:#fff; padding:20px 24px; border-radius:8px;
+                       margin-bottom:20px; }}
+            .header h1 {{ margin:0 0 6px; font-size:22px; }}
+            .badge {{ display:inline-block; background:{badge_color};
+                      color:#fff; padding:3px 10px; border-radius:20px;
+                      font-weight:bold; font-size:13px; }}
+            h2 {{ color:#1e3a5f; border-bottom:2px solid #1e3a5f;
+                  padding-bottom:4px; margin-top:24px; font-size:14px; }}
+            table {{ width:100%; border-collapse:collapse;
+                     margin-bottom:16px; font-size:9px; }}
+            th {{ background:#1e3a5f; color:#fff; padding:6px 8px;
+                  text-align:left; font-weight:600; }}
+            td {{ border:1px solid #dde; padding:5px 8px; }}
+            tr:nth-child(even) td {{ background:#f5f7ff; }}
+            ul {{ padding-left:18px; }}
+            li {{ margin-bottom:4px; }}
+            .meta {{ font-size:10px; opacity:0.85; margin-top:4px; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Dataset Report: {dataset_name}</h1>
+            <p class="meta">
+                Generated by <strong>DATA_PRO</strong> &nbsp;|&nbsp;
+                Rows: <strong>{uploaded_file.row_count}</strong> &nbsp;|&nbsp;
+                Columns: <strong>{uploaded_file.column_count}</strong> &nbsp;|&nbsp;
+                Quality Score: <span class="badge">{quality}%</span>
+            </p>
+        </div>
+
+        <h2>Data Preview (First 20 Rows)</h2>
+        <table>
+            <thead><tr>{header_cells}</tr></thead>
+            <tbody>{data_rows}</tbody>
+        </table>
+
+        <h2>Summary Statistics</h2>
+        <table>
+            <thead><tr>{stats_header}</tr></thead>
+            <tbody>{stats_rows}</tbody>
+        </table>
+
+        <h2>Cleaning Actions</h2>
+        <ul>{log_items}</ul>
+    </body>
+    </html>
+    """
+
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    safe_name = uploaded_file.original_filename.rsplit('.', 1)[0]
+    filename  = f'{safe_name}_report.pdf'
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
