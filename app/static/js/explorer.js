@@ -43,12 +43,12 @@ function initExplorer() {
         });
         
         if (tab === 'sidebyside') {
-            singleTableView.classList.add('hidden');
-            sideBySideView.classList.remove('hidden');
+            singleTableView.style.display = 'none';
+            sideBySideView.style.display  = 'grid';
             renderSideBySide();
         } else {
-            singleTableView.classList.remove('hidden');
-            sideBySideView.classList.add('hidden');
+            singleTableView.style.display = '';
+            sideBySideView.style.display  = 'none';
             
             filteredRows = tab === 'raw' ? [...(APP_DATA.rawSnapshot || [])] : [...(APP_DATA.allRows || [])];
             selectedRowIdx = null;
@@ -187,25 +187,36 @@ function initExplorer() {
         const rawHead = document.getElementById('rawSbsHeader');
         const rawBody = document.getElementById('rawSbsBody');
         
-        if (rawHead && APP_DATA.rawColumns) {
-            rawHead.innerHTML = APP_DATA.rawColumns.map(col => `<th class="px-3 py-2 text-left text-xs font-semibold text-stone-500 dark:text-zinc-200 uppercase tracking-wide whitespace-nowrap">${col}</th>`).join('');
+        const hasRaw = APP_DATA.rawSnapshot && APP_DATA.rawSnapshot.length > 0;
+        const rawCols = APP_DATA.rawColumns && APP_DATA.rawColumns.length > 0
+            ? APP_DATA.rawColumns
+            : (APP_DATA.columns || []);
+
+        if (rawHead) {
+            rawHead.innerHTML = rawCols.map(col =>
+                `<th class="px-3 py-2 text-left text-xs font-semibold text-stone-500 dark:text-zinc-200 uppercase tracking-wide whitespace-nowrap">${col}</th>`
+            ).join('');
         }
         
-        if (rawBody && APP_DATA.rawSnapshot) {
-            rawBody.innerHTML = APP_DATA.rawSnapshot.slice(0, 100).map((row, idx) => {
-                const isDuplicate = APP_DATA.cellAnnotations?.duplicate_row_indices?.includes(idx);
-                let rowClass = `bg-white dark:bg-zinc-900/60 border-b border-stone-200 dark:border-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all duration-200`;
-                if (isDuplicate) rowClass += ' bg-amber-500/10';
-                return `<tr class="${rowClass}">
-                    ${APP_DATA.rawColumns.map((col, colIdx) => {
-                        const issue = (APP_DATA.cellAnnotations?.['raw'] || {})[`${idx},${colIdx}`];
-                        let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-900 dark:text-zinc-100 text-xs font-medium';
-                        if (issue === 'missing') cellClass += ' bg-red-500/20 text-red-300 border border-red-500/30';
-                        const v = row[col];
-                        return `<td class="${cellClass}">${v !== null && v !== undefined ? v : '—'}</td>`;
-                    }).join('')}
-                </tr>`;
-            }).join('');
+        if (rawBody) {
+            if (!hasRaw) {
+                rawBody.innerHTML = `<tr><td colspan="${rawCols.length || 1}" class="px-4 py-10 text-center text-stone-400 text-xs">No raw snapshot stored.<br>Re-upload the file to capture pre-cleaning data.</td></tr>`;
+            } else {
+                rawBody.innerHTML = APP_DATA.rawSnapshot.slice(0, 100).map((row, idx) => {
+                    const isDuplicate = APP_DATA.cellAnnotations?.duplicate_row_indices?.includes(idx);
+                    let rowClass = `bg-white dark:bg-zinc-900/60 border-b border-stone-200 dark:border-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all duration-200`;
+                    if (isDuplicate) rowClass += ' bg-amber-500/10';
+                    return `<tr class="${rowClass}">
+                        ${rawCols.map((col, colIdx) => {
+                            const issue = (APP_DATA.cellAnnotations?.['raw'] || {})[`${idx},${colIdx}`];
+                            let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-900 dark:text-zinc-100 text-xs font-medium';
+                            if (issue === 'missing') cellClass += ' bg-red-500/20 text-red-300 border border-red-500/30';
+                            const v = row[col];
+                            return `<td class="${cellClass}">${v !== null && v !== undefined ? v : '—'}</td>`;
+                        }).join('')}
+                    </tr>`;
+                }).join('');
+            }
         }
     
         const clnHead = document.getElementById('cleanedSbsHeader');
