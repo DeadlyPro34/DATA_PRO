@@ -8,7 +8,7 @@
         <div class="glass-panel rounded-2xl p-4 sticky top-24 flex flex-col gap-1">
             
             <div class="mb-4 px-2">
-                <h3 class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1 truncate">{{ file.custom_name|default:file.original_filename }}</h3>
+                <h3 class="text-[10px] font-bold text-stone-700 dark:text-stone-500 uppercase tracking-widest mb-1 truncate">{{ file.custom_name|default:file.original_filename }}</h3>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase tracking-wider">{{ file.file_type }}</span>
                     {% if dataset.quality_score %}
@@ -19,39 +19,39 @@
                 </div>
             </div>
 
-            <a href="{% url 'cleaning_lab' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'cleaning_lab' %}bg-orange-500/10 text-orange-400 border border-orange-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'cleaning_lab' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'cleaning_lab' %}bg-orange-500/10 text-orange-400 border border-orange-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                 Cleaning Lab
             </a>
 
-            <a href="{% url 'data_explorer' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'data_explorer' %}bg-amber-500/10 text-amber-500 border border-amber-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'data_explorer' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'data_explorer' %}bg-amber-500/10 text-amber-500 border border-amber-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                 Data Explorer
             </a>
 
-            <a href="{% url 'data_profiler' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'data_profiler' %}bg-purple-500/10 text-purple-400 border border-purple-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'data_profiler' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'data_profiler' %}bg-purple-500/10 text-purple-400 border border-purple-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"></path></svg>
                 Data Profiler
             </a>
 
-            <a href="{% url 'analytics_studio' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'analytics_studio' %}bg-sky-500/10 text-sky-400 border border-sky-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'analytics_studio' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'analytics_studio' %}bg-sky-500/10 text-sky-400 border border-sky-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
                 Analytics Studio
             </a>
 
-            <a href="{% url 'ai_insights_page' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'ai_insights_page' %}bg-violet-500/10 text-violet-400 border border-violet-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'ai_insights_page' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'ai_insights_page' %}bg-violet-500/10 text-violet-400 border border-violet-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                 AI Insights & Chat
             </a>
 
-            <a href="{% url 'exports_page' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'exports_page' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border border-transparent{% endif %}">
+            <a href="{% url 'exports_page' file_id %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'exports_page' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}text-stone-800 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 border border-transparent hover:translate-x-1.5 hover:shadow-sm{% endif %}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 Exports & Reports
             </a>
 
-            <div class="my-2 h-px w-full bg-stone-800/50"></div>
+            <div class="my-2 h-px w-full bg-stone-100 dark:bg-stone-800/50"></div>
 
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-stone-500 hover:text-stone-300 hover:bg-stone-800/50 transition-all border border-transparent">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-stone-700 dark:text-stone-500 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-stone-200/80 dark:hover:bg-stone-800 transition-all border border-transparent hover:translate-x-1.5 hover:shadow-sm">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Dashboard
             </a>

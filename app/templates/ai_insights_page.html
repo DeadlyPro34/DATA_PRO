@@ -6,21 +6,21 @@
 <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
     <div>
         <div class="flex items-center gap-4 mb-3">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shadow-sm">
+            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:bg-stone-100 dark:bg-stone-800 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
-            <h1 class="text-3xl font-bold text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
+            <h1 class="text-3xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
             <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase tracking-wider">{{ file.file_type }}</span>
         </div>
         <div class="flex flex-wrap items-center gap-3 sm:gap-6 ml-0 md:ml-14 mt-4 md:mt-0">
-            <p class="text-sm font-medium text-stone-400 flex items-center gap-1.5">
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400 flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 {{ file.uploaded_at|date:"M d, Y" }}
             </p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
+            <div class="hidden sm:block h-4 w-px bg-stone-100 dark:bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400"><span class="text-stone-950 dark:text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
+            <div class="hidden sm:block h-4 w-px bg-stone-100 dark:bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400"><span class="text-stone-950 dark:text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
         </div>
     </div>
 </div>
@@ -32,7 +32,7 @@
         <div class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
         </div>
-        <h2 class="text-lg font-bold text-stone-100 tracking-tight">AI Insights</h2>
+        <h2 class="text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight">AI Insights</h2>
         <span id="insightsCount" class="ml-2 px-2 py-0.5 rounded-full bg-sky-500/20 text-xs font-bold text-sky-400 border border-sky-500/20"></span>
     </div>
     <div id="aiInsightsContainer" class="space-y-3 relative z-10">
@@ -49,26 +49,26 @@
         <div class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
         </div>
-        <h2 class="text-xl font-bold text-stone-100 tracking-tight">Chat with Dataset</h2>
+        <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Chat with Dataset</h2>
     </div>
     
-    <div class="bg-stone-900/50 rounded-2xl border border-stone-800 flex flex-col h-[500px] relative z-10">
+    <div class="bg-white dark:bg-stone-900/50 rounded-2xl border border-stone-200 dark:border-stone-800 flex flex-col h-[500px] relative z-10">
         <div id="chatMessages" class="flex-1 p-5 overflow-y-auto custom-scrollbar flex flex-col gap-4">
             <div class="flex gap-3 max-w-[80%]">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shrink-0 shadow-lg">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                 </div>
-                <div class="bg-stone-800 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-200 shadow-sm">
+                <div class="bg-stone-100 dark:bg-stone-800 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-950 dark:text-stone-200 shadow-sm">
                     Hi! I am your AI Data Assistant. Ask me anything about <b>{{ file.original_filename }}</b>.<br><br>
-                    <span class="text-stone-400">Try asking:</span><br>
+                    <span class="text-stone-800 dark:text-stone-400">Try asking:</span><br>
                     <button onclick="document.getElementById('chatInput').value=this.innerText;" class="text-orange-400 hover:text-orange-300 mt-1 block text-left">"Who has the highest marks?"</button>
                     <button onclick="document.getElementById('chatInput').value=this.innerText;" class="text-orange-400 hover:text-orange-300 mt-0.5 block text-left">"Show the average fees by class"</button>
                 </div>
             </div>
         </div>
-        <div class="p-3 border-t border-stone-800 bg-stone-900/80 rounded-b-2xl">
+        <div class="p-3 border-t border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/80 rounded-b-2xl">
             <form id="chatForm" onsubmit="submitChat(event)" class="flex gap-2">
-                <input type="text" id="chatInput" placeholder="Ask a question in plain English..." class="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-200 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors shadow-inner" autocomplete="off">
+                <input type="text" id="chatInput" placeholder="Ask a question in plain English..." class="flex-1 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-950 dark:text-stone-200 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors shadow-inner" autocomplete="off">
                 <button type="submit" class="px-5 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow-[0_0_15px_rgba(2,132,199,0.3)] transition-all">
                     Send
                 </button>
@@ -89,7 +89,7 @@ async function submitChat(e) {
     messages.innerHTML += `
         <div class="flex gap-3 max-w-[80%] self-end flex-row-reverse">
             <div class="w-8 h-8 rounded-full bg-stone-700 flex items-center justify-center shrink-0 shadow-sm">
-                <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <svg class="w-4 h-4 text-stone-900 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
             <div class="bg-sky-600 rounded-2xl rounded-tr-sm p-3.5 text-sm text-white shadow-md">
                 ${query}
@@ -106,7 +106,7 @@ async function submitChat(e) {
             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shrink-0 shadow-lg">
                 <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
             </div>
-            <div class="bg-stone-800 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-400 italic shadow-sm">
+            <div class="bg-stone-100 dark:bg-stone-800 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-800 dark:text-stone-400 italic shadow-sm">
                 Thinking...
             </div>
         </div>
@@ -129,7 +129,7 @@ async function submitChat(e) {
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shrink-0 shadow-lg">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                 </div>
-                <div class="bg-stone-800 border border-orange-500/30 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-200 shadow-lg shadow-orange-500/5">
+                <div class="bg-stone-100 dark:bg-stone-800 border border-orange-500/30 rounded-2xl rounded-tl-sm p-3.5 text-sm text-stone-950 dark:text-stone-200 shadow-lg shadow-orange-500/5">
                     ${data.answer || data.error || 'I could not process that request.'}
                 </div>
             </div>
@@ -147,8 +147,7 @@ async function submitChat(e) {
     window.APP_DATA = window.APP_DATA || {};
     window.APP_DATA.columns = JSON.parse('{{ columns_json|escapejs }}');
     window.APP_DATA.uniqueColumns = JSON.parse('{{ unique_columns_json|escapejs|default:"[]" }}');
-    window.APP_DATA.allRows = JSON.parse('{{ rows_json|escapejs }}');
-    window.APP_DATA.FILE_ID = {{ file_id }};
+        window.APP_DATA.FILE_ID = {{ file_id }};
     window.APP_DATA.CHART_DATA_URL = `/dataset//chart-data/`;
     window.APP_DATA.ADVANCED_STATS_URL = `/dataset//advanced-stats/`;
     window.APP_DATA.healthReport = JSON.parse('{{ health_report_json|escapejs|default:"{}" }}');
@@ -179,8 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
         badge.textContent = aiInsights.length;
         
         cnt.innerHTML = aiInsights.map(insight => {
-            let clrClass = 'bg-stone-800/50 border-stone-700 text-stone-300';
-            let iconClr = 'text-stone-400';
+            let clrClass = 'bg-stone-100 dark:bg-stone-800/50 border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-300';
+            let iconClr = 'text-stone-800 dark:text-stone-400';
             if (insight.type === 'warning') {
                 clrClass = 'bg-amber-500/10 border-amber-500/20 text-amber-200';
                 iconClr = 'text-amber-500';
@@ -195,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const confStr = insight.confidence ? `<span class="text-xs opacity-50 ml-auto">Conf: ${Math.round(insight.confidence*100)}%</span>` : '';
             
             return `
-                <div class="rounded-xl p-4 border flex gap-3 items-start ${clrClass} hover:bg-stone-800 transition-colors">
+                <div class="rounded-xl p-4 border flex gap-3 items-start ${clrClass} hover:bg-stone-100 dark:bg-stone-800 transition-colors">
                     <div class="text-xl ${iconClr} mt-0.5">${insight.icon || '💡'}</div>
                     <div class="flex-1">
                         <div class="flex items-center">

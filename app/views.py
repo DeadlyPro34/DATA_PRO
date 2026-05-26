@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
@@ -26,7 +27,9 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    files = UploadedFile.objects.filter(user=request.user).select_related('cleaneddataset').order_by('-uploaded_at')
+    files = UploadedFile.objects.filter(
+        Q(user=request.user) | Q(team__teammembership__user=request.user)
+    ).distinct().select_related('cleaneddataset').order_by('-uploaded_at')
     for f in files:
         try:
             f.quality_score = f.cleaneddataset.quality_score
@@ -42,13 +45,40 @@ def upload_file(request):
             return redirect('upload_file')
             
         file = request.FILES['file']
+        
+        # 1. File Size Validation (Max 50MB)
+        if file.size > 50 * 1024 * 1024:
+            messages.error(request, 'File size exceeds the 50MB limit.')
+            return redirect('upload_file')
+            
+        # 2. Extension Validation
+        allowed_extensions = ['.csv', '.xlsx', '.xls', '.xlsm', '.json']
+        ext = os.path.splitext(file.name)[1].lower()
+        if ext not in allowed_extensions:
+            messages.error(request, f'Unsupported file type: {ext}. Allowed types: CSV, Excel, JSON.')
+            return redirect('upload_file')
+            
+        # 3. MIME Type Validation
+        allowed_mimes = [
+            'text/csv',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel.sheet.macroEnabled.12',
+            'application/json'
+        ]
+        # Depending on the client or browser, MIME types can be slightly varied or omitted.
+        # So we check if it is in the allowed list or if we fallback.
+        if file.content_type not in allowed_mimes:
+            messages.error(request, f'Invalid file content type: {file.content_type}.')
+            return redirect('upload_file')
+            
         custom_name = request.POST.get('custom_name', '')
         
         # Create UploadedFile
         uploaded_file = UploadedFile.objects.create(
             user=request.user,
             original_filename=file.name,
-            file_type=file.name.split('.')[-1].lower(),
+            file_type=ext[1:],
             custom_name=custom_name,
             file=file
         )
@@ -78,20 +108,23 @@ def upload_file(request):
     return render(request, 'upload.html')
 
 def _get_dataset_context(request, file_id):
-    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    uploaded_file = get_object_or_404(
+        UploadedFile.objects.filter(Q(user=request.user) | Q(team__teammembership__user=request.user)).distinct(), 
+        id=file_id
+    )
     dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
     
-    # Calculate unique columns using Pandas
-    df = pd.DataFrame(dataset.rows)
-    unique_cols = [col for col in df.columns if df[col].is_unique] if not df.empty else []
+    # We NO LONGER inject rows_json into the template to prevent server lag.
+    # The frontend will fetch the rows asynchronously via /dataset/<id>/rows/.
     
     return {
+        'file_id': file_id,
         'file': uploaded_file,
         'dataset': dataset,
-        'file_id': file_id,
         'columns_json': json.dumps(dataset.columns),
-        'rows_json': json.dumps(dataset.rows),
-        'unique_columns_json': json.dumps(unique_cols),
+        # Unique cols computation removed to save time, frontend doesn't strictly need it on initial load
+        'unique_columns_json': '[]',
+        'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
         'stats_json': json.dumps(dataset.stats),
         'raw_snapshot_json': json.dumps(dataset.raw_snapshot),
         'raw_columns_json': json.dumps(dataset.raw_columns),
@@ -194,6 +227,31 @@ def reclean_dataset(request, file_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
+def dataset_rows_api(request, file_id):
+    import traceback
+    from django.http import HttpResponse
+    from app.utils.parquet_helpers import get_dataframe
+    try:
+        uploaded_file = UploadedFile.objects.filter(Q(user=request.user) | Q(team__teammembership__user=request.user)).distinct().get(id=file_id)
+    except Exception as e:
+        print('FILE ERROR', e)
+        raise Http404()
+    
+    try:
+        dataset = CleanedDataset.objects.get(uploaded_file=uploaded_file)
+    except Exception as e:
+        print('DATASET ERROR', e)
+        raise Http404()
+    
+    try:
+        df = get_dataframe(dataset)
+        json_str = df.to_json(orient='records', date_format='iso') if not df.empty else '[]'
+        return HttpResponse(json_str, content_type='application/json')
+    except Exception as e:
+        print('DF ERROR', e)
+        traceback.print_exc()
+        raise Http404()
 
 @login_required
 def chart_data(request, file_id):
@@ -240,7 +298,8 @@ def chart_data(request, file_id):
         return JsonResponse({'error': f"Invalid agg mode: '{agg_mode}'. Use: sum|count|mean|min|max"}, status=400)
 
     # ── Rebuild DataFrame from stored rows ─────────────────────────────────
-    df = pd.DataFrame(dataset.rows)
+    from app.utils.parquet_helpers import get_dataframe
+    df = get_dataframe(dataset)
     if df.empty:
         return JsonResponse([], safe=False)
 
@@ -384,7 +443,8 @@ def advanced_stats(request, file_id):
     valid_cols = dataset.columns
 
     # Rebuild DataFrame
-    df = pd.DataFrame(dataset.rows)
+    from app.utils.parquet_helpers import get_dataframe
+    df = get_dataframe(dataset)
     if df.empty:
         return JsonResponse({'error': 'Dataset is empty'}, status=400)
 
@@ -567,16 +627,222 @@ def get_unique_columns(rows):
 def data_profiler(request, file_id):
     uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
     dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
-    unique_cols = get_unique_columns(dataset.rows)
+    from app.utils.parquet_helpers import get_dataframe
+    df = get_dataframe(dataset)
+    unique_cols = get_unique_columns(df.to_dict(orient='records') if not df.empty else [])
     context = {
         'file': uploaded_file,
         'dataset': dataset,
         'file_id': file_id,
         'columns_json': json.dumps(dataset.columns),
-        'rows_json': json.dumps(dataset.rows),
+        'rows_json': df.to_json(orient='records', date_format='iso') if not df.empty else '[]',
         'unique_columns_json': json.dumps(unique_cols),
         'stats_json': json.dumps(dataset.stats),
         'health_report_json': json.dumps(dataset.health_report),
         'quality_score': dataset.quality_score,
     }
     return render(request, 'data_profiler.html', context)
+
+@login_required
+def chart_suggestions(request, file_id):
+    """API endpoint to get auto chart suggestions based on dataset schema."""
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+    
+    from app.utils.auto_chart_suggester import get_chart_suggestions
+    suggestions = get_chart_suggestions(dataset)
+    
+    return JsonResponse({'suggestions': suggestions})
+
+from django.http import HttpResponse
+import io
+import openpyxl
+from openpyxl.styles import Font, PatternFill
+from django.template.loader import render_to_string
+
+@login_required
+def export_excel(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+
+    wb = openpyxl.Workbook()
+    
+    # Sheet 1: Cleaned Data
+    ws1 = wb.active
+    ws1.title = "Cleaned Data"
+    
+    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    
+    ws1.append(dataset.columns)
+    for cell in ws1[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        
+    from app.utils.parquet_helpers import get_dataframe
+    df = get_dataframe(dataset)
+    rows_data = df.to_dict(orient='records') if not df.empty else []
+    for row in rows_data:
+        ws1.append([row.get(col, "") for col in dataset.columns])
+        
+    # Sheet 2: Stats
+    ws2 = wb.create_sheet(title="Stats Summary")
+    ws2.append(["Column", "Count", "Unique", "Top", "Mean", "Min", "Max"])
+    for cell in ws2[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        
+    for col, stat in dataset.stats.items():
+        ws2.append([
+            col,
+            stat.get('count', ''),
+            stat.get('unique', ''),
+            stat.get('top', ''),
+            stat.get('mean', ''),
+            stat.get('min', ''),
+            stat.get('max', '')
+        ])
+
+    # Sheet 3: Cleaning Log
+    ws3 = wb.create_sheet(title="Cleaning Log")
+    ws3.append(["Action"])
+    ws3["A1"].fill = header_fill
+    ws3["A1"].font = header_font
+    for log in dataset.cleaning_log:
+        ws3.append([log])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="data_pro_{file_id}.xlsx"'
+    wb.save(response)
+    return response
+
+@login_required
+def export_pdf(request, file_id):
+    import weasyprint
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
+    
+    context = {
+        'file': uploaded_file,
+        'quality_score': dataset.quality_score,
+        'columns': dataset.columns,
+        'rows_preview': get_dataframe(dataset).to_dict(orient='records')[:20] if not get_dataframe(dataset).empty else [],
+        'stats': dataset.stats,
+        'cleaning_log': dataset.cleaning_log,
+    }
+    html_string = render_to_string('pdf_report.html', context)
+    
+    pdf_file = weasyprint.HTML(string=html_string).write_pdf()
+    
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="data_pro_report_{file_id}.pdf"'
+    return response
+
+from app.utils.cleaning_engine import DataCleaningEngine
+
+@login_required
+def cleaning_center_view(request, file_id):
+    from app.utils.parquet_helpers import get_dataframe
+    context = _get_dataset_context(request, file_id)
+    
+    # Inject rows and unique columns specifically for the SPA
+    dataset = context['dataset']
+    df = get_dataframe(dataset)
+    
+    # Calculate unique values for categorical columns (useful for Analytics and Filtering)
+    unique_columns = []
+    if not df.empty:
+        for col in df.columns:
+            if df[col].nunique() < 50:
+                unique_columns.append({
+                    "column": col,
+                    "values": [x for x in df[col].dropna().unique().tolist() if x != ""]
+                })
+    
+    context['rows_json'] = json.dumps(df.to_dict(orient='records'), default=str)
+    context['unique_columns_json'] = json.dumps(unique_columns, default=str)
+    
+    return render(request, 'cleaning_center.html', context)
+
+@login_required
+def api_preview_cleaning(request, file_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'error': 'Only POST allowed'}, status=405)
+        
+    dataset = get_object_or_404(CleanedDataset, uploaded_file__id=file_id)
+    
+    try:
+        payload = json.loads(request.body)
+        pipeline = payload.get('pipeline', [])
+        
+        df_raw = pd.DataFrame(dataset.raw_snapshot)
+        if df_raw.empty:
+            return JsonResponse({'status': 'error', 'error': 'No raw snapshot available for preview.'}, status=400)
+            
+        engine = DataCleaningEngine()
+        df_cleaned, logs = engine.apply_pipeline(df_raw, pipeline)
+        
+        # Replace NaN/inf to avoid JSON serialization errors
+        df_raw.replace([np.inf, -np.inf], np.nan, inplace=True)
+        df_cleaned.replace([np.inf, -np.inf], np.nan, inplace=True)
+        
+        before_records = df_raw.head(100).fillna("").to_dict(orient='records')
+        after_records = df_cleaned.head(100).fillna("").to_dict(orient='records')
+        
+        return JsonResponse({
+            'status': 'success',
+            'before': before_records,
+            'after': after_records,
+            'logs': logs,
+            'before_columns': list(df_raw.columns),
+            'after_columns': list(df_cleaned.columns),
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=400)
+
+@login_required
+def api_apply_cleaning(request, file_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'error': 'Only POST allowed'}, status=405)
+        
+    from app.utils.parquet_helpers import get_dataframe, save_dataframe_to_parquet
+    
+    dataset = get_object_or_404(CleanedDataset, uploaded_file__id=file_id)
+    
+    try:
+        payload = json.loads(request.body)
+        pipeline = payload.get('pipeline', [])
+        
+        df_full = get_dataframe(dataset)
+        if df_full.empty:
+            return JsonResponse({'status': 'error', 'error': 'Dataset is empty.'}, status=400)
+            
+        engine = DataCleaningEngine()
+        df_cleaned, logs = engine.apply_pipeline(df_full, pipeline)
+        
+        dataset.columns = list(df_cleaned.columns)
+        
+        history = list(dataset.pipeline_history) if dataset.pipeline_history else []
+        history.append({
+            'pipeline': pipeline,
+            'logs': logs
+        })
+        dataset.pipeline_history = history
+        
+        # Overwrite current logs with new execution logs
+        dataset.cleaning_log = logs
+        dataset.save()
+        
+        save_dataframe_to_parquet(df_cleaned, dataset)
+        
+        dataset.uploaded_file.row_count = len(df_cleaned)
+        dataset.uploaded_file.column_count = len(df_cleaned.columns)
+        dataset.uploaded_file.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Cleaning applied successfully.', 'logs': logs})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=400)

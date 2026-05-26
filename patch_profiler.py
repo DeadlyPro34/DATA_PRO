@@ -1,20 +1,15 @@
-{% extends "base_app.html" %}
-{% load static %}
-{% block app_content %}
-<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
-    <div>
-        <div class="flex items-center gap-4 mb-3">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:bg-stone-100 dark:bg-stone-800 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <h1 class="text-3xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 uppercase tracking-wider">Profiler</span>
-        </div>
-        <p class="text-stone-800 dark:text-stone-400 text-sm mt-2 ml-14">Comprehensive profile and statistics for every column.</p>
-    </div>
-</div>
+import os
+import re
 
-<div class="glass-panel rounded-3xl p-6 mb-8 relative overflow-hidden animate-pop-in" style="animation-delay: 50ms;">
+filepath = 'app/templates/data_profiler.html'
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Replace the HTML for Quick Math Calculator with Column Data Extractor
+old_ui_start = content.find('<div class="glass-panel rounded-3xl p-6 mb-8 relative overflow-hidden animate-pop-in" style="animation-delay: 50ms;">')
+old_ui_end = content.find('<div class="glass-panel rounded-3xl p-6 mb-8 relative overflow-hidden animate-pop-in" style="animation-delay: 100ms;">')
+
+new_ui = '''<div class="glass-panel rounded-3xl p-6 mb-8 relative overflow-hidden animate-pop-in" style="animation-delay: 50ms;">
     <div class="flex items-center gap-3 mb-6 relative z-10">
         <div class="p-2 rounded-xl bg-orange-500/20 text-orange-500 border border-orange-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -59,66 +54,21 @@
     </div>
 </div>
 
-<div class="glass-panel rounded-3xl p-6 mb-8 relative overflow-hidden animate-pop-in" style="animation-delay: 100ms;">
-    <div class="flex items-center gap-3 mb-6 relative z-10">
-        <div class="p-2 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/20">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"></path></svg>
-        </div>
-        <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Column Profiles</h2>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="profilerGrid">
-        <!-- populated by JS -->
-    </div>
-</div>
+'''
 
-<script>
-    const columns = JSON.parse('{{ columns_json|escapejs }}');
-    const stats = JSON.parse('{{ stats_json|escapejs|default:"{}" }}');
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        const grid = document.getElementById('profilerGrid');
-        const badges = [];
-            if (isNumeric) badges.push('<span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 text-xs font-bold border border-blue-500/30">Numeric</span>');
-            else badges.push('<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">Categorical</span>');
-            
-            let details = '';
-            if (isNumeric) {
-                details = `
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Mean</div><div class="text-stone-950 dark:text-stone-200 font-mono">${(colStats.mean??0).toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Median</div><div class="text-stone-950 dark:text-stone-200 font-mono">${(colStats['50%']??colStats.median??0).toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Min</div><div class="text-stone-950 dark:text-stone-200 font-mono">${(colStats.min??0).toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Max</div><div class="text-stone-950 dark:text-stone-200 font-mono">${(colStats.max??0).toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
-                    </div>
-                `;
-            } else {
-                details = `
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Unique</div><div class="text-stone-950 dark:text-stone-200 font-mono">${colStats.unique || colStats.nunique || 0}</div></div>
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Top Value</div><div class="text-stone-950 dark:text-stone-200 font-mono truncate" title="${colStats.top || ''}">${colStats.top || '—'}</div></div>
-                        <div class="bg-white dark:bg-stone-900/50 rounded-lg p-2 border border-stone-200 dark:border-stone-800 col-span-2"><div class="text-stone-700 dark:text-stone-500 text-xs font-bold mb-0.5">Freq of Top</div><div class="text-stone-950 dark:text-stone-200 font-mono">${colStats.freq || 0}</div></div>
-                    </div>
-                `;
-            }
-            
-            return `
-                <div class="bg-stone-50 dark:bg-stone-800/40 border border-stone-300 dark:border-stone-700/50 rounded-2xl p-5 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-stone-950 dark:text-stone-100 truncate pr-2" title="${col}">${col}</h3>
-                        <div class="flex gap-2">${badges.join('')}</div>
-                    </div>
-                    ${details}
-                    <div class="mt-4 pt-4 border-t border-stone-300 dark:border-stone-700/50 flex justify-between text-xs text-stone-800 dark:text-stone-400">
-                        <span>Missing: <span class="text-stone-950 dark:text-stone-200 font-bold">${colStats.missing || 0}</span></span>
-                        <span>Valid: <span class="text-stone-950 dark:text-stone-200 font-bold">${colStats.count || 0}</span></span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    });
+content = content[:old_ui_start] + new_ui + content[old_ui_end:]
 
-        // Extractor Logic
+# First, clean up the previous mathSelect logic inside grid.innerHTML map loop
+start_cleanup = content.find("const mathSelect = document.getElementById('quickMathColSelect');")
+if start_cleanup != -1:
+    end_cleanup = content.find('const badges = [];', start_cleanup)
+    content = content[:start_cleanup] + content[end_cleanup:]
+
+
+# Now replace from '// Quick Math Logic' down
+qm_start = content.find('// Quick Math Logic')
+if qm_start != -1:
+    new_js = """    // Extractor Logic
     document.addEventListener('appDataLoaded', () => {
         const extractorSelect = document.getElementById('extractorColSelect');
         const statsContainer = document.getElementById('extractorStats');
@@ -200,4 +150,10 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %}"""
+    content = content[:qm_start] + new_js
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print('Updated data_profiler.html to Column Extractor.')

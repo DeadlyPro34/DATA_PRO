@@ -1533,8 +1533,4 @@ function initAnalytics() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAnalytics);
-} else {
-    initAnalytics();
-}
+document.addEventListener('appDataLoaded', initAnalytics);

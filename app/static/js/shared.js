@@ -75,8 +75,4 @@ function initShared() {
     };
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initShared);
-} else {
-    initShared();
-}
+document.addEventListener('appDataLoaded', initShared);

@@ -8,21 +8,21 @@
 <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-pop-in">
     <div>
         <div class="flex items-center gap-4 mb-3">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shadow-sm">
+            <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:bg-stone-100 dark:bg-stone-800 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
-            <h1 class="text-3xl font-bold text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
+            <h1 class="text-3xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">{{ file.custom_name|default:file.original_filename }}</h1>
             <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase tracking-wider">{{ file.file_type }}</span>
         </div>
         <div class="flex flex-wrap items-center gap-3 sm:gap-6 ml-0 md:ml-14 mt-4 md:mt-0">
-            <p class="text-sm font-medium text-stone-400 flex items-center gap-1.5">
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400 flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 {{ file.uploaded_at|date:"M d, Y" }}
             </p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
-            <div class="hidden sm:block h-4 w-px bg-stone-800"></div>
-            <p class="text-sm font-medium text-stone-400"><span class="text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
+            <div class="hidden sm:block h-4 w-px bg-stone-100 dark:bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400"><span class="text-stone-950 dark:text-stone-100 font-bold">{{ file.row_count }}</span> rows</p>
+            <div class="hidden sm:block h-4 w-px bg-stone-100 dark:bg-stone-800"></div>
+            <p class="text-sm font-medium text-stone-800 dark:text-stone-400"><span class="text-stone-950 dark:text-stone-100 font-bold">{{ file.column_count }}</span> columns</p>
         </div>
     </div>
 </div>
@@ -33,7 +33,7 @@
         <div class="p-1.5 rounded-lg bg-orange-500/20 text-orange-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         </div>
-        <h3 class="text-sm font-bold text-stone-300 uppercase tracking-wider">Processing Pipeline</h3>
+        <h3 class="text-sm font-bold text-stone-900 dark:text-stone-300 uppercase tracking-wider">Processing Pipeline</h3>
     </div>
     <div class="flex flex-wrap items-start gap-y-4" id="pipelineSteps">
         <div class="pipeline-step">
@@ -41,35 +41,35 @@
             <div class="step-dot completed">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 text-center">Upload</span>
+            <span class="text-[10px] font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider mt-2 text-center">Upload</span>
         </div>
         <div class="pipeline-step">
             <div class="step-line completed"></div>
             <div class="step-dot completed">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 text-center">Scan</span>
+            <span class="text-[10px] font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider mt-2 text-center">Scan</span>
         </div>
         <div class="pipeline-step">
             <div class="step-line completed"></div>
             <div class="step-dot completed">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 text-center">Detect Issues</span>
+            <span class="text-[10px] font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider mt-2 text-center">Detect Issues</span>
         </div>
         <div class="pipeline-step">
             <div class="step-line completed"></div>
             <div class="step-dot completed">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 text-center">Auto Clean</span>
+            <span class="text-[10px] font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider mt-2 text-center">Auto Clean</span>
         </div>
         <div class="pipeline-step">
             <div class="step-line completed"></div>
             <div class="step-dot completed">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 text-center">Insights</span>
+            <span class="text-[10px] font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider mt-2 text-center">Insights</span>
         </div>
         <div class="pipeline-step">
             <div class="step-dot active">
@@ -87,7 +87,7 @@
         <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
         </div>
-        <h2 class="text-xl font-bold text-stone-100 tracking-tight">Data Health Scan</h2>
+        <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Data Health Scan</h2>
     </div>
     <div class="flex flex-col md:flex-row gap-8 items-center relative z-10">
         <!-- Quality Score Gauge -->
@@ -102,10 +102,10 @@
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                     <span id="qualityScoreNum" class="text-3xl font-bold qualityTextColor">0</span>
-                    <span class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">%</span>
+                    <span class="text-[10px] font-bold text-stone-700 dark:text-stone-500 uppercase tracking-widest">%</span>
                 </div>
             </div>
-            <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">Quality Score</span>
+            <span class="text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-widest">Quality Score</span>
         </div>
         <!-- Metric Cards Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 w-full" id="healthMetricsGrid">
@@ -122,7 +122,7 @@
         </div>
         <div class="flex-1">
             <h3 class="text-base font-bold text-amber-300 mb-2">📁 Messy Excel Detected</h3>
-            <p class="text-sm text-stone-400 mb-3">This file had structural issues that were automatically resolved during cleaning.</p>
+            <p class="text-sm text-stone-800 dark:text-stone-400 mb-3">This file had structural issues that were automatically resolved during cleaning.</p>
             <ul id="messyExcelIssues" class="space-y-1.5">
                 <!-- Populated by JS -->
             </ul>
@@ -137,49 +137,49 @@
         <div class="p-2 rounded-xl bg-violet-500/20 text-violet-400 border border-violet-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
         </div>
-        <h2 class="text-lg font-bold text-stone-100 tracking-tight">Cleaning Options</h2>
-        <span class="text-xs text-stone-500 font-medium ml-auto hidden sm:block">Toggle options and re-clean</span>
+        <h2 class="text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight">Cleaning Options</h2>
+        <span class="text-xs text-stone-700 dark:text-stone-500 font-medium ml-auto hidden sm:block">Toggle options and re-clean</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10 mb-5">
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Remove Duplicates</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Eliminate duplicate rows</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Remove Duplicates</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Eliminate duplicate rows</p>
             </div>
             <div class="toggle-switch" data-key="remove_duplicates" id="toggle_remove_duplicates"></div>
         </div>
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Normalize Headers</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Clean column names</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Normalize Headers</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Clean column names</p>
             </div>
             <div class="toggle-switch" data-key="normalize_headers" id="toggle_normalize_headers"></div>
         </div>
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Trim Whitespace</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Strip leading/trailing spaces</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Trim Whitespace</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Strip leading/trailing spaces</p>
             </div>
             <div class="toggle-switch" data-key="trim_whitespace" id="toggle_trim_whitespace"></div>
         </div>
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Remove Empty Rows</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Delete entirely blank rows</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Remove Empty Rows</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Delete entirely blank rows</p>
             </div>
             <div class="toggle-switch" data-key="remove_empty_rows" id="toggle_remove_empty_rows"></div>
         </div>
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Remove Empty Columns</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Drop columns with no data</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Remove Empty Columns</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Drop columns with no data</p>
             </div>
             <div class="toggle-switch" data-key="remove_empty_columns" id="toggle_remove_empty_columns"></div>
         </div>
-        <div class="flex items-center justify-between bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800">
+        <div class="flex items-center justify-between bg-white dark:bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800">
             <div>
-                <p class="text-sm font-semibold text-stone-200">Coerce Numeric Types</p>
-                <p class="text-[10px] text-stone-500 mt-0.5">Convert text numbers to numeric</p>
+                <p class="text-sm font-semibold text-stone-950 dark:text-stone-200">Coerce Numeric Types</p>
+                <p class="text-[10px] text-stone-700 dark:text-stone-500 mt-0.5">Convert text numbers to numeric</p>
             </div>
             <div class="toggle-switch" data-key="coerce_numeric" id="toggle_coerce_numeric"></div>
         </div>
@@ -194,23 +194,23 @@
 
 <!-- ───── Cleaning Actions Panel (Enhanced) ───── -->
 <div class="glass-panel rounded-2xl p-1 mb-8 shadow-xl opacity-0 animate-pop-in" style="animation-delay:160ms;">
-    <details class="group bg-stone-900/40 rounded-[14px]" open>
-        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none text-stone-200 p-5">
+    <details class="group bg-white dark:bg-stone-900/40 rounded-[14px]" open>
+        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none text-stone-950 dark:text-stone-200 p-5">
             <div class="flex items-center gap-3">
                 <div class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <span>Cleaning Actions <span class="ml-2 px-2 py-0.5 rounded-full bg-stone-900 text-xs text-stone-400 border border-stone-800" id="cleaningActionsCount">{{ dataset.cleaning_log|length }} actions</span></span>
+                <span>Cleaning Actions <span class="ml-2 px-2 py-0.5 rounded-full bg-white dark:bg-stone-900 text-xs text-stone-800 dark:text-stone-400 border border-stone-200 dark:border-stone-800" id="cleaningActionsCount">{{ dataset.cleaning_log|length }} actions</span></span>
             </div>
-            <span class="transition-transform duration-300 group-open:rotate-180 p-1 rounded-md bg-stone-800/50 text-stone-400 group-hover:text-stone-100">
+            <span class="transition-transform duration-300 group-open:rotate-180 p-1 rounded-md bg-stone-100 dark:bg-stone-800/50 text-stone-800 dark:text-stone-400 group-hover:text-stone-950 dark:text-stone-100">
                 <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
             </span>
         </summary>
-        <div class="p-5 pt-0 border-t border-stone-800 mt-1">
+        <div class="p-5 pt-0 border-t border-stone-200 dark:border-stone-800 mt-1">
             <div id="cleaningActionsContainer" class="mt-4 space-y-4">
                 <!-- Populated by JS (grouped by category) — fallback to Django template -->
                 {% for log_item in dataset.cleaning_log %}
-                <div class="flex items-start gap-3 text-sm font-medium text-stone-300 cleaning-log-fallback">
+                <div class="flex items-start gap-3 text-sm font-medium text-stone-900 dark:text-stone-300 cleaning-log-fallback">
                     <div class="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
                     {{ log_item }}
                 </div>
@@ -227,21 +227,21 @@
         <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
         </div>
-        <h2 class="text-lg font-bold text-stone-100 tracking-tight">Before vs After Cleaning</h2>
+        <h2 class="text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight">Before vs After Cleaning</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
         <!-- Before -->
-        <div class="bg-stone-900/50 rounded-xl p-5 border border-stone-800">
+        <div class="bg-white dark:bg-stone-900/50 rounded-xl p-5 border border-stone-200 dark:border-stone-800">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-2 h-2 rounded-full bg-red-400"></div>
-                <h3 class="text-xs font-bold text-stone-400 uppercase tracking-widest">Before Cleaning</h3>
+                <h3 class="text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-widest">Before Cleaning</h3>
             </div>
             <div class="space-y-3" id="beforeStats">
                 <!-- Populated by JS -->
             </div>
         </div>
         <!-- After -->
-        <div class="bg-stone-900/50 rounded-xl p-5 border border-emerald-500/20">
+        <div class="bg-white dark:bg-stone-900/50 rounded-xl p-5 border border-emerald-500/20">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-widest">After Cleaning</h3>
@@ -260,7 +260,7 @@
         <div class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/20">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
         </div>
-        <h2 class="text-lg font-bold text-stone-100 tracking-tight">AI Insights</h2>
+        <h2 class="text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight">AI Insights</h2>
         <span id="insightsCount" class="ml-2 px-2 py-0.5 rounded-full bg-sky-500/20 text-xs font-bold text-sky-400 border border-sky-500/20"></span>
     </div>
     <div id="aiInsightsContainer" class="space-y-3 relative z-10">
@@ -277,11 +277,11 @@
             <div class="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
             </div>
-            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Column Statistics</h2>
+            <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Column Statistics</h2>
         </div>
         <div class="relative">
-            <select id="statsColumn" class="bg-stone-900 border border-stone-800 rounded-xl px-4 py-2.5 text-stone-200 font-medium focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors appearance-none pr-10 cursor-pointer min-w-[200px]"></select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-stone-400">
+            <select id="statsColumn" class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-2.5 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors appearance-none pr-10 cursor-pointer min-w-[200px]"></select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-stone-800 dark:text-stone-400">
                 <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
             </div>
         </div>
@@ -298,50 +298,50 @@
             <div class="p-2 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/30">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
             </div>
-            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Interactive Chart Builder</h2>
+            <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Interactive Chart Builder</h2>
             <span id="chartTypeBadge" class="hidden text-xs font-bold px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400"></span>
         </div>
         <!-- Export Toolbar -->
         <div class="flex items-center gap-2 relative z-10">
-            <span class="hidden sm:block text-xs text-stone-500 font-medium mr-1">Export</span>
-            <button id="exportPngBtn" title="Export as PNG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+            <span class="hidden sm:block text-xs text-stone-700 dark:text-stone-500 font-medium mr-1">Export</span>
+            <button id="exportPngBtn" title="Export as PNG" class="p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:border-stone-300 dark:border-stone-700 transition-all hover:bg-stone-100 dark:bg-stone-800">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </button>
-            <button id="exportSvgBtn" title="Export as SVG" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+            <button id="exportSvgBtn" title="Export as SVG" class="p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:border-stone-300 dark:border-stone-700 transition-all hover:bg-stone-100 dark:bg-stone-800">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
             </button>
-            <button id="exportCsvBtn" title="Download CSV" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+            <button id="exportCsvBtn" title="Download CSV" class="p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:border-stone-300 dark:border-stone-700 transition-all hover:bg-stone-100 dark:bg-stone-800">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </button>
-            <div class="w-px h-5 bg-stone-800 mx-1"></div>
-            <button id="fullscreenBtn" title="Fullscreen" class="p-2 rounded-lg bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100 hover:border-stone-700 transition-all hover:bg-stone-800">
+            <div class="w-px h-5 bg-stone-100 dark:bg-stone-800 mx-1"></div>
+            <button id="fullscreenBtn" title="Fullscreen" class="p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-400 hover:text-stone-950 dark:text-stone-100 hover:border-stone-300 dark:border-stone-700 transition-all hover:bg-stone-100 dark:bg-stone-800">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
             </button>
         </div>
     </div>
 
     <!-- Chart Type Selector — 2-step select -->
-    <div class="mb-5 relative z-40 p-5 rounded-2xl bg-stone-900/40 border border-stone-800 shadow-inner flex flex-col md:flex-row gap-6 md:items-center">
-        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider min-w-max ml-1 md:ml-0">Chart Type</label>
+    <div class="mb-5 relative z-40 p-5 rounded-2xl bg-white dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800 shadow-inner flex flex-col md:flex-row gap-6 md:items-center">
+        <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider min-w-max ml-1 md:ml-0">Chart Type</label>
         
         <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">1. Category</label>
+                <label class="block text-[10px] font-bold text-stone-700 dark:text-stone-500 uppercase tracking-widest ml-1">1. Category</label>
                 <div class="relative">
-                    <select id="chartCategorySelect" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-2.5 text-stone-300 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer text-sm">
+                    <select id="chartCategorySelect" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-2.5 text-stone-900 dark:text-stone-300 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer text-sm">
                         <!-- Options injected by JS -->
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-700 dark:text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
                 </div>
             </div>
             
             <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-widest ml-1">2. Chart</label>
+                <label class="block text-[10px] font-bold text-stone-700 dark:text-stone-500 uppercase tracking-widest ml-1">2. Chart</label>
                 <div class="relative">
-                    <select id="chartTypeSelect" class="w-full bg-stone-900 border border-orange-500 ring-1 ring-orange-500 rounded-xl px-4 py-2.5 text-stone-100 font-medium focus:outline-none transition-colors appearance-none cursor-pointer text-sm shadow-[0_4px_12px_rgba(249,115,22,0.15)]">
+                    <select id="chartTypeSelect" class="w-full bg-white dark:bg-stone-900 border border-orange-500 ring-1 ring-orange-500 rounded-xl px-4 py-2.5 text-stone-950 dark:text-stone-100 font-medium focus:outline-none transition-colors appearance-none cursor-pointer text-sm shadow-[0_4px_12px_rgba(249,115,22,0.15)]">
                         <!-- Options injected by JS -->
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-700 dark:text-stone-500"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
                 </div>
             </div>
         </div>
@@ -351,30 +351,30 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-30" id="axisRow">
 
         <div class="space-y-1.5" id="xAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="xAxisLabel">X-Axis</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1" id="xAxisLabel">X-Axis</label>
             <div class="relative">
-                <select id="xAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <select id="xAxis" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
         <div class="space-y-1.5" id="yAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px] ml-1">Select one or more</span></label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1" id="yAxisLabel">Y-Axis <span class="text-stone-600 font-normal normal-case text-[10px] ml-1">Select one or more</span></label>
             <div class="relative" id="yAxisDropdownWrapper">
-                <button type="button" id="yAxisBtn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
-                    <span id="yAxisBtnText" class="truncate font-medium text-stone-300">None selected</span>
-                    <svg class="fill-current h-4 w-4 text-stone-500 flex-shrink-0 ml-2" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                <button type="button" id="yAxisBtn" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors flex justify-between items-center text-sm text-left truncate cursor-pointer">
+                    <span id="yAxisBtnText" class="truncate font-medium text-stone-900 dark:text-stone-300">None selected</span>
+                    <svg class="fill-current h-4 w-4 text-stone-700 dark:text-stone-500 flex-shrink-0 ml-2" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </button>
-                <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-stone-900 border border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
+                <div id="yAxisPanel" class="hidden absolute z-50 w-full mt-2 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-h-64 overflow-y-auto p-1.5">
                     <!-- Checkboxes injected by JS -->
                 </div>
             </div>
         </div>
 
         <div class="space-y-1.5" id="aggModeWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Aggregation</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Aggregation</label>
             <div class="relative">
-                <select id="aggMode" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="aggMode" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="none">Raw Values (No Aggregation)</option>
                     <option value="sum">Sum</option>
                     <option value="count">Count (with names)</option>
@@ -383,21 +383,21 @@
                     <option value="max">Maximum</option>
                     <option value="median">Median</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
         <div class="space-y-1.5" id="timeGroupWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Time</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Group By Time</label>
             <div class="relative">
-                <select id="timeGroup" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="timeGroup" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="none">No Grouping</option>
                     <option value="year">Year</option>
                     <option value="quarter">Quarter</option>
                     <option value="month">Month</option>
                     <option value="week">Week</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
     </div>
@@ -405,24 +405,24 @@
     <!-- Row 2: Extra axis selectors (size/value/group cols for bubble, histogram, etc.) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 relative z-20 hidden" id="extraAxisRow">
         <div class="space-y-1.5" id="sizeAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1" id="sizeAxisLabel">Size / Value</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1" id="sizeAxisLabel">Size / Value</label>
             <div class="relative">
-                <select id="sizeAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <select id="sizeAxis" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer"></select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
         <div class="space-y-1.5" id="groupAxisWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Group By Column</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Group By Column</label>
             <div class="relative">
-                <select id="groupAxis" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="groupAxis" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="">— None —</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
         <div class="space-y-1.5" id="binsWrap">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Bins (Histogram)</label>
-            <input type="number" id="binsInput" value="20" min="2" max="100" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Bins (Histogram)</label>
+            <input type="number" id="binsInput" value="20" min="2" max="100" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
         </div>
     </div>
 
@@ -430,36 +430,36 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
 
         <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Column</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Filter Column</label>
             <div class="relative">
-                <select id="filterColumn" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="filterColumn" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="">— No Filter —</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
         <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Filter Value</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Filter Value</label>
             <div class="relative">
-                <select id="filterValue" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="filterValue" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="">— All —</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
         <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Show Top N</label>
+            <label class="block text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-wider ml-1">Show Top N</label>
             <div class="relative">
-                <select id="topN" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
+                <select id="topN" class="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none cursor-pointer">
                     <option value="10">Top 10</option>
                     <option value="20">Top 20</option>
                     <option value="50" selected>Top 50</option>
                     <option value="100">Top 100</option>
                     <option value="0">All</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-800 dark:text-stone-400"><svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
             </div>
         </div>
 
@@ -472,7 +472,7 @@
     </div>
 
     <!-- Canvas Container (shared by Chart.js; Plotly/D3 create their own) -->
-    <div id="chartContainer" class="bg-stone-900/60 border border-stone-800/50 rounded-2xl p-4 h-[480px] flex items-center justify-center relative z-10 shadow-inner overflow-hidden">
+    <div id="chartContainer" class="bg-white dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800/50 rounded-2xl p-4 h-[480px] flex items-center justify-center relative z-10 shadow-inner overflow-hidden">
         <!-- Chart.js canvas -->
         <canvas id="myChart" class="w-full h-full"></canvas>
         <!-- Plotly / D3 mount point -->
@@ -482,27 +482,27 @@
             <div class="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
                 <svg class="w-8 h-8 text-orange-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             </div>
-            <p id="chartEmptyMsg" class="text-stone-500 text-sm max-w-xs">Select columns and click Render Chart to visualize your data.</p>
+            <p id="chartEmptyMsg" class="text-stone-700 dark:text-stone-500 text-sm max-w-xs">Select columns and click Render Chart to visualize your data.</p>
         </div>
         <div id="chartLoadingState" class="absolute inset-0 flex flex-col items-center justify-center hidden">
             <div class="w-10 h-10 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-3"></div>
-            <p class="text-stone-400 text-sm">Loading chart…</p>
+            <p class="text-stone-800 dark:text-stone-400 text-sm">Loading chart…</p>
         </div>
         <!-- Unavailable overlay for geo/network charts -->
         <div id="chartUnavailableState" class="absolute inset-0 flex flex-col items-center justify-center text-center px-8 hidden">
-            <div class="w-16 h-16 rounded-2xl bg-stone-800 border border-stone-700 flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="w-16 h-16 rounded-2xl bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-stone-700 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
-            <p id="chartUnavailableMsg" class="text-stone-400 text-sm max-w-sm"></p>
+            <p id="chartUnavailableMsg" class="text-stone-800 dark:text-stone-400 text-sm max-w-sm"></p>
         </div>
     </div>
 
     <!-- Zoom controls (visible only for Chart.js charts) -->
     <div id="zoomControls" class="flex items-center gap-2 mt-3 relative z-10 hidden">
-        <span class="text-xs text-stone-500">Zoom:</span>
-        <button id="zoomInBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">+</button>
-        <button id="zoomOutBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">−</button>
-        <button id="resetZoomBtn" class="px-3 py-1 text-xs bg-stone-900 border border-stone-800 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">Reset</button>
+        <span class="text-xs text-stone-700 dark:text-stone-500">Zoom:</span>
+        <button id="zoomInBtn" class="px-3 py-1 text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-stone-900 dark:text-stone-300 hover:bg-stone-100 dark:bg-stone-800 transition-colors">+</button>
+        <button id="zoomOutBtn" class="px-3 py-1 text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-stone-900 dark:text-stone-300 hover:bg-stone-100 dark:bg-stone-800 transition-colors">−</button>
+        <button id="resetZoomBtn" class="px-3 py-1 text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-stone-900 dark:text-stone-300 hover:bg-stone-100 dark:bg-stone-800 transition-colors">Reset</button>
     </div>
 </div>
 
@@ -513,65 +513,65 @@
             <div class="p-2 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             </div>
-            <h2 class="text-xl font-bold text-stone-100 tracking-tight">Data Explorer</h2>
+            <h2 class="text-xl font-bold text-stone-950 dark:text-stone-100 tracking-tight">Data Explorer</h2>
         </div>
         <div class="relative w-full sm:w-auto">
-            <input type="text" id="searchInput" placeholder="Search across all columns..." class="w-full sm:w-72 bg-stone-900 border border-stone-800 rounded-full pl-11 pr-4 py-2 text-sm text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-inner transition-all placeholder-stone-500">
-            <svg class="w-5 h-5 text-stone-500 absolute left-4 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="searchInput" placeholder="Search across all columns..." class="w-full sm:w-72 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full pl-11 pr-4 py-2 text-sm text-stone-950 dark:text-stone-200 font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-inner transition-all placeholder-stone-500">
+            <svg class="w-5 h-5 text-stone-700 dark:text-stone-500 absolute left-4 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
     </div>
 
     <!-- Tab Bar -->
-    <div class="flex items-center gap-1 mb-4 shrink-0 relative z-10 border-b border-stone-800 pb-0">
+    <div class="flex items-center gap-1 mb-4 shrink-0 relative z-10 border-b border-stone-200 dark:border-stone-800 pb-0">
         <button class="data-tab active px-4 py-2.5 text-sm font-semibold text-orange-400 cursor-pointer" data-tab="raw" onclick="switchDataTab('raw')">
             🔍 Raw Data
         </button>
-        <button class="data-tab px-4 py-2.5 text-sm font-semibold text-stone-400 cursor-pointer hover:text-stone-200" data-tab="cleaned" onclick="switchDataTab('cleaned')">
+        <button class="data-tab px-4 py-2.5 text-sm font-semibold text-stone-800 dark:text-stone-400 cursor-pointer hover:text-stone-950 dark:text-stone-200" data-tab="cleaned" onclick="switchDataTab('cleaned')">
             ✨ Cleaned Data
         </button>
-        <button class="data-tab px-4 py-2.5 text-sm font-semibold text-stone-400 cursor-pointer hover:text-stone-200" data-tab="sidebyside" onclick="switchDataTab('sidebyside')">
+        <button class="data-tab px-4 py-2.5 text-sm font-semibold text-stone-800 dark:text-stone-400 cursor-pointer hover:text-stone-950 dark:text-stone-200" data-tab="sidebyside" onclick="switchDataTab('sidebyside')">
             ↔ Side-by-Side
         </button>
     </div>
 
     <!-- Single Table View (Raw / Cleaned) -->
-    <div id="singleTableView" class="overflow-auto flex-1 rounded-xl border border-stone-800 relative z-10 custom-scrollbar bg-stone-950/30">
-        <table class="min-w-full divide-y divide-stone-800 text-sm">
-            <thead class="bg-stone-900/90 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
+    <div id="singleTableView" class="overflow-auto flex-1 rounded-xl border border-stone-200 dark:border-stone-800 relative z-10 custom-scrollbar bg-stone-50 dark:bg-stone-950/30">
+        <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-800 text-sm">
+            <thead class="bg-white dark:bg-stone-900/90 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
                 <tr id="tableHeader"></tr>
             </thead>
-            <tbody id="tableBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium"></tbody>
+            <tbody id="tableBody" class="divide-y divide-stone-200 dark:divide-stone-800/50 bg-white dark:bg-stone-900/10 font-medium"></tbody>
         </table>
     </div>
 
     <!-- Side-by-Side View -->
     <div id="sideBySideView" class="hidden flex-1 grid grid-cols-2 gap-3 relative z-10">
-        <div class="overflow-auto rounded-xl border border-red-500/20 custom-scrollbar bg-stone-950/30" id="sideBySideLeft">
+        <div class="overflow-auto rounded-xl border border-red-500/20 custom-scrollbar bg-stone-50 dark:bg-stone-950/30" id="sideBySideLeft">
             <div class="sticky top-0 z-10 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 uppercase tracking-widest border-b border-red-500/20">Raw (Before)</div>
-            <table class="min-w-full divide-y divide-stone-800 text-sm">
-                <thead class="bg-stone-900/90 sticky top-[30px] z-20 backdrop-blur-sm shadow-sm">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-800 text-sm">
+                <thead class="bg-white dark:bg-stone-900/90 sticky top-[30px] z-20 backdrop-blur-sm shadow-sm">
                     <tr id="rawSbsHeader"></tr>
                 </thead>
-                <tbody id="rawSbsBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium"></tbody>
+                <tbody id="rawSbsBody" class="divide-y divide-stone-200 dark:divide-stone-800/50 bg-white dark:bg-stone-900/10 font-medium"></tbody>
             </table>
         </div>
-        <div class="overflow-auto rounded-xl border border-emerald-500/20 custom-scrollbar bg-stone-950/30" id="sideBySideRight">
+        <div class="overflow-auto rounded-xl border border-emerald-500/20 custom-scrollbar bg-stone-50 dark:bg-stone-950/30" id="sideBySideRight">
             <div class="sticky top-0 z-10 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-400 uppercase tracking-widest border-b border-emerald-500/20">Cleaned (After)</div>
-            <table class="min-w-full divide-y divide-stone-800 text-sm">
-                <thead class="bg-stone-900/90 sticky top-[30px] z-20 backdrop-blur-sm shadow-sm">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-800 text-sm">
+                <thead class="bg-white dark:bg-stone-900/90 sticky top-[30px] z-20 backdrop-blur-sm shadow-sm">
                     <tr id="cleanedSbsHeader"></tr>
                 </thead>
-                <tbody id="cleanedSbsBody" class="divide-y divide-stone-800/50 bg-stone-900/10 font-medium"></tbody>
+                <tbody id="cleanedSbsBody" class="divide-y divide-stone-200 dark:divide-stone-800/50 bg-white dark:bg-stone-900/10 font-medium"></tbody>
             </table>
         </div>
     </div>
 
-    <div class="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm font-medium text-stone-400 shrink-0 relative z-10 gap-4 sm:gap-0">
-        <span id="showingCount" class="bg-stone-900 px-4 py-2 rounded-full border border-stone-800 whitespace-nowrap text-xs sm:text-sm">Showing 0 rows</span>
-        <div class="flex items-center gap-1 sm:gap-2 bg-stone-900 p-1 sm:p-1.5 rounded-xl border border-stone-800 w-full sm:w-auto justify-between sm:justify-start">
-            <button id="prevPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-200">Prev</button>
-            <span id="pageInfo" class="px-2 sm:px-3 py-1 text-stone-300 text-xs sm:text-sm whitespace-nowrap">Page 1</span>
-            <button id="nextPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-200">Next</button>
+    <div class="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm font-medium text-stone-800 dark:text-stone-400 shrink-0 relative z-10 gap-4 sm:gap-0">
+        <span id="showingCount" class="bg-white dark:bg-stone-900 px-4 py-2 rounded-full border border-stone-200 dark:border-stone-800 whitespace-nowrap text-xs sm:text-sm">Showing 0 rows</span>
+        <div class="flex items-center gap-1 sm:gap-2 bg-white dark:bg-stone-900 p-1 sm:p-1.5 rounded-xl border border-stone-200 dark:border-stone-800 w-full sm:w-auto justify-between sm:justify-start">
+            <button id="prevPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-100 dark:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-950 dark:text-stone-200">Prev</button>
+            <span id="pageInfo" class="px-2 sm:px-3 py-1 text-stone-900 dark:text-stone-300 text-xs sm:text-sm whitespace-nowrap">Page 1</span>
+            <button id="nextPage" class="px-3 sm:px-4 py-1.5 hover:bg-stone-100 dark:bg-stone-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors text-stone-950 dark:text-stone-200">Next</button>
         </div>
     </div>
 </div>
@@ -617,7 +617,7 @@ const showingCount = document.getElementById('showingCount');
 
 function renderTable() {
     tableHeader.innerHTML = columns.map(col => `
-        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-800 transition-colors group whitespace-nowrap" onclick="sortTable('${col.replace(/'/g,"\\'")}')">
+        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-800 dark:text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-100 dark:bg-stone-800 transition-colors group whitespace-nowrap" onclick="sortTable('${col.replace(/'/g,"\\'")}')">
             <div class="flex items-center gap-2">
                 ${col}
                 <span class="text-orange-500 transition-opacity ${sortCol===col?'opacity-100':'opacity-0 group-hover:opacity-50'}">
@@ -632,11 +632,11 @@ function renderTable() {
     const pageData = filteredRows.slice(start, start + rowsPerPage);
 
     tableBody.innerHTML = pageData.map((row, idx) => `
-        <tr class="hover:bg-stone-800/30 transition-colors duration-150">
+        <tr class="hover:bg-stone-100 dark:bg-stone-800/30 transition-colors duration-150">
             ${columns.map(col => {
                 const v = row[col];
                 const display = (v !== null && v !== undefined) ? String(v) : '<span class="text-stone-600">—</span>';
-                return `<td class="px-6 py-3 whitespace-nowrap text-stone-300 ${idx%2===0?'':'bg-stone-900/30'}">${display}</td>`;
+                return `<td class="px-6 py-3 whitespace-nowrap text-stone-900 dark:text-stone-300 ${idx%2===0?'':'bg-white dark:bg-stone-900/30'}">${display}</td>`;
             }).join('')}
         </tr>`).join('');
 
@@ -691,7 +691,7 @@ numericCols.forEach(col => statsColEl.add(new Option(col, col)));
 if (!numericCols.length) {
     statsColEl.add(new Option('No numeric columns', ''));
     statsColEl.disabled = true;
-    statsGrid.innerHTML = '<p class="text-stone-500 text-sm col-span-full text-center py-4">Upload a file with numeric columns to see statistics.</p>';
+    statsGrid.innerHTML = '<p class="text-stone-700 dark:text-stone-500 text-sm col-span-full text-center py-4">Upload a file with numeric columns to see statistics.</p>';
 }
 
 function fmtNum(n) {
@@ -744,14 +744,14 @@ const CLR = {
 function renderStats(col) {
     if (!col) return;
     const s = computeStats(col);
-    if (!s) { statsGrid.innerHTML = '<p class="text-stone-500 text-sm col-span-full text-center py-4">No numeric data in this column.</p>'; return; }
+    if (!s) { statsGrid.innerHTML = '<p class="text-stone-700 dark:text-stone-500 text-sm col-span-full text-center py-4">No numeric data in this column.</p>'; return; }
     statsGrid.innerHTML = STAT_DEFS.map(d => `
-        <div class="bg-stone-900/60 border border-stone-800 rounded-2xl p-4 flex flex-col gap-1 hover:border-stone-700 transition-colors">
+        <div class="bg-white dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 flex flex-col gap-1 hover:border-stone-300 dark:border-stone-700 transition-colors">
             <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">${d.label}</span>
+                <span class="text-xs font-bold text-stone-700 dark:text-stone-500 uppercase tracking-wider">${d.label}</span>
                 <span class="w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-bold ${CLR[d.clr]}">${d.sym}</span>
             </div>
-            <span class="text-lg font-bold text-stone-100 leading-none truncate" title="${s[d.key]}">${fmtNum(s[d.key])}</span>
+            <span class="text-lg font-bold text-stone-950 dark:text-stone-100 leading-none truncate" title="${s[d.key]}">${fmtNum(s[d.key])}</span>
         </div>`).join('');
 }
 
@@ -1099,11 +1099,11 @@ function updateYAxisText() {
 
 numericCols.forEach(col => {
     const lbl = document.createElement('label');
-    lbl.className = 'flex items-center px-3 py-2 hover:bg-stone-800 rounded-lg cursor-pointer text-sm text-stone-300 transition-colors';
+    lbl.className = 'flex items-center px-3 py-2 hover:bg-stone-100 dark:bg-stone-800 rounded-lg cursor-pointer text-sm text-stone-900 dark:text-stone-300 transition-colors';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.value = col;
-    cb.className = 'mr-3 w-4 h-4 rounded border-stone-600 bg-stone-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-stone-900 cursor-pointer';
+    cb.className = 'mr-3 w-4 h-4 rounded border-stone-600 bg-white dark:bg-stone-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-stone-900 cursor-pointer';
     cb.addEventListener('change', updateYAxisText);
     lbl.appendChild(cb);
     lbl.appendChild(document.createTextNode(col));

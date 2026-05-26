@@ -31,7 +31,7 @@ def process_uploaded_file_task(file_id, options=None):
         ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
 
         # Serialize safely via pandas
-        safe_rows = json.loads(cleaned_df.to_json(orient='records', date_format='iso'))
+        # Serialize safely via pandas
         safe_stats = json.loads(pd.Series(cleaning_result['stats']).to_json()) if cleaning_result['stats'] else {}
         
         # Default cleaning options if none provided
@@ -49,7 +49,7 @@ def process_uploaded_file_task(file_id, options=None):
             uploaded_file=uploaded_file,
             defaults={
                 'columns': list(cleaned_df.columns),
-                'rows': safe_rows,
+                'rows': None,
                 'cleaning_log': cleaning_result['log'],
                 'stats': safe_stats,
                 'raw_snapshot': cleaning_result['raw_snapshot'],
@@ -66,7 +66,7 @@ def process_uploaded_file_task(file_id, options=None):
         
         if not created:
             dataset.columns = list(cleaned_df.columns)
-            dataset.rows = safe_rows
+            dataset.rows = None
             dataset.cleaning_log = cleaning_result['log']
             dataset.stats = safe_stats
             dataset.raw_snapshot = cleaning_result['raw_snapshot']
@@ -80,8 +80,54 @@ def process_uploaded_file_task(file_id, options=None):
             dataset.cleaning_options = options or default_options
             dataset.save()
             
+        # Save to Parquet
+        from app.utils.parquet_helpers import save_dataframe_to_parquet
+        save_dataframe_to_parquet(cleaned_df, dataset)
+            
         return {'status': 'success', 'file_id': file_id}
     except Exception as e:
         import traceback
         traceback.print_exc()
         return {'status': 'error', 'error': str(e)}
+
+@shared_task
+def run_folder_watcher_task():
+    import os
+    import time
+    from django.core.files import File
+    from django.contrib.auth.models import User
+    from app.models import UploadedFile
+
+    watch_dir = os.path.join(settings.BASE_DIR, 'watched_inbox')
+    if not os.path.exists(watch_dir):
+        os.makedirs(watch_dir, exist_ok=True)
+        return "Created watched_inbox directory"
+
+    system_user, _ = User.objects.get_or_create(username='system', defaults={'email': 'system@example.com'})
+    processed = 0
+
+    for filename in os.listdir(watch_dir):
+        if filename.endswith(('.csv', '.xlsx', '.xls', '.xlsm', '.json')):
+            file_path = os.path.join(watch_dir, filename)
+            
+            try:
+                with open(file_path, 'rb') as f:
+                    uploaded_file = UploadedFile(
+                        user=system_user,
+                        original_filename=filename,
+                        file_type=filename.split('.')[-1].lower(),
+                        custom_name=f"Auto-Ingested {filename}"
+                    )
+                    uploaded_file.file.save(filename, File(f))
+                    uploaded_file.save()
+                
+                # trigger processing
+                process_uploaded_file_task.delay(uploaded_file.id)
+                processed += 1
+                
+                # remove the file from inbox
+                os.remove(file_path)
+            except Exception as e:
+                print(f"Error processing {filename} in beat task: {e}")
+
+    return f"Processed {processed} files from {watch_dir}"

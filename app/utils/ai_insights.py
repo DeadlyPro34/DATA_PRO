@@ -134,6 +134,21 @@ def generate_insights(
     except Exception as exc:
         logger.debug("constant_column insights failed: %s", exc)
 
+    try:
+        insights.extend(_trend_insights(df, health_report))
+    except Exception as exc:
+        logger.debug("trend insights failed: %s", exc)
+
+    try:
+        insights.extend(_anomaly_insights(df))
+    except Exception as exc:
+        logger.debug("anomaly insights failed: %s", exc)
+
+    try:
+        insights.extend(_summary_insight(df, health_report, stats))
+    except Exception as exc:
+        logger.debug("summary insight failed: %s", exc)
+
     return insights
 
 
@@ -424,4 +439,97 @@ def _constant_column_insights(df: pd.DataFrame) -> list[dict]:
                 ),
                 'confidence': 1.0,
             })
+    return results
+
+def _trend_insights(df: pd.DataFrame, health_report: dict) -> list[dict]:
+    import scipy.stats as stats
+    results: list[dict] = []
+    date_cols = health_report.get('date_columns', [])
+    numeric_cols = health_report.get('numeric_columns', [])
+    if not date_cols or not numeric_cols:
+        return results
+
+    date_col = date_cols[0]
+    for num_col in numeric_cols:
+        sub = df[[date_col, num_col]].dropna()
+        if len(sub) < 5:
+            continue
+        try:
+            x = pd.to_datetime(sub[date_col], format='mixed').astype('int64') // 10**9
+            y = sub[num_col]
+            slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+            if p_value < 0.05:
+                trend = 'upward' if slope > 0 else 'downward'
+                results.append({
+                    'type': 'info',
+                    'icon': '📈' if slope > 0 else '📉',
+                    'title': f'Trend detected: {num_col}',
+                    'description': f'"{num_col}" is trending {trend} over time.',
+                    'confidence': _safe(1 - p_value)
+                })
+        except Exception:
+            pass
+    return results
+
+def _anomaly_insights(df: pd.DataFrame) -> list[dict]:
+    results: list[dict] = []
+    numeric_cols = df.select_dtypes(include='number').columns.tolist()
+    for col in numeric_cols:
+        series = df[col].dropna()
+        if len(series) < 3:
+            continue
+        mean = series.mean()
+        std = series.std()
+        if std == 0:
+            continue
+        z_scores = (series - mean) / std
+        anomalies = int((z_scores.abs() > 3).sum())
+        if anomalies > 0:
+            results.append({
+                'type': 'warning',
+                'icon': '🚨',
+                'title': f'Anomalies in "{col}"',
+                'description': f'Found {_safe(anomalies)} values more than 3 standard deviations from the mean in "{col}".',
+                'confidence': 0.95
+            })
+    return results
+
+def _summary_insight(df: pd.DataFrame, health_report: dict, stats: dict) -> list[dict]:
+    results: list[dict] = []
+    numeric_cols = health_report.get('numeric_columns', [])
+    for col in numeric_cols:
+        series = df[col].dropna()
+        if len(series) < 4:
+            continue
+        
+        # calculate outliers
+        q1 = float(series.quantile(0.25))
+        q3 = float(series.quantile(0.75))
+        iqr = q3 - q1
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        outliers = int(((series < lower) | (series > upper)).sum())
+        
+        # simple check for trend via sorted dates if any
+        trend_str = ""
+        date_cols = health_report.get('date_columns', [])
+        if date_cols:
+            date_col = date_cols[0]
+            sub = df[[date_col, col]].dropna()
+            try:
+                import scipy.stats
+                x = pd.to_datetime(sub[date_col], format='mixed').astype('int64') // 10**9
+                slope, _, _, p_value, _ = scipy.stats.linregress(x, sub[col])
+                if p_value < 0.05:
+                    trend_str = " and is trending upward" if slope > 0 else " and is trending downward"
+            except Exception:
+                pass
+                
+        results.append({
+            'type': 'info',
+            'icon': '📝',
+            'title': f'{col} Summary',
+            'description': f'{col} has {_safe(outliers)} outliers{trend_str}.',
+            'confidence': 1.0
+        })
     return results

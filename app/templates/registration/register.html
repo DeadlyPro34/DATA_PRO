@@ -16,8 +16,8 @@
                 <div class="w-16 h-16 mx-auto bg-gradient-to-br from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-rose-500/30 transform rotate-6 group-hover:rotate-0 transition-transform duration-500">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                 </div>
-                <h1 class="text-3xl font-bold text-stone-100 mb-2 tracking-tight">Create Account</h1>
-                <p class="text-stone-400 font-medium">Join Data Pro to unlock visual insights.</p>
+                <h1 class="text-3xl font-bold text-stone-950 dark:text-stone-100 mb-2 tracking-tight">Create Account</h1>
+                <p class="text-stone-800 dark:text-stone-400 font-medium">Join Data Pro to unlock visual insights.</p>
             </div>
 
             <form method="post" class="space-y-5 relative z-10">
@@ -32,10 +32,10 @@
 
                 {% for field in form %}
                 <div class="space-y-1">
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-stone-300 ml-1">{{ field.label }}</label>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-stone-900 dark:text-stone-300 ml-1">{{ field.label }}</label>
                     {{ field }}
                     {% if field.help_text %}
-                    <p class="mt-1.5 text-[11px] text-stone-500 leading-tight px-1">{{ field.help_text }}</p>
+                    <p class="mt-1.5 text-[11px] text-stone-700 dark:text-stone-500 leading-tight px-1">{{ field.help_text }}</p>
                     {% endif %}
                     {% for error in field.errors %}
                     <p class="mt-1 text-xs text-red-400 font-medium px-1">{{ error }}</p>
@@ -48,7 +48,7 @@
                 </button>
             </form>
             
-            <p class="mt-8 text-center text-sm font-medium text-stone-400 relative z-10">
+            <p class="mt-8 text-center text-sm font-medium text-stone-800 dark:text-stone-400 relative z-10">
                 Already have an account? <a href="{% url 'login' %}" class="text-rose-400 hover:text-rose-300 transition-colors border-b border-rose-400/30 hover:border-rose-300 pb-0.5">Log in</a>
             </p>
         </div>
@@ -59,7 +59,7 @@
     // Add tailwind classes to django forms
     document.querySelectorAll('input').forEach(input => {
         if (input.type !== 'hidden' && input.type !== 'submit') {
-            input.classList.add('w-full', 'bg-stone-900/50', 'border', 'border-stone-800', 'rounded-xl', 'px-4', 'py-3', 'text-stone-200', 'placeholder-stone-600', 'focus:outline-none', 'focus:border-rose-500', 'focus:ring-1', 'focus:ring-rose-500', 'transition-all', 'shadow-inner');
+            input.classList.add('w-full', 'bg-white dark:bg-stone-900/50', 'border', 'border-stone-200 dark:border-stone-800', 'rounded-xl', 'px-4', 'py-3', 'text-stone-950 dark:text-stone-200', 'placeholder-stone-600', 'focus:outline-none', 'focus:border-rose-500', 'focus:ring-1', 'focus:ring-rose-500', 'transition-all', 'shadow-inner');
         }
     });
 </script>

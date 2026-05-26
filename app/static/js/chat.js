@@ -89,8 +89,4 @@ function initChat() {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChat);
-} else {
-    initChat();
-}
+document.addEventListener('appDataLoaded', initChat);

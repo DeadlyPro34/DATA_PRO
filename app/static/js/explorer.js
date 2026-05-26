@@ -9,6 +9,7 @@ function initExplorer() {
     let currentTab = 'raw';
     let filteredRows = [];
     let currentPage  = 1;
+    let selectedRowIdx = null;
     const rowsPerPage = 50;
     let sortCol = null, sortAsc = true;
     
@@ -50,9 +51,11 @@ function initExplorer() {
             sideBySideView.classList.add('hidden');
             
             filteredRows = tab === 'raw' ? [...(APP_DATA.rawSnapshot || [])] : [...(APP_DATA.allRows || [])];
+            selectedRowIdx = null;
             if (searchInput && searchInput.value) {
                 doSearch(searchInput.value);
             } else {
+                document.dispatchEvent(new CustomEvent('rowsFiltered', { detail: filteredRows }));
                 renderTable();
             }
         }
@@ -74,7 +77,7 @@ function initExplorer() {
         
         // Render Header
         tableHeader.innerHTML = cols.map(col => `
-            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer hover:bg-stone-800 transition-colors group whitespace-nowrap" data-col="${col.replace(/'/g,"\\'").replace(/"/g,"&quot;")}">
+            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-stone-500 dark:text-zinc-200 uppercase tracking-wide cursor-pointer hover:bg-stone-200 dark:hover:bg-zinc-800 transition-colors group whitespace-nowrap" data-col="${col.replace(/'/g,"\\'").replace(/"/g,"&quot;")}">
                 <div class="flex items-center gap-2">
                     ${col}
                     <span class="text-orange-500 transition-opacity ${sortCol===col?'opacity-100':'opacity-0 group-hover:opacity-50'}">
@@ -100,16 +103,17 @@ function initExplorer() {
             tableBody.innerHTML = pageData.map((row, idx) => {
                 const globalIdx = start + idx;
                 const isDuplicate = isRaw && APP_DATA.cellAnnotations?.duplicate_row_indices?.includes(globalIdx);
-                let rowClass = `hover:bg-stone-800/30 transition-colors duration-150 ${idx%2===0?'':'bg-stone-900/30'}`;
+                let rowClass = `bg-white dark:bg-zinc-900/60 border-b border-stone-200 dark:border-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-200 cursor-pointer`;
                 if (isDuplicate) rowClass += ' bg-amber-500/10 hover:bg-amber-500/20';
+                if (selectedRowIdx === globalIdx) rowClass = 'bg-orange-100 dark:bg-orange-500/20 hover:bg-orange-200 dark:hover:bg-orange-500/30 border-l-4 border-orange-500';
         
-                return `<tr class="${rowClass}">
+                return `<tr class="${rowClass}" data-global-idx="${globalIdx}">
                     ${cols.map((col, colIdx) => {
                         const v = row[col];
-                        const display = (v !== null && v !== undefined) ? String(v) : '<span class="text-stone-600">—</span>';
+                        const display = (v !== null && v !== undefined) ? String(v) : '<span class="text-stone-400 dark:text-zinc-500">—</span>';
                         const issue = annots[`${globalIdx},${colIdx}`];
                         
-                        let cellClass = 'px-6 py-3 whitespace-nowrap text-stone-300';
+                        let cellClass = 'px-6 py-3 whitespace-nowrap text-stone-900 dark:text-zinc-100 font-medium tracking-wide';
                         if (issue === 'missing') cellClass += ' bg-red-500/20 text-red-300 font-medium border border-red-500/30';
                         if (issue === 'fixed') cellClass += ' bg-blue-500/20 text-blue-300 font-medium border border-blue-500/30';
                         if (issue === 'outlier') cellClass += ' bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30';
@@ -143,6 +147,8 @@ function initExplorer() {
         const cols = isRaw ? (APP_DATA.rawColumns || []) : (APP_DATA.columns || []);
         term = term.toLowerCase();
         filteredRows = data.filter(row => cols.some(col => String(row[col]??'').toLowerCase().includes(term)));
+        selectedRowIdx = null;
+        document.dispatchEvent(new CustomEvent('rowsFiltered', { detail: filteredRows }));
         currentPage = 1; 
         renderTable();
     }
@@ -157,6 +163,23 @@ function initExplorer() {
     if (prevPageBtn) prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
     if (nextPageBtn) nextPageBtn.addEventListener('click', () => { const tp = Math.ceil(filteredRows.length/rowsPerPage); if (currentPage < tp) { currentPage++; renderTable(); } });
     
+    if (tableBody) {
+        tableBody.addEventListener('click', e => {
+            if (currentTab === 'sidebyside') return;
+            const tr = e.target.closest('tr');
+            if (!tr || !tr.hasAttribute('data-global-idx')) return;
+            const gIdx = parseInt(tr.getAttribute('data-global-idx'), 10);
+            if (selectedRowIdx === gIdx) {
+                selectedRowIdx = null;
+                document.dispatchEvent(new CustomEvent('rowSelected', { detail: null }));
+            } else {
+                selectedRowIdx = gIdx;
+                document.dispatchEvent(new CustomEvent('rowSelected', { detail: filteredRows[gIdx] }));
+            }
+            renderTable();
+        });
+    }
+    
     // ════════════════════════════════════════════════════════════════════════════
     // 4. SIDE BY SIDE VIEW
     // ════════════════════════════════════════════════════════════════════════════
@@ -165,18 +188,18 @@ function initExplorer() {
         const rawBody = document.getElementById('rawSbsBody');
         
         if (rawHead && APP_DATA.rawColumns) {
-            rawHead.innerHTML = APP_DATA.rawColumns.map(col => `<th class="px-3 py-2 text-left text-xs font-bold text-stone-400 uppercase tracking-widest whitespace-nowrap">${col}</th>`).join('');
+            rawHead.innerHTML = APP_DATA.rawColumns.map(col => `<th class="px-3 py-2 text-left text-xs font-semibold text-stone-500 dark:text-zinc-200 uppercase tracking-wide whitespace-nowrap">${col}</th>`).join('');
         }
         
         if (rawBody && APP_DATA.rawSnapshot) {
             rawBody.innerHTML = APP_DATA.rawSnapshot.slice(0, 100).map((row, idx) => {
                 const isDuplicate = APP_DATA.cellAnnotations?.duplicate_row_indices?.includes(idx);
-                let rowClass = `hover:bg-stone-800/30 ${idx%2===0?'':'bg-stone-900/30'}`;
+                let rowClass = `bg-white dark:bg-zinc-900/60 border-b border-stone-200 dark:border-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all duration-200`;
                 if (isDuplicate) rowClass += ' bg-amber-500/10';
                 return `<tr class="${rowClass}">
                     ${APP_DATA.rawColumns.map((col, colIdx) => {
                         const issue = (APP_DATA.cellAnnotations?.['raw'] || {})[`${idx},${colIdx}`];
-                        let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-300 text-xs';
+                        let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-900 dark:text-zinc-100 text-xs font-medium';
                         if (issue === 'missing') cellClass += ' bg-red-500/20 text-red-300 border border-red-500/30';
                         const v = row[col];
                         return `<td class="${cellClass}">${v !== null && v !== undefined ? v : '—'}</td>`;
@@ -189,15 +212,15 @@ function initExplorer() {
         const clnBody = document.getElementById('cleanedSbsBody');
         
         if (clnHead && APP_DATA.columns) {
-            clnHead.innerHTML = APP_DATA.columns.map(col => `<th class="px-3 py-2 text-left text-xs font-bold text-stone-400 uppercase tracking-widest whitespace-nowrap">${col}</th>`).join('');
+            clnHead.innerHTML = APP_DATA.columns.map(col => `<th class="px-3 py-2 text-left text-xs font-semibold text-stone-500 dark:text-zinc-200 uppercase tracking-wide whitespace-nowrap">${col}</th>`).join('');
         }
         
         if (clnBody && APP_DATA.allRows) {
             clnBody.innerHTML = APP_DATA.allRows.slice(0, 100).map((row, idx) => {
-                return `<tr class="hover:bg-stone-800/30 ${idx%2===0?'':'bg-stone-900/30'}">
+                return `<tr class="bg-white dark:bg-zinc-900/60 border-b border-stone-200 dark:border-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all duration-200">
                     ${APP_DATA.columns.map((col, colIdx) => {
                         const issue = (APP_DATA.cellAnnotations?.['cleaned'] || {})[`${idx},${colIdx}`];
-                        let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-300 text-xs';
+                        let cellClass = 'px-3 py-1.5 whitespace-nowrap text-stone-900 dark:text-zinc-100 text-xs font-medium';
                         if (issue === 'fixed') cellClass += ' bg-blue-500/20 text-blue-300 border border-blue-500/30';
                         if (issue === 'outlier') cellClass += ' bg-purple-500/20 text-purple-300 border border-purple-500/30';
                         const v = row[col];
@@ -216,8 +239,4 @@ function initExplorer() {
     switchDataTab(APP_DATA.rawSnapshot && APP_DATA.rawSnapshot.length > 0 ? 'raw' : 'cleaned');
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initExplorer);
-} else {
-    initExplorer();
-}
+document.addEventListener('appDataLoaded', initExplorer);

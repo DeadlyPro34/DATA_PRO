@@ -23,8 +23,4 @@ function initExports() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initExports);
-} else {
-    initExports();
-}
+document.addEventListener('appDataLoaded', initExports);
