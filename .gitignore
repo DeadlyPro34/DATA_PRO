@@ -5,4 +5,22 @@ __pycache__/
 db.sqlite3
 media/
 .env
+.env.local
+.env.production
 .DS_Store
+Thumbs.db
+
+# Static collection output
+staticfiles/
+
+# Uploads directory
+uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# Egg info
+*.egg-info/
+dist/
+build/
