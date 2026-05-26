@@ -533,3 +533,98 @@ def _summary_insight(df: pd.DataFrame, health_report: dict, stats: dict) -> list
             'confidence': 1.0
         })
     return results
+
+def detect_outliers(df, numeric_columns):
+    outliers_dict = {}
+    for col in numeric_columns:
+        series = df[col].dropna()
+        if len(series) < 4:
+            continue
+        q1 = float(series.quantile(0.25))
+        q3 = float(series.quantile(0.75))
+        iqr = q3 - q1
+        if iqr == 0:
+            continue
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        mask = (series < lower) | (series > upper)
+        outlier_indices = series[mask].index.tolist()
+        count = len(outlier_indices)
+        if count > 0:
+            outliers_dict[col] = {"count": count, "indices": outlier_indices}
+    return outliers_dict
+
+def detect_trends(df, date_columns, numeric_columns):
+    trends_dict = {}
+    if not date_columns:
+        return trends_dict
+    date_col = date_columns[0]
+    for num_col in numeric_columns:
+        sub = df[[date_col, num_col]].dropna()
+        if len(sub) < 2:
+            continue
+        try:
+            x = pd.to_datetime(sub[date_col], format='mixed').astype('int64') // 10**9
+            y = sub[num_col]
+            slope, _ = np.polyfit(x, y, 1)
+            
+            if slope > 1e-10:
+                direction = 'up'
+            elif slope < -1e-10:
+                direction = 'down'
+            else:
+                direction = 'flat'
+            
+            trends_dict[num_col] = {"direction": direction, "slope": float(slope)}
+        except Exception:
+            pass
+    return trends_dict
+
+def build_insights_summary(df, health_report):
+    summary_list = []
+    numeric_columns = health_report.get('numeric_columns', [])
+    date_columns = health_report.get('date_columns', [])
+    
+    outliers = detect_outliers(df, numeric_columns)
+    trends = detect_trends(df, date_columns, numeric_columns)
+    
+    for col in numeric_columns:
+        col_outliers = outliers.get(col, {})
+        col_trend = trends.get(col, {})
+        
+        count = col_outliers.get("count", 0)
+        direction = col_trend.get("direction")
+        
+        if count > 0 or direction:
+            # Determine primary type and severity
+            msg_parts = []
+            if count > 0:
+                msg_parts.append(f"has {count} outliers")
+                insight_type = "anomaly" if count > (len(df) * 0.05) else "outlier"
+                severity = "high" if count > (len(df) * 0.1) else ("medium" if count > 0 else "low")
+            else:
+                insight_type = "trend"
+                severity = "low"
+                
+            if direction:
+                if direction == 'up':
+                    msg_parts.append("is trending upward")
+                elif direction == 'down':
+                    msg_parts.append("is trending downward")
+                else:
+                    msg_parts.append("is flat")
+                
+                if not count > 0:
+                    severity = "medium"
+            
+            message = f"{col.capitalize()} {' and '.join(msg_parts)}"
+            
+            summary_list.append({
+                "column": col,
+                "type": insight_type,
+                "severity": severity,
+                "message": message,
+                "count": count
+            })
+            
+    return summary_list

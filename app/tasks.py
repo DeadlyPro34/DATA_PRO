@@ -3,7 +3,7 @@ from django.conf import settings
 from app.models import UploadedFile, CleanedDataset
 from app.utils.file_parser import parse_file
 from app.utils.data_cleaner import clean_dataframe
-from app.utils.ai_insights import generate_insights
+from app.utils.ai_insights import build_insights_summary
 import pandas as pd
 import json
 
@@ -28,7 +28,7 @@ def process_uploaded_file_task(file_id, options=None):
         uploaded_file.column_count = len(cleaned_df.columns)
         uploaded_file.save()
         
-        ai_insights_data = generate_insights(cleaned_df, cleaning_result['health_report'], cleaning_result['stats'])
+        ai_insights_data = build_insights_summary(cleaned_df, cleaning_result['health_report'])
 
         # Serialize safely via pandas
         # Serialize safely via pandas
