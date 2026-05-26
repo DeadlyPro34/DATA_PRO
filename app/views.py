@@ -969,8 +969,12 @@ def export_excel(request, file_id):
 
 @login_required
 def export_pdf(request, file_id):
-    """Render a PDF report with WeasyPrint and return it as a file download."""
-    from weasyprint import HTML
+    """Render a PDF report with reportlab and return it as a file download."""
+    import io
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import landscape, A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet
     from app.utils.parquet_helpers import get_dataframe
 
     uploaded_file = get_object_or_404(
@@ -989,93 +993,88 @@ def export_pdf(request, file_id):
     quality      = dataset.quality_score or 0
     dataset_name = uploaded_file.custom_name or uploaded_file.original_filename
 
-    # Determine badge colour by quality score
-    if quality >= 80:
-        badge_color = '#16a34a'   # green
-    elif quality >= 50:
-        badge_color = '#d97706'   # amber
-    else:
-        badge_color = '#dc2626'   # red
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+    elements = []
+    styles = getSampleStyleSheet()
 
-    # ── Build data-preview table rows ──────────────────────────────────────
-    header_cells = ''.join(f'<th>{col}</th>' for col in columns)
-    data_rows    = ''
+    # Title
+    elements.append(Paragraph(f"<b>Dataset Report: {dataset_name}</b>", styles['Title']))
+    elements.append(Spacer(1, 10))
+    
+    # Meta Info
+    meta_text = f"Rows: {uploaded_file.row_count} | Columns: {uploaded_file.column_count} | Quality Score: {quality}%"
+    elements.append(Paragraph(meta_text, styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # Data Preview
+    elements.append(Paragraph("<b>Data Preview (First 20 Rows)</b>", styles['Heading2']))
+    elements.append(Spacer(1, 10))
+
+    # Convert preview data into list of lists
+    preview_data = [columns]
     for row in rows_preview:
-        cells = ''.join(f'<td>{row.get(col, "")}</td>' for col in columns)
-        data_rows += f'<tr>{cells}</tr>'
+        preview_data.append([str(row.get(col, ""))[:30] for col in columns]) # Trucate long cells
+    
+    if len(preview_data) > 1:
+        t_preview = Table(preview_data, repeatRows=1)
+        t_preview.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+            ('BACKGROUND', (0,1), (-1,-1), colors.HexColor('#f5f7ff')),
+            ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#dddddd')),
+            ('FONTSIZE', (0,1), (-1,-1), 8),
+        ]))
+        elements.append(t_preview)
+    else:
+        elements.append(Paragraph("No data available.", styles['Normal']))
+    
+    elements.append(Spacer(1, 20))
 
-    # ── Build stats table rows ──────────────────────────────────────────────
-    stat_keys   = ['count', 'mean', 'std', 'min', 'max', 'unique', 'top']
-    stats_header = ''.join(f'<th>{k}</th>' for k in ['Column'] + stat_keys)
-    stats_rows  = ''
+    # Summary Statistics
+    elements.append(Paragraph("<b>Summary Statistics</b>", styles['Heading2']))
+    elements.append(Spacer(1, 10))
+    stat_keys = ['count', 'mean', 'std', 'min', 'max', 'unique', 'top']
+    stats_data = [['Column'] + stat_keys]
     for col_name, col_stats in stats.items():
-        cells = f'<td><strong>{col_name}</strong></td>'
-        cells += ''.join(f'<td>{col_stats.get(k, "-")}</td>' for k in stat_keys)
-        stats_rows += f'<tr>{cells}</tr>'
+        row = [col_name] + [str(col_stats.get(k, "-"))[:15] for k in stat_keys]
+        stats_data.append(row)
+    
+    if len(stats_data) > 1:
+        t_stats = Table(stats_data, repeatRows=1)
+        t_stats.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+            ('BACKGROUND', (0,1), (-1,-1), colors.HexColor('#f5f7ff')),
+            ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#dddddd')),
+            ('FONTSIZE', (0,1), (-1,-1), 8),
+        ]))
+        elements.append(t_stats)
+    else:
+        elements.append(Paragraph("No statistics available.", styles['Normal']))
 
-    # ── Build cleaning-actions list ─────────────────────────────────────────
-    log_items = ''.join(f'<li>{entry}</li>' for entry in cleaning_log) or '<li>No cleaning actions recorded.</li>'
+    elements.append(Spacer(1, 20))
 
-    html_string = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>DATA_PRO Report — {dataset_name}</title>
-        <style>
-            @page {{ size: A4 landscape; margin: 15mm; }}
-            body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                   color: #1a1a2e; font-size: 11px; line-height: 1.5; }}
-            .header {{ background: linear-gradient(135deg,#1e3a5f,#0f6b3a);
-                       color:#fff; padding:20px 24px; border-radius:8px;
-                       margin-bottom:20px; }}
-            .header h1 {{ margin:0 0 6px; font-size:22px; }}
-            .badge {{ display:inline-block; background:{badge_color};
-                      color:#fff; padding:3px 10px; border-radius:20px;
-                      font-weight:bold; font-size:13px; }}
-            h2 {{ color:#1e3a5f; border-bottom:2px solid #1e3a5f;
-                  padding-bottom:4px; margin-top:24px; font-size:14px; }}
-            table {{ width:100%; border-collapse:collapse;
-                     margin-bottom:16px; font-size:9px; }}
-            th {{ background:#1e3a5f; color:#fff; padding:6px 8px;
-                  text-align:left; font-weight:600; }}
-            td {{ border:1px solid #dde; padding:5px 8px; }}
-            tr:nth-child(even) td {{ background:#f5f7ff; }}
-            ul {{ padding-left:18px; }}
-            li {{ margin-bottom:4px; }}
-            .meta {{ font-size:10px; opacity:0.85; margin-top:4px; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>Dataset Report: {dataset_name}</h1>
-            <p class="meta">
-                Generated by <strong>DATA_PRO</strong> &nbsp;|&nbsp;
-                Rows: <strong>{uploaded_file.row_count}</strong> &nbsp;|&nbsp;
-                Columns: <strong>{uploaded_file.column_count}</strong> &nbsp;|&nbsp;
-                Quality Score: <span class="badge">{quality}%</span>
-            </p>
-        </div>
+    # Cleaning Log
+    elements.append(Paragraph("<b>Cleaning Actions</b>", styles['Heading2']))
+    elements.append(Spacer(1, 10))
+    if cleaning_log:
+        for entry in cleaning_log:
+            elements.append(Paragraph(f"• {entry}", styles['Normal']))
+    else:
+        elements.append(Paragraph("No cleaning actions recorded.", styles['Normal']))
 
-        <h2>Data Preview (First 20 Rows)</h2>
-        <table>
-            <thead><tr>{header_cells}</tr></thead>
-            <tbody>{data_rows}</tbody>
-        </table>
-
-        <h2>Summary Statistics</h2>
-        <table>
-            <thead><tr>{stats_header}</tr></thead>
-            <tbody>{stats_rows}</tbody>
-        </table>
-
-        <h2>Cleaning Actions</h2>
-        <ul>{log_items}</ul>
-    </body>
-    </html>
-    """
-
-    pdf_bytes = HTML(string=html_string).write_pdf()
+    doc.build(elements)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
 
     safe_name = uploaded_file.original_filename.rsplit('.', 1)[0]
     filename  = f'{safe_name}_report.pdf'

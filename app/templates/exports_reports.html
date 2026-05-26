@@ -47,7 +47,7 @@
                 </h3>
                 <p class="text-xs text-stone-800 dark:text-stone-400">Download the fully cleaned and processed data as a CSV file.</p>
             </div>
-            <button onclick="downloadJSONAsCSV(allRows, '{{ file.original_filename }}_cleaned.csv')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-emerald-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
+            <button onclick="downloadJSONAsCSV(window.APP_DATA.allRows, '{{ file.original_filename }}_cleaned.csv')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-emerald-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
                 Download CSV
             </button>
         </div>
@@ -61,7 +61,7 @@
                 </h3>
                 <p class="text-xs text-stone-800 dark:text-stone-400">Download the original messy data snippet.</p>
             </div>
-            <button onclick="downloadJSONAsCSV(rawSnapshot, '{{ file.original_filename }}_raw.csv')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
+            <button onclick="downloadJSONAsCSV(window.APP_DATA.rawSnapshot, '{{ file.original_filename }}_raw.csv')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
                 Download Raw Snapshot
             </button>
         </div>
@@ -75,7 +75,7 @@
                 </h3>
                 <p class="text-xs text-stone-800 dark:text-stone-400">Download the cleaned dataset as a structured JSON array.</p>
             </div>
-            <button onclick="downloadAsJSON(allRows, '{{ file.original_filename }}_cleaned.json')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-amber-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
+            <button onclick="downloadAsJSON(window.APP_DATA.allRows, '{{ file.original_filename }}_cleaned.json')" class="w-full py-2 bg-stone-100 dark:bg-stone-800 hover:bg-amber-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors">
                 Download JSON
             </button>
         </div>
