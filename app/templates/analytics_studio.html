@@ -259,5 +259,33 @@
 
 <script src="{% static 'js/analytics.js' %}?v={% now 'U' %}"></script>
 
+<script>
+(function () {
+  const fileId = {{ file_id }};
+
+  fetch(`/dataset/${fileId}/chart-suggestions/`)
+    .then(r => r.json())
+    .then(({ suggestions }) => {
+      if (!suggestions || !suggestions.length) return;
+
+      const first = suggestions[0];
+
+      // --- fill chart-type dropdown ---
+      const chartTypeSel = document.getElementById('chartType');
+      if (chartTypeSel) chartTypeSel.value = first.chart_type;
+
+      // --- fill X-axis dropdown ---
+      const xSel = document.getElementById('xColumn');
+      if (xSel && first.x_col) xSel.value = first.x_col;
+
+      // --- fill Y-axis dropdown ---
+      const ySel = document.getElementById('yColumn');
+      if (ySel && first.y_col) ySel.value = first.y_col;
+
+      console.log(`[Chart Suggestions] ${suggestions.length} suggestions loaded. Applied: ${first.title}`);
+    })
+    .catch(err => console.warn('[Chart Suggestions] Failed to load:', err));
+})();
+</script>
 
 {% endblock %}

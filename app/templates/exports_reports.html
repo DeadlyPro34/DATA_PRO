@@ -80,6 +80,36 @@
             </button>
         </div>
 
+        <!-- Excel Download -->
+        <div class="bg-white dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group flex flex-col justify-between h-[160px]">
+            <div>
+                <h3 class="text-stone-950 dark:text-stone-200 font-bold mb-1 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Excel Workbook (.xlsx)
+                </h3>
+                <p class="text-xs text-stone-800 dark:text-stone-400">Full dataset + stats + cleaning log — 3 sheets, styled headers.</p>
+            </div>
+            <a href="{% url 'export_excel' file_id %}"
+               class="w-full py-2 text-center bg-stone-100 dark:bg-stone-800 hover:bg-emerald-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors block">
+                Download Excel
+            </a>
+        </div>
+
+        <!-- PDF Download -->
+        <div class="bg-white dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 hover:border-rose-500/30 transition-all group flex flex-col justify-between h-[160px]">
+            <div>
+                <h3 class="text-stone-950 dark:text-stone-200 font-bold mb-1 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    PDF Report (.pdf)
+                </h3>
+                <p class="text-xs text-stone-800 dark:text-stone-400">Quality score, 20-row preview, stats & cleaning log — print-ready A4.</p>
+            </div>
+            <a href="{% url 'export_pdf' file_id %}"
+               class="w-full py-2 text-center bg-stone-100 dark:bg-stone-800 hover:bg-rose-600 hover:text-white text-stone-900 dark:text-stone-300 rounded-lg text-xs font-bold transition-colors block">
+                Download PDF
+            </a>
+        </div>
+
     </div>
 </div>
 
