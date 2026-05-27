@@ -5,7 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
-from .models import UploadedFile, CleanedDataset
+from .models import UploadedFile, CleanedDataset, Team, TeamMembership
 from .utils.file_parser import parse_file
 from .utils.data_cleaner import clean_dataframe
 from .utils.auto_chart_suggester import get_chart_suggestions
@@ -28,9 +28,12 @@ def register(request):
 
 @login_required
 def dashboard(request):
+    user_team_ids = TeamMembership.objects.filter(
+        user=request.user).values_list('team_id', flat=True)
     files = UploadedFile.objects.filter(
-        Q(user=request.user) | Q(team__teammembership__user=request.user)
-    ).distinct().select_related('cleaneddataset').order_by('-uploaded_at')
+        Q(user=request.user) | 
+        Q(team_id__in=user_team_ids)
+    ).select_related('cleaneddataset').order_by('-uploaded_at')
     for f in files:
         try:
             f.quality_score = f.cleaneddataset.quality_score
@@ -1079,3 +1082,16 @@ def export_pdf(request, file_id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def create_team(request):
+    pass
+
+@login_required
+def invite_member(request, team_id):
+    pass
+
+@login_required
+def team_settings(request, team_id):
+    pass

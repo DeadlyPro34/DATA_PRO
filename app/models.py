@@ -2,31 +2,26 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Team(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, 
+                 related_name='owned_teams')
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
+    def __str__(self): return self.name
 
 class TeamMembership(models.Model):
-    ROLES = (
-        ('admin', 'Admin'),
-        ('member', 'Member'),
-    )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    role = models.CharField(max_length=20, choices=ROLES, default='member')
+    ROLE_CHOICES = [('admin', 'Admin'), ('member', 'Member')]
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, 
+           related_name='memberships')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, 
+           related_name='team_memberships')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, 
+           default='member')
     joined_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('user', 'team')
-
-    def __str__(self):
-        return f"{self.user.username} - {self.team.name} ({self.role})"
+    class Meta: unique_together = ('team', 'user')
 
 class UploadedFile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
+    team = models.ForeignKey('Team', on_delete=models.SET_NULL, null=True, blank=True)
     original_filename = models.CharField(max_length=255)
     file_type = models.CharField(max_length=10) # csv, excel, json
     uploaded_at = models.DateTimeField(auto_now_add=True)

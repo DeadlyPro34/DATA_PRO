@@ -26,6 +26,10 @@ urlpatterns = [
     path('dataset/<int:file_id>/api/preview-cleaning/', views.api_preview_cleaning, name='api_preview_cleaning'),
     path('dataset/<int:file_id>/api/apply-cleaning/', views.api_apply_cleaning, name='api_apply_cleaning'),
     
+    path('teams/create/', views.create_team, name='create_team'),
+    path('teams/<int:team_id>/invite/', views.invite_member, name='invite_member'),
+    path('teams/<int:team_id>/settings/', views.team_settings, name='team_settings'),
+    
     path('register/', views.register, name='register'),
     path('dataset/<int:file_id>/profiler/', views.data_profiler, name='data_profiler'),
 ]
