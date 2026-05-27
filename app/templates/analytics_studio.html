@@ -270,19 +270,44 @@
 
       const first = suggestions[0];
 
-      // --- fill chart-type dropdown ---
-      const chartTypeSel = document.getElementById('chartType');
-      if (chartTypeSel) chartTypeSel.value = first.chart_type;
+      document.addEventListener('appDataLoaded', () => {
+          setTimeout(() => {
+              // --- fill chart-type dropdown ---
+              const chartTypeSel = document.getElementById('chartTypeSelect');
+              if (chartTypeSel && first.chart_type) {
+                  chartTypeSel.value = first.chart_type;
+                  chartTypeSel.dispatchEvent(new Event('change'));
+              }
 
-      // --- fill X-axis dropdown ---
-      const xSel = document.getElementById('xColumn');
-      if (xSel && first.x_col) xSel.value = first.x_col;
+              // --- fill X-axis dropdown ---
+              const xSel = document.getElementById('xAxis');
+              if (xSel && first.x_col) {
+                  xSel.value = first.x_col;
+              }
 
-      // --- fill Y-axis dropdown ---
-      const ySel = document.getElementById('yColumn');
-      if (ySel && first.y_col) ySel.value = first.y_col;
+              // --- fill Y-axis dropdown (it's a custom multi-select in analytics.js) ---
+              if (first.y_col) {
+                  const yAxisPanel = document.getElementById('yAxisPanel');
+                  if (yAxisPanel) {
+                      const yCheckboxes = yAxisPanel.querySelectorAll('input[type="checkbox"]');
+                      yCheckboxes.forEach(cb => {
+                          if (cb.value === first.y_col) {
+                              cb.checked = true;
+                              cb.dispatchEvent(new Event('change'));
+                          } else {
+                              cb.checked = false;
+                          }
+                      });
+                  }
+              }
 
-      console.log(`[Chart Suggestions] ${suggestions.length} suggestions loaded. Applied: ${first.title}`);
+              // Trigger render
+              const renderBtn = document.getElementById('renderChartBtn');
+              if (renderBtn) renderBtn.click();
+              
+              console.log(`[Chart Suggestions] Applied: ${first.title}`);
+          }, 500); // Give analytics.js time to build the UI
+      });
     })
     .catch(err => console.warn('[Chart Suggestions] Failed to load:', err));
 })();

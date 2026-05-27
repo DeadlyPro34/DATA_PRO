@@ -402,7 +402,24 @@
             try {
                 const res = await fetch(`/dataset/${window.APP_DATA.FILE_ID}/rows/`);
                 if (!res.ok) throw new Error('Network response was not ok');
-                window.APP_DATA.allRows = await res.json();
+                let rows = await res.json();
+                
+                // Coerce numeric columns back to Number types (JSON sometimes sends them as strings)
+                if (window.APP_DATA.stats) {
+                    const numericCols = Object.keys(window.APP_DATA.stats).filter(k => window.APP_DATA.stats[k].mean !== undefined);
+                    if (numericCols.length > 0) {
+                        rows.forEach(row => {
+                            numericCols.forEach(col => {
+                                const val = row[col];
+                                if (val !== null && val !== undefined && val !== '') {
+                                    const num = Number(val);
+                                    if (!isNaN(num)) row[col] = num;
+                                }
+                            });
+                        });
+                    }
+                }
+                window.APP_DATA.allRows = rows;
             } catch(e) {
                 console.error("Failed to load dataset rows:", e);
                 window.APP_DATA.allRows = [];

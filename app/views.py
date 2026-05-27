@@ -236,7 +236,10 @@ def dataset_rows_api(request, file_id):
     from django.http import HttpResponse
     from app.utils.parquet_helpers import get_dataframe
     try:
-        uploaded_file = UploadedFile.objects.filter(Q(user=request.user) | Q(team__teammembership__user=request.user)).distinct().get(id=file_id)
+        user_team_ids = TeamMembership.objects.filter(user=request.user).values_list('team_id', flat=True)
+        uploaded_file = UploadedFile.objects.filter(
+            Q(user=request.user) | Q(team_id__in=user_team_ids)
+        ).distinct().get(id=file_id)
     except Exception as e:
         print('FILE ERROR', e)
         raise Http404()
