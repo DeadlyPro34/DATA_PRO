@@ -1,12 +1,11 @@
 {
   "name": "data_pro",
   "version": "1.0.0",
-  "description": "Frontend scripts for DATA_PRO",
+  "description": "Frontend TypeScript API client for DATA_PRO",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w"
+    "build": "tsc"
   },
-  "devDependencies": {
+  "dependencies": {
     "typescript": "^5.0.0"
   }
 }

@@ -1,14 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
+    "target": "ES6",
+    "module": "ES2015",
     "moduleResolution": "node",
-    "outDir": "./app/static/js",
-    "rootDir": "./app/static/ts",
+    "outDir": "app/static/app/js/compiled",
+    "rootDir": "app/static/app/ts",
     "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "declaration": true,
+    "sourceMap": true
   },
-  "include": ["app/static/ts/**/*"]
+  "include": [
+    "app/static/app/ts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
