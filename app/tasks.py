@@ -131,3 +131,45 @@ def run_folder_watcher_task():
                 print(f"Error processing {filename} in beat task: {e}")
 
     return f"Processed {processed} files from {watch_dir}"
+
+@shared_task
+def scan_watched_inbox():
+    """Celery Beat task — scans watched_inbox and ingests any new files."""
+    import os
+    from django.conf import settings
+    from django.core.files import File
+    from django.contrib.auth.models import User
+    from app.models import UploadedFile
+
+    watch_dir = str(getattr(
+        settings, 'WATCHED_INBOX_DIR',
+        os.path.join(settings.BASE_DIR, 'watched_inbox')
+    ))
+    os.makedirs(watch_dir, exist_ok=True)
+
+    allowed = {'.csv', '.xlsx', '.xls', '.xlsm', '.json'}
+    system_user, _ = User.objects.get_or_create(
+        username='system',
+        defaults={'email': 'system@datapro.local'}
+    )
+
+    for filename in os.listdir(watch_dir):
+        ext = os.path.splitext(filename)[1].lower()
+        if ext not in allowed:
+            continue
+        file_path = os.path.join(watch_dir, filename)
+        try:
+            with open(file_path, 'rb') as f:
+                uf = UploadedFile(
+                    user=system_user,
+                    original_filename=filename,
+                    file_type=ext.lstrip('.'),
+                    custom_name=f'Auto-Ingested {filename}',
+                )
+                uf.file.save(filename, File(f))
+                uf.save()
+            process_uploaded_file_task.delay(uf.id)
+            os.remove(file_path)
+            print(f'[Beat] Ingested and queued: {filename}')
+        except Exception as e:
+            print(f'[Beat] Error ingesting {filename}: {e}')

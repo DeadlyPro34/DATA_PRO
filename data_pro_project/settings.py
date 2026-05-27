@@ -154,16 +154,14 @@ CELERY_TIMEZONE = TIME_ZONE
 # OpenAI Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 
-# Celery Beat Settings
+# Celery Beat Schedule
 from celery.schedules import crontab
-
 CELERY_BEAT_SCHEDULE = {
-    'run-folder-watcher-every-5-mins': {
-        'task': 'app.tasks.run_folder_watcher_task',
-        'schedule': crontab(minute='*/5'),
-    },
     'scan-watched-inbox-every-5-minutes': {
         'task': 'app.tasks.scan_watched_inbox',
-        'schedule': 300.0,
+        'schedule': 300.0,  # every 5 minutes
     },
 }
+
+# Switch Celery on
+USE_CELERY = True
