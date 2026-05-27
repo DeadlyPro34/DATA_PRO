@@ -63,24 +63,38 @@ Data Pro is a Django-based web application that allows users to securely upload 
 
 ## Running the Application
 
-To run DATA_PRO with its background workers and schedulers, you need to open **3 separate terminal windows**. Make sure your virtual environment (`venv\Scripts\activate`) is activated in all of them!
+To run DATA_PRO with its full automated background processing stack (including the auto-ingestion folder watcher), you need to open **4 separate terminal windows**. Make sure your virtual environment (`venv\Scripts\activate`) is activated in all of them (except Redis if running via WSL/System).
 
 **Terminal 1: Start the Django Web Server**
-```cmd
+```bash
 python manage.py runserver
 ```
 
-**Terminal 2: Start the Celery Worker (Background tasks)**
-```cmd
-python -m celery -A data_pro_project worker --pool=solo -l INFO
+**Terminal 2: Start the Redis Server**
+*(If Redis is not already running as a background service)*
+```bash
+redis-server
 ```
 
-**Terminal 3: Start Celery Beat (Scheduled tasks / Folder Watcher)**
-```cmd
-python -m celery -A data_pro_project beat -l INFO
+**Terminal 3: Start the Celery Worker (Background tasks)**
+```bash
+python -m celery -A data_pro_project worker --loglevel=info --pool=solo
+```
+
+**Terminal 4: Start Celery Beat (Scheduler & Auto-Ingestion)**
+```bash
+python -m celery -A data_pro_project beat --loglevel=info
 ```
 
 Access the application at `http://127.0.0.1:8000`.
+
+## Auto-Ingestion Pipeline (Watched Inbox)
+DATA_PRO includes an automated file ingestion system. 
+Once Celery Beat is running (Terminal 4), a folder named `watched_inbox/` will be automatically created in your project root. 
+1. Simply drop any `.csv`, `.xlsx`, or `.json` file into the `watched_inbox/` folder.
+2. Celery Beat scans this folder **every 5 minutes**.
+3. It automatically ingests new files, queues them for background data profiling, and then removes the original file from the inbox once queued.
+
 
 ## Exporting Reports
 You can export cleaned data, summaries, and cleaning logs into **PDF** and **Excel** formats using the Export Center in the UI. Ensure `reportlab` and `openpyxl` are installed via `requirements.txt`.
