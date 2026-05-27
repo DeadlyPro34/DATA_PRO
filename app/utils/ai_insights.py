@@ -582,8 +582,9 @@ def detect_trends(df, date_columns, numeric_columns):
 
 def build_insights_summary(df, health_report):
     summary_list = []
-    numeric_columns = health_report.get('numeric_columns', [])
-    date_columns = health_report.get('date_columns', [])
+    # Filter columns to only those that survived the cleaning process
+    numeric_columns = [col for col in health_report.get('numeric_columns', []) if col in df.columns]
+    date_columns = [col for col in health_report.get('date_columns', []) if col in df.columns]
     
     outliers = detect_outliers(df, numeric_columns)
     trends = detect_trends(df, date_columns, numeric_columns)

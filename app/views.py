@@ -47,31 +47,28 @@ def upload_file(request):
             
         file = request.FILES['file']
         
-        # 1. File Size Validation (Max 50MB)
-        if file.size > 50 * 1024 * 1024:
-            messages.error(request, 'File size exceeds the 50MB limit.')
+        # --- VALIDATION START ---
+        ALLOWED_EXTENSIONS = ['csv', 'xlsx', 'xls', 'xlsm', 'json']
+        MAX_FILE_SIZE_MB = 50
+        MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
+        file_ext = file.name.split('.')[-1].lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            messages.error(request, 
+                f'File type .{file_ext} is not allowed. '
+                f'Please upload: {", ".join(ALLOWED_EXTENSIONS)}')
+            return redirect('upload_file')
+
+        if file.size > MAX_FILE_SIZE_BYTES:
+            messages.error(request, 
+                f'File size {round(file.size/1024/1024, 1)}MB '
+                f'exceeds the {MAX_FILE_SIZE_MB}MB limit.')
             return redirect('upload_file')
             
-        # 2. Extension Validation
-        allowed_extensions = ['.csv', '.xlsx', '.xls', '.xlsm', '.json']
-        ext = os.path.splitext(file.name)[1].lower()
-        if ext not in allowed_extensions:
-            messages.error(request, f'Unsupported file type: {ext}. Allowed types: CSV, Excel, JSON.')
-            return redirect('upload_file')
-            
-        # 3. MIME Type Validation
-        allowed_mimes = [
-            'text/csv',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel.sheet.macroEnabled.12',
-            'application/json'
-        ]
-        # Depending on the client or browser, MIME types can be slightly varied or omitted.
-        # So we check if it is in the allowed list or if we fallback.
-        if file.content_type not in allowed_mimes:
-            messages.error(request, f'Invalid file content type: {file.content_type}.')
-            return redirect('upload_file')
+        # Removed MIME type validation to prevent blocking valid Excel files on Windows
+        # --- VALIDATION END ---
+        
+        ext = f".{file_ext}"
             
         custom_name = request.POST.get('custom_name', '')
         
