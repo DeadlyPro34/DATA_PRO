@@ -109,8 +109,12 @@ def upload_file(request):
     return render(request, 'upload.html')
 
 def _get_dataset_context(request, file_id):
+    user_team_ids = TeamMembership.objects.filter(
+        user=request.user).values_list('team_id', flat=True)
     uploaded_file = get_object_or_404(
-        UploadedFile.objects.filter(Q(user=request.user) | Q(team__teammembership__user=request.user)).distinct(), 
+        UploadedFile.objects.filter(
+            Q(user=request.user) | Q(team_id__in=user_team_ids)
+        ),
         id=file_id
     )
     dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)

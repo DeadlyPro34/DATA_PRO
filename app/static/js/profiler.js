@@ -67,7 +67,10 @@ function initProfiler() {
         
         // Determine the array of numeric values to compute on
         let targetRows = selectedRowData ? [selectedRowData] : currentContextRows;
-        let rowVals = targetRows.map(row => row[col]).filter(v => v !== null && v !== undefined && typeof v === 'number' && !isNaN(v));
+        // Coerce values to numbers first — JSON rows may contain numeric strings (e.g. "42.5")
+        let rowVals = targetRows
+            .map(row => { const v = row[col]; return (v === null || v === undefined || v === '') ? NaN : parseFloat(v); })
+            .filter(v => !isNaN(v) && isFinite(v));
         
         // Update Label
         if (contextLabel) {
