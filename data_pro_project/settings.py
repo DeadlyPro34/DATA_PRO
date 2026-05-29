@@ -163,5 +163,3 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# Switch Celery on
-USE_CELERY = True

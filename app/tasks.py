@@ -91,48 +91,6 @@ def process_uploaded_file_task(file_id, options=None):
         return {'status': 'error', 'error': str(e)}
 
 @shared_task
-def run_folder_watcher_task():
-    import os
-    import time
-    from django.core.files import File
-    from django.contrib.auth.models import User
-    from app.models import UploadedFile
-
-    watch_dir = os.path.join(settings.BASE_DIR, 'watched_inbox')
-    if not os.path.exists(watch_dir):
-        os.makedirs(watch_dir, exist_ok=True)
-        return "Created watched_inbox directory"
-
-    system_user, _ = User.objects.get_or_create(username='system', defaults={'email': 'system@example.com'})
-    processed = 0
-
-    for filename in os.listdir(watch_dir):
-        if filename.endswith(('.csv', '.xlsx', '.xls', '.xlsm', '.json')):
-            file_path = os.path.join(watch_dir, filename)
-            
-            try:
-                with open(file_path, 'rb') as f:
-                    uploaded_file = UploadedFile(
-                        user=system_user,
-                        original_filename=filename,
-                        file_type=filename.split('.')[-1].lower(),
-                        custom_name=f"Auto-Ingested {filename}"
-                    )
-                    uploaded_file.file.save(filename, File(f))
-                    uploaded_file.save()
-                
-                # trigger processing
-                process_uploaded_file_task.delay(uploaded_file.id)
-                processed += 1
-                
-                # remove the file from inbox
-                os.remove(file_path)
-            except Exception as e:
-                print(f"Error processing {filename} in beat task: {e}")
-
-    return f"Processed {processed} files from {watch_dir}"
-
-@shared_task
 def scan_watched_inbox():
     """Celery Beat task — scans watched_inbox and ingests any new files."""
     import os
