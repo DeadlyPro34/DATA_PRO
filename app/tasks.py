@@ -17,7 +17,11 @@ def process_uploaded_file_task(file_id, options=None):
         # file_parser.py takes a file_path string.
         file_path = uploaded_file.file.path
         df = parse_file(file_path)
-        
+
+        # Strip internal sheet-tag column added by parse_excel_smart()
+        # when multiple valid sheets are merged — it's metadata, not data.
+        df = df.drop(columns=['_sheet_name'], errors='ignore')
+
         # Enforce maximum 5000 rows for safety
         if len(df) > 5000:
             df = df.head(5000)
