@@ -62,3 +62,5 @@ update_tabs.py
 restore_analytics.js
 migrate_to_postgres.py
 celery_instructions.md
+restore_analytics_js.py
+chart_builder.html
