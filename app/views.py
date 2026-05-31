@@ -298,8 +298,14 @@ def chart_data(request, file_id):
     valid_cols = dataset.columns
     if not x_col or x_col not in valid_cols:
         return JsonResponse({'error': f"Invalid or missing 'x' column: '{x_col}'"}, status=400)
-    if not y_col or y_col not in valid_cols:
-        return JsonResponse({'error': f"Invalid or missing 'y' column: '{y_col}'"}, status=400)
+    # Allow '__count__' as a special Y value meaning "count rows"
+    if y_col == '__count__':
+        agg_mode = 'count'
+    elif not y_col or y_col not in valid_cols:
+        return JsonResponse(
+            {'error': f"Invalid or missing 'y' column: '{y_col}'"}, 
+            status=400
+        )
     if agg_mode not in ('sum', 'count', 'mean', 'min', 'max'):
         return JsonResponse({'error': f"Invalid agg mode: '{agg_mode}'. Use: sum|count|mean|min|max"}, status=400)
 
@@ -311,8 +317,10 @@ def chart_data(request, file_id):
 
     # ── Apply aggregation ──────────────────────────────────────────────────
     try:
-        if agg_mode == 'count':
-            result = _agg_count(df, x_col, y_col)
+        if agg_mode == 'count' or y_col == '__count__':
+            # For __count__ mode, pass x_col as both args
+            # _agg_count will count rows grouped by x_col
+            result = _agg_count(df, x_col, x_col)
         else:
             result = _agg_numeric(df, x_col, y_col, agg_mode)
     except Exception as exc:

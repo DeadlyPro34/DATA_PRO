@@ -390,6 +390,14 @@ function initAnalytics() {
 
     if (yAxisPanel) {
         yAxisPanel.innerHTML = '';
+
+        // ── "Count of Rows" special option — always first, works for any dataset ──
+        const countLbl = document.createElement('label');
+        countLbl.className = 'flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-850 cursor-pointer text-orange-400 hover:text-orange-300 transition-colors text-sm w-full font-medium';
+        countLbl.innerHTML = `<input type="checkbox" value="__count__" class="rounded border-stone-700 text-orange-500 focus:ring-orange-500/20 bg-stone-950 w-4 h-4 cursor-pointer"> <span class="select-none truncate">— Count of Rows —</span>`;
+        countLbl.querySelector('input').addEventListener('change', updateYSelectText);
+        yAxisPanel.appendChild(countLbl);
+
         numericCols.forEach((col, idx) => {
             const lbl = document.createElement('label');
             lbl.className = 'flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-850 cursor-pointer text-stone-300 hover:text-stone-100 transition-colors text-sm w-full';
@@ -639,6 +647,9 @@ function initAnalytics() {
         const sizeCol = sizeAxisSel ? sizeAxisSel.value : '';
         const groupCol = groupAxisSel ? groupAxisSel.value : '';
         const bins    = binsInput ? parseInt(binsInput.value) || 20 : 20;
+        // When __count__ is selected as Y, always force agg=count in the URL
+        const isCountMode = yCols.includes('__count__');
+        const aggToSend = isCountMode ? 'count' : aggMode;
 
         if (meta.engine === 'unavailable') {
             destroyCurrentChart();
