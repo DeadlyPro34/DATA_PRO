@@ -1102,3 +1102,29 @@ def invite_member(request, team_id):
 @login_required
 def team_settings(request, team_id):
     pass
+
+@login_required
+def sheet_viewer(request, file_id):
+    """Multi-sheet viewer — shows all sheets from an Excel file."""
+    uploaded_file = get_object_or_404(
+        UploadedFile, id=file_id, user=request.user
+    )
+    dataset = get_object_or_404(
+        CleanedDataset, uploaded_file=uploaded_file
+    )
+
+    all_sheets = dataset.all_sheets_data or []
+    sheet_idx = int(request.GET.get('sheet', 0))
+    if sheet_idx >= len(all_sheets) or sheet_idx < 0:
+        sheet_idx = 0
+
+    current_sheet = all_sheets[sheet_idx] if all_sheets else None
+
+    return render(request, 'app/sheet_viewer.html', {
+        'uploaded_file': uploaded_file,
+        'dataset': dataset,
+        'all_sheets': all_sheets,
+        'current_sheet': current_sheet,
+        'current_sheet_idx': sheet_idx,
+        'total_sheets': len(all_sheets),
+    })

@@ -32,4 +32,5 @@ urlpatterns = [
     
     path('register/', views.register, name='register'),
     path('dataset/<int:file_id>/profiler/', views.data_profiler, name='data_profiler'),
+    path('dataset/<int:file_id>/sheets/', views.sheet_viewer, name='sheet_viewer'),
 ]

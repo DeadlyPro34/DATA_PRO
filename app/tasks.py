@@ -83,7 +83,18 @@ def process_uploaded_file_task(file_id, options=None):
         # Save to Parquet
         from app.utils.parquet_helpers import save_dataframe_to_parquet
         save_dataframe_to_parquet(cleaned_df, dataset)
-            
+
+        # Save all sheets for multi-sheet viewer (Excel only)
+        if uploaded_file.file_type in ('xlsx', 'xls', 'xlsm', 'xlsb'):
+            from app.utils.file_parser import parse_excel_all_sheets
+            try:
+                all_sheets = parse_excel_all_sheets(file_path)
+                dataset.all_sheets_data = all_sheets
+                dataset.save(update_fields=['all_sheets_data'])
+                print(f'[Sheets] Saved {len(all_sheets)} sheets for file {file_id}')
+            except Exception as e:
+                print(f'[Sheets] Could not parse all sheets: {e}')
+
         return {'status': 'success', 'file_id': file_id}
     except Exception as e:
         import traceback

@@ -51,6 +51,7 @@ class CleanedDataset(models.Model):
     cell_annotations = models.JSONField(default=dict)  # cell-level issue markers
     cleaning_options = models.JSONField(default=dict)  # user-selected cleaning toggles
     pipeline_history = models.JSONField(default=list)  # History of applied pipelines for undo
+    all_sheets_data = models.JSONField(default=list, blank=True, null=True)  # All sheets for multi-sheet viewer
 
     def __str__(self):
         return f"Cleaned Dataset for {self.uploaded_file}"

@@ -569,3 +569,99 @@ def _parse_json(file_path: str) -> pd.DataFrame:
         "Make sure it contains a flat array of objects or a standard "
         "pandas JSON structure."
     )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STEP 6 — parse_excel_all_sheets()   (multi-sheet viewer)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def parse_excel_all_sheets(file_path: str) -> list:
+    """
+    Read ALL sheets from an Excel file for the multi-sheet viewer.
+    Returns every sheet regardless of is_valid_sheet() check.
+    Each sheet dict contains raw content for display — not for analysis.
+    """
+    try:
+        raw_sheets = pd.read_excel(
+            file_path,
+            sheet_name=None,
+            header=None,
+            dtype=object,
+        )
+    except Exception as exc:
+        raise ValueError(f"Cannot open Excel file: {exc}") from exc
+
+    result = []
+
+    for sheet_name, raw_df in raw_sheets.items():
+        # Skip completely empty sheets only
+        if raw_df.empty:
+            continue
+
+        # Drop fully empty rows and columns
+        raw_df = raw_df.dropna(how='all').dropna(
+            axis=1, how='all').reset_index(drop=True)
+
+        if raw_df.empty:
+            continue
+
+        # Detect header row
+        header_row_idx = detect_header_row(raw_df)
+
+        # Re-read with correct header
+        try:
+            df = pd.read_excel(
+                file_path,
+                sheet_name=sheet_name,
+                header=header_row_idx,
+                dtype=object,
+            )
+            df = df.dropna(how='all').dropna(
+                axis=1, how='all').reset_index(drop=True)
+        except Exception:
+            df = raw_df.copy()
+
+        # Determine sheet type using existing is_valid_sheet()
+        valid, _ = is_valid_sheet(df, sheet_name)
+        sheet_type = 'data' if valid else 'content'
+
+        # Convert to safe JSON-serializable rows (max 500 per sheet)
+        # Replace NaN/NaT with None for JSON safety
+        df = df.where(pd.notnull(df), None)
+        columns = [str(c) for c in df.columns.tolist()]
+        rows = df.head(500).values.tolist()
+        # Convert any remaining non-serializable types to string
+        safe_rows = []
+        for row in rows:
+            safe_row = []
+            for cell in row:
+                if cell is None:
+                    safe_row.append(None)
+                elif isinstance(cell, float) and (
+                    cell != cell  # NaN check
+                ):
+                    safe_row.append(None)
+                else:
+                    try:
+                        import json as _json
+                        _json.dumps(cell)
+                        safe_row.append(cell)
+                    except (TypeError, ValueError):
+                        safe_row.append(str(cell))
+            safe_rows.append(safe_row)
+
+        result.append({
+            'sheet_name': sheet_name,
+            'sheet_type': sheet_type,
+            'columns': columns,
+            'rows': safe_rows,
+            'row_count': len(df),
+            'col_count': len(columns),
+        })
+
+        logger.info(
+            "Sheet viewer — '%s': %d rows, %d cols, type=%s",
+            sheet_name, len(df), len(columns), sheet_type,
+        )
+
+    return result
