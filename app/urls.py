@@ -20,7 +20,6 @@ urlpatterns = [
     path('dataset/<int:file_id>/delete/', views.delete_dataset, name='delete_dataset'),
     path('dataset/<int:file_id>/chart-data/', views.chart_data, name='chart_data'),
     path('dataset/<int:file_id>/advanced-stats/', views.advanced_stats, name='advanced_stats'),
-    path('dataset/<int:file_id>/chat/', views.ai_chat_api, name='ai_chat_api'),
     path('dataset/<int:file_id>/rows/', views.dataset_rows_api, name='dataset_rows_api'),
     path('dataset/<int:file_id>/chart-suggestions/', views.chart_suggestions, name='chart_suggestions'),
     path('dataset/<int:file_id>/api/preview-cleaning/', views.api_preview_cleaning, name='api_preview_cleaning'),

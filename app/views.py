@@ -165,27 +165,6 @@ def exports_page(request, file_id):
     context = _get_dataset_context(request, file_id)
     return render(request, 'exports_reports.html', context)
 
-@login_required
-def ai_chat_api(request, file_id):
-    """API endpoint for Natural Language querying on the dataset."""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST required'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        query = data.get('query', '')
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
-    
-    uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
-    dataset = get_object_or_404(CleanedDataset, uploaded_file=uploaded_file)
-    
-    # Send to AI Chat utility
-    from .utils.ai_chat import process_chat_query
-    response_data = process_chat_query(query, dataset)
-    
-    return JsonResponse(response_data)
-
 
 @login_required
 def delete_dataset(request, file_id):
