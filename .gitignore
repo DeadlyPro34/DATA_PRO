@@ -1,0 +1,108 @@
+# ════════════════════════════════════════════════
+# datapro-full — Root .gitignore
+# ════════════════════════════════════════════════
+
+# ─── SECRET FILES (KABHI COMMIT MAT KARO!) ────
+.env
+.env.local
+.env.production
+.env.*.local
+*.pem
+*.key
+secrets.json
+
+# ─── Python / Django ──────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+.installed.cfg
+lib/
+lib64/
+MANIFEST
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+pytestmark
+nosetests.xml
+coverage/
+
+# ─── Django specific ──────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+!media/.gitkeep
+
+# ─── Virtual Environments ─────────────────────
+venv/
+env/
+ENV/
+.venv/
+.env/
+Lib/
+Scripts/
+
+# ─── Node / React / Vite ──────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm/
+.eslintcache
+.DS_Store
+
+# ─── IDE / Editor ─────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.factorypath
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── OS Files ─────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Redis dump ───────────────────────────────
+dump.rdb
+
+# ─── Celery ───────────────────────────────────
+celerybeat-schedule
+celerybeat.pid
