@@ -1,0 +1,6 @@
+@echo off
+cd /d "%~dp0backend"
+echo Starting Celery worker...
+start "Celery Worker" cmd /c "celery -A config worker -l info --pool=solo"
+echo Starting Django server...
+python manage.py runserver
