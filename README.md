@@ -2,32 +2,36 @@
 
 A robust, full-stack data analytics and visualization platform designed to streamline dataset management, processing, and reporting. DATA PRO allows users to upload Excel or CSV datasets, view and edit records, and instantly generate Pandas-driven automated dashboards and charts — entirely locally, without relying on external AI APIs.
 
-## 👥 Contributors
+## Contributors
 
 - **Akhil Biju Varghese** ([@DeadlyPro34](https://github.com/DeadlyPro34))
 - **Taksh Patel** ([@Taksh-Patel02](https://github.com/Taksh-Patel02))
 
 ---
 
-## 💡 What We Used & Why (Architecture)
+## What We Used & Why (Architecture)
 
 This project is built using a modern, decoupled architecture to ensure high performance even when processing heavy datasets.
 
 ### Frontend
-- **React + Vite**: Chosen for lightning-fast hot reloading and component-based UI development.
-- **Vanilla CSS / Custom Styling**: We built a custom glassmorphism design system (lavender/indigo theme) for a premium, lightweight UI without relying heavily on bloated component libraries.
-- **ApexCharts**: Used for rendering interactive, responsive charts (Bar, Donut, Area).
-- **html2canvas & jsPDF**: Implemented to capture the analytical dashboard and instantly export pixel-perfect PDFs locally.
+| Technology | Purpose & Implementation |
+|------------|---------------------------|
+| **React + Vite** | Chosen for lightning-fast hot reloading and component-based UI development. |
+| **Vanilla CSS / Custom Styling** | We built a custom glassmorphism design system (lavender/indigo theme) for a premium, lightweight UI without relying heavily on bloated component libraries. |
+| **ApexCharts** | Used for rendering interactive, responsive charts (Bar, Donut, Area). |
+| **html2canvas & jsPDF** | Implemented to capture the analytical dashboard and instantly export pixel-perfect PDFs locally. |
 
 ### Backend
-- **Django & Django REST Framework (DRF)**: Serves as the robust backend API. Django handles our models, views, and routing securely.
-- **PostgreSQL**: Used as the primary relational database (`Excel_Pro`) to store dataset metadata and user information securely.
-- **Pandas & OpenPyXL**: The absolute core of our analytics engine. Instead of using third-party AI APIs, we wrote pure Python/Pandas logic to ingest datasets, clean data, detect column types, and compute KPIs, averages, peaks, and trends locally.
-- **Celery & Redis**: Dataset processing can take time. We use Celery as an asynchronous task queue backed by Redis to process heavy Excel files in the background. This ensures the frontend UI never freezes while uploading or indexing data.
+| Technology | Purpose & Implementation |
+|------------|---------------------------|
+| **Django & DRF** | Serves as the robust backend API. Django handles our models, views, and routing securely. |
+| **PostgreSQL** | Used as the primary relational database (`Excel_Pro`) to store dataset metadata and user information securely. |
+| **Pandas & OpenPyXL** | The absolute core of our analytics engine. Instead of using third-party AI APIs, we wrote pure Python/Pandas logic to ingest datasets, clean data, detect column types, and compute KPIs, averages, peaks, and trends locally. |
+| **Celery & Redis** | Dataset processing can take time. We use Celery as an asynchronous task queue backed by Redis to process heavy Excel files in the background. This ensures the frontend UI never freezes while uploading or indexing data. |
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **Dataset Management**: Upload, index, and manage multiple Excel/CSV datasets asynchronously.
 - **Spreadsheet Editor**: View, sort, and inline-edit dataset records directly from the browser.
@@ -41,7 +45,7 @@ This project is built using a modern, decoupled architecture to ensure high perf
 
 ---
 
-## 🚀 Installation & Setup Guide
+## Installation & Setup Guide
 
 Follow these steps exactly to get the project running on your local machine.
 
@@ -130,7 +134,7 @@ npm run dev
 
 ---
 
-## 💻 Usage
+## Usage
 
 1. **Access the App**: Open your browser and go to the frontend URL (e.g., `http://localhost:5174`).
 2. **Upload Data**: Navigate to the **Datasets** tab and upload an `.xlsx` or `.csv` file.
@@ -140,7 +144,7 @@ npm run dev
 
 ---
 
-## 🛠 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -151,7 +155,7 @@ npm run dev
 
 ---
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - Add support for custom SQL query execution from the frontend.
 - Implement user authentication and private workspaces.
@@ -160,6 +164,6 @@ npm run dev
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
