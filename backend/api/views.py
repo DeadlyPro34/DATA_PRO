@@ -415,3 +415,235 @@ def ai_pandas(request, pk):
     except Exception as e:
         return Response({'error': f'Execution failed: {str(e)}'}, status=500)
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# 7. AUTO DASHBOARD — Pure Pandas Analysis (No AI API required)
+# ════════════════════════════════════════════════════════════════════════════
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def auto_dashboard(request, pk):
+    """
+    Automatically analyse a dataset with Pandas and return structured JSON
+    for the frontend to render KPI cards, bar chart, line chart, pie chart,
+    and a top-performers table.
+
+    Response shape
+    --------------
+    {
+      "meta": { name, rows, cols, numeric_cols, categorical_cols, date_cols, null_pct },
+      "kpis": [ { column, sum, mean, min, max, std } ],
+      "bar_chart":  { x_col, y_col, labels, values },
+      "line_chart": { x_col, y_col, labels, series:[{name, data}] },
+      "pie_chart":  { column, labels, values },
+      "top_performers": [ {...row dict...} ]
+    }
+    """
+    try:
+        dataset = Dataset.objects.get(pk=pk, owner=request.user)
+    except Dataset.DoesNotExist:
+        return Response({'error': 'Dataset not found.'}, status=404)
+
+    if dataset.status != Dataset.STATUS_READY:
+        return Response({'error': f'Dataset not ready (status: {dataset.status}).'}, status=400)
+
+    if dataset.row_count == 0:
+        return Response({'error': 'Dataset is empty.'}, status=400)
+
+    # ── Build DataFrame ────────────────────────────────────────────────────
+    try:
+        rows_qs = DataRow.objects.filter(dataset=dataset).order_by('row_index').values_list('data', flat=True)
+        df = pd.DataFrame(list(rows_qs), columns=dataset.columns)
+    except Exception as exc:
+        return Response({'error': f'Could not build DataFrame: {exc}'}, status=500)
+
+    # ── Column type detection ──────────────────────────────────────────────
+    numeric_cols      = []
+    categorical_cols  = []
+    date_cols         = []
+
+    for col in df.columns:
+        series = df[col].dropna()
+        if series.empty:
+            continue
+
+        # Try numeric conversion first
+        converted = pd.to_numeric(series, errors='coerce')
+        if converted.notna().sum() / max(len(series), 1) >= 0.7:
+            numeric_cols.append(col)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            continue
+
+        # Try date parsing on string cols
+        if series.dtype == object:
+            try:
+                parsed = pd.to_datetime(series, infer_datetime_format=True, errors='coerce')
+                if parsed.notna().sum() / max(len(series), 1) >= 0.6:
+                    date_cols.append(col)
+                    df[col] = parsed
+                    continue
+            except Exception:
+                pass
+
+        # Otherwise categorical
+        n_unique = series.nunique()
+        if n_unique <= max(50, len(series) * 0.3):
+            categorical_cols.append(col)
+
+    # ── Null percentage ────────────────────────────────────────────────────
+    total_cells = df.shape[0] * df.shape[1] if df.shape[1] else 1
+    null_pct    = round(df.isnull().sum().sum() / total_cells * 100, 2)
+
+    # ── Meta ───────────────────────────────────────────────────────────────
+    meta = {
+        'name':             dataset.name,
+        'rows':             dataset.row_count,
+        'cols':             dataset.col_count,
+        'numeric_cols':     numeric_cols,
+        'categorical_cols': categorical_cols,
+        'date_cols':        date_cols,
+        'null_pct':         null_pct,
+    }
+
+    # ── KPIs (first 3 numeric columns to keep cards manageable) ───────────
+    kpis = []
+    for col in numeric_cols[:3]:
+        s = df[col].dropna()
+        if s.empty:
+            continue
+        kpis.append({
+            'column': col,
+            'sum':    _safe_scalar(s.sum()),
+            'mean':   _safe_scalar(s.mean()),
+            'min':    _safe_scalar(s.min()),
+            'max':    _safe_scalar(s.max()),
+            'std':    _safe_scalar(s.std()),
+        })
+
+    # ── Bar chart: first categorical vs first numeric ───────────────────────
+    bar_chart = None
+    if categorical_cols and numeric_cols:
+        x_col = categorical_cols[0]
+        y_col = numeric_cols[0]
+        grouped = (df[[x_col, y_col]]
+                   .dropna()
+                   .groupby(x_col, sort=False)[y_col]
+                   .sum()
+                   .sort_values(ascending=False)
+                   .head(15))
+        if not grouped.empty:
+            bar_chart = {
+                'x_col':  x_col,
+                'y_col':  y_col,
+                'labels': [str(k) for k in grouped.index.tolist()],
+                'values': [_safe_scalar(v) for v in grouped.values.tolist()],
+            }
+
+    # ── Line chart: date col vs numeric col (trend) ────────────────────────
+    line_chart = None
+    if date_cols and numeric_cols:
+        d_col = date_cols[0]
+        y_col = numeric_cols[0]
+        tmp   = df[[d_col, y_col]].dropna().copy()
+        tmp   = tmp.sort_values(d_col)
+
+        # Group by appropriate frequency
+        n = len(tmp)
+        if n > 500:
+            freq = 'ME'   # monthly
+        elif n > 120:
+            freq = 'W'    # weekly
+        else:
+            freq = 'D'    # daily
+
+        try:
+            tmp = tmp.set_index(d_col).resample(freq)[y_col].sum().reset_index()
+            tmp.columns = [d_col, y_col]
+            tmp = tmp.tail(60)  # limit to last 60 periods
+
+            labels = [str(d)[:10] for d in tmp[d_col].tolist()]
+            values = [_safe_scalar(v) for v in tmp[y_col].tolist()]
+
+            # Build a rolling-average trend line as second series
+            s_arr = tmp[y_col].rolling(window=max(3, len(tmp)//10), min_periods=1).mean()
+            trend_vals = [_safe_scalar(v) for v in s_arr.tolist()]
+
+            line_chart = {
+                'x_col':  d_col,
+                'y_col':  y_col,
+                'labels': labels,
+                'series': [
+                    {'name': y_col,         'data': values},
+                    {'name': f'{y_col} Trend', 'data': trend_vals},
+                ],
+            }
+        except Exception:
+            pass  # non-critical — just skip the line chart
+
+    # ── Pie chart: first categorical column ───────────────────────────────
+    pie_chart = None
+    if categorical_cols:
+        p_col   = categorical_cols[0]
+        counts  = df[p_col].dropna().astype(str).value_counts().head(10)
+        if not counts.empty:
+            top_labels = counts.index.tolist()
+            top_values = counts.values.tolist()
+            # Merge tiny slices into "Other"
+            total = sum(top_values)
+            if len(top_values) > 7:
+                threshold = total * 0.02
+                filtered  = [(l, v) for l, v in zip(top_labels, top_values) if v >= threshold]
+                other_sum = total - sum(v for _, v in filtered)
+                if other_sum > 0:
+                    filtered.append(('Other', int(other_sum)))
+                top_labels = [f[0] for f in filtered]
+                top_values = [f[1] for f in filtered]
+            pie_chart = {
+                'column': p_col,
+                'labels': top_labels,
+                'values': [int(v) for v in top_values],
+            }
+
+    # ── Top 5 performers (sorted by first numeric col descending) ──────────
+    top_performers = []
+    if numeric_cols:
+        sort_col   = numeric_cols[0]
+        display_cols = (
+            (categorical_cols[:2] if categorical_cols else []) +
+            numeric_cols[:3]
+        )
+        display_cols = display_cols or list(df.columns[:5])
+
+        tmp = df[display_cols].copy()
+        tmp[sort_col] = pd.to_numeric(tmp[sort_col], errors='coerce')
+        top5 = tmp.sort_values(sort_col, ascending=False).head(5)
+        top5 = top5.fillna('')
+
+        for _, row in top5.iterrows():
+            entry = {}
+            for c in display_cols:
+                v = row[c]
+                entry[c] = _safe_scalar(v) if isinstance(v, (int, float, np.integer, np.floating)) else str(v)
+            top_performers.append(entry)
+
+    return Response({
+        'meta':           meta,
+        'kpis':           kpis,
+        'bar_chart':      bar_chart,
+        'line_chart':     line_chart,
+        'pie_chart':      pie_chart,
+        'top_performers': top_performers,
+    })
+
+
+def _safe_scalar(val):
+    """Convert numpy / pandas scalars to plain Python types for JSON serialisation."""
+    if val is None:
+        return None
+    if isinstance(val, (np.integer,)):
+        return int(val)
+    if isinstance(val, (np.floating,)):
+        f = float(val)
+        return None if (np.isnan(f) or np.isinf(f)) else round(f, 4)
+    if isinstance(val, float):
+        return None if (np.isnan(val) or np.isinf(val)) else round(val, 4)
+    return val

@@ -27,4 +27,7 @@ urlpatterns = [
 
     # ── NEW: AI Pandas ────────────────────────────────────────────────────
     path('datasets/<int:pk>/ai_pandas/',  views.ai_pandas,      name='ai_pandas'),
+
+    # ── NEW: Auto Dashboard (pure Pandas, no AI API) ──────────────────────
+    path('datasets/<int:pk>/auto_dashboard/', views.auto_dashboard, name='auto_dashboard'),
 ]
