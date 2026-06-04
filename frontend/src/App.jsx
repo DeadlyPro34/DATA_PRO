@@ -7,6 +7,7 @@ import { WelcomeScreen } from './components/layout/WelcomeScreen';
 import { Button } from './components/ui/Button';
 import { Input, Select } from './components/ui/Input';
 import { Card } from './components/ui/Card';
+import { AutoDashboard } from './components/AutoDashboard';
 import { Search, ChevronUp, ChevronDown, CheckCircle, AlertCircle, RefreshCw, Upload, Download, LogOut, Key, ArrowRight, Trash2, Scissors, PenLine, CopyMinus, CaseUpper, Bot, Database, Activity, List, Shield, Terminal, ArrowUpDown, BarChart2, FileText } from 'lucide-react';
 // ─── helpers ────────────────────────────────────────────────────────────────
 const COL = (i) => { let s=""; i++; while(i>0){i--;s=String.fromCharCode(65+(i%26))+s;i=Math.floor(i/26);} return s; };
@@ -276,29 +277,142 @@ function VirtualGrid({ columns, rows, onCellClick, onCellDblClick, selected, edi
   );
 }
 
-// ─── Upload Progress Bar ──────────────────────────────────────────────────────
+// ─── Upload Progress Toast (Creative) ────────────────────────────────────────
 function UploadProgress({ progress, status, name }) {
   if (progress === null) return null;
-  const color = status === "error" ? "var(--danger-color)" : status === "ready" ? "var(--accent-indigo)" : "var(--accent-indigo)";
+
+  const isReady    = status === "ready";
+  const isError    = status === "error";
+  const isProcess  = status === "processing";
+  const isUploading = !isReady && !isError && !isProcess;
+
+  const steps = [
+    { key: "upload",  label: "Upload",  done: progress >= 100 || isReady },
+    { key: "process", label: "Process", done: isReady },
+    { key: "index",   label: "Index",   done: isReady },
+    { key: "ready",   label: "Ready",   done: isReady },
+  ];
+
+  const barHeights = [10, 16, 11, 18, 10, 15, 12, 16];
+
   return (
-    <div className="glass-panel animate-fade-in" style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 999, minWidth: 320, padding: "16px 24px",
-      border: "1px solid var(--border-focus)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-lg)"
-    }}>
-      <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12, display: "flex", justifyContent: "space-between", fontWeight: 500 }}>
-        <span>📤 {name}</span>
-        <span style={{ color, fontWeight: 700 }}>
-          {status === "ready" ? "✅ Ready!" : status === "error" ? "❌ Error" : status === "processing" ? "⚙️ Processing..." : progress < 100 ? "Uploading..." : "Waiting..."}
-        </span>
-      </div>
-      <div style={{ height: 6, background: "var(--border-light)", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${progress}%`, background: color, borderRadius: 3, transition: "width .3s ease", boxShadow: `0 0 10px ${color}88` }}/>
-      </div>
-      {progress === 100 && status !== "ready" && status !== "error" && (
-        <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 10, textAlign: "center", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          <RefreshCw size={12} className="spin" /> Celery processing in background...
+    <div
+      className="animate-fade-in"
+      style={{
+        position: "fixed", bottom: 24, right: 24, zIndex: 999,
+        minWidth: 340, maxWidth: 380,
+        background: "rgba(255,255,255,0.93)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: `1.5px solid ${isError ? "rgba(239,68,68,0.25)" : "rgba(79,70,229,0.22)"}`,
+        borderRadius: 16,
+        boxShadow: "0 20px 50px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.8) inset",
+        overflow: "hidden",
+      }}
+    >
+      {/* Top shimmer stripe */}
+      <div style={{
+        height: 3,
+        background: isReady
+          ? "linear-gradient(90deg,#10B981,#06B6D4)"
+          : isError
+          ? "#EF4444"
+          : "linear-gradient(90deg,#4F46E5,#818CF8,#4F46E5)",
+        backgroundSize: isReady || isError ? "100%" : "200% 100%",
+        animation: isUploading || isProcess ? "toastShimmer 1.8s linear infinite" : "none",
+      }} />
+
+      <div style={{ padding: "16px 18px" }}>
+        {/* File info row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+            background: isReady ? "rgba(16,185,129,0.12)" : isError ? "rgba(239,68,68,0.1)" : "rgba(79,70,229,0.1)",
+            border: `1px solid ${isReady ? "rgba(16,185,129,0.25)" : isError ? "rgba(239,68,68,0.2)" : "rgba(79,70,229,0.2)"}`,
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+          }}>
+            {isReady ? "✅" : isError ? "❌" : isProcess ? "⚙️" : "📤"}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {name}
+            </div>
+            <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+              {isReady    ? "Indexed & ready to use 🎉"
+               : isError  ? "Upload failed — please retry"
+               : isProcess ? "Backend is indexing rows…"
+               : progress < 100 ? `Uploading… ${Math.round(progress)}%`
+               : "Waiting for server…"}
+            </div>
+          </div>
+
+          {/* Mini equalizer (while busy) */}
+          {(isUploading || isProcess) && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 20, flexShrink: 0 }}>
+              {barHeights.map((h, i) => (
+                <div key={i} style={{
+                  width: 3, borderRadius: 2, background: "#4F46E5", height: h,
+                  animationName: "toastBounce",
+                  animationDuration: "0.9s",
+                  animationTimingFunction: "ease-in-out",
+                  animationIterationCount: "infinite",
+                  animationDirection: "alternate",
+                  animationDelay: `${i * 0.1}s`,
+                  opacity: 0.75,
+                }} />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Progress bar */}
+        <div style={{ height: 5, background: "rgba(0,0,0,0.06)", borderRadius: 999, overflow: "hidden", marginBottom: 12 }}>
+          <div style={{
+            height: "100%", borderRadius: 999,
+            width: isReady ? "100%" : `${Math.min(progress, 99)}%`,
+            background: isReady
+              ? "linear-gradient(90deg,#10B981,#06B6D4)"
+              : isError ? "#EF4444"
+              : "linear-gradient(90deg,#4F46E5,#818CF8)",
+            transition: "width .35s ease",
+            boxShadow: isReady ? "0 0 8px rgba(16,185,129,0.5)" : "0 0 8px rgba(79,70,229,0.45)",
+          }} />
+        </div>
+
+        {/* Step pills */}
+        <div style={{ display: "flex", gap: 6 }}>
+          {steps.map((s) => {
+            const active = !s.done && (
+              (s.key === "upload"  && isUploading) ||
+              (s.key === "process" && (isProcess || (progress >= 100 && !isReady)))
+            );
+            return (
+              <div key={s.key} style={{
+                flex: 1, padding: "4px 0", borderRadius: 6, textAlign: "center",
+                fontSize: 10, fontWeight: 700,
+                background: s.done ? "rgba(16,185,129,0.12)" : active ? "rgba(79,70,229,0.12)" : "rgba(0,0,0,0.04)",
+                color: s.done ? "#10B981" : active ? "#4F46E5" : "#C1C9D9",
+                border: `1px solid ${s.done ? "rgba(16,185,129,0.2)" : active ? "rgba(79,70,229,0.2)" : "transparent"}`,
+                transition: "all 0.4s ease",
+              }}>
+                {s.done ? "✓ " : active ? "◉ " : ""}{s.label}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes toastShimmer {
+          0%   { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        @keyframes toastBounce {
+          from { transform: scaleY(0.35); opacity: 0.45; }
+          to   { transform: scaleY(1);    opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -1089,6 +1203,18 @@ Rules:
               </Button>
             </div>
           </div>
+        )}
+
+        {/* ── TAB 5: Auto Dashboard ── */}
+        {activeTab === 5 && (
+          <AutoDashboard
+            datasets={datasets}
+            activeDataset={activeDataset}
+            onSelectDataset={async (ds) => {
+              setActiveDataset(ds);
+              await loadDatasetRows(ds, 1);
+            }}
+          />
         )}
       </div>
     </div>

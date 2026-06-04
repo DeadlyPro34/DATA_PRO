@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, TableProperties, BarChart3, Eraser, FolderOpen, BotMessageSquare } from 'lucide-react';
+import { Database, TableProperties, BarChart3, Eraser, FolderOpen, BotMessageSquare, LayoutDashboard } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 const TABS = [
@@ -7,7 +7,8 @@ const TABS = [
   { id: 1, label: "Charts", icon: BarChart3 },
   { id: 2, label: "Data Cleaner", icon: Eraser },
   { id: 3, label: "Datasets", icon: FolderOpen },
-  { id: 4, label: "AI Chat", icon: BotMessageSquare }
+  { id: 4, label: "AI Chat", icon: BotMessageSquare },
+  { id: 5, label: "Auto Dashboard", icon: LayoutDashboard, accent: true },
 ];
 
 export function Navbar({ activeTab, setActiveTab, onLogoClick, children }) {
@@ -53,6 +54,7 @@ export function Navbar({ activeTab, setActiveTab, onLogoClick, children }) {
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
+          const isAccent = tab.accent; // Auto Dashboard special tab
           return (
             <button
               key={tab.id}
@@ -60,20 +62,23 @@ export function Navbar({ activeTab, setActiveTab, onLogoClick, children }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '8px 16px',
-                background: isActive ? 'var(--border-focus)' : 'transparent',
+                background: isActive
+                  ? (isAccent ? 'linear-gradient(135deg,#4F46E5,#8B5CF6)' : 'var(--border-focus)')
+                  : 'transparent',
                 border: 'none',
                 borderRadius: 'var(--radius-md)',
-                color: isActive ? 'var(--accent-indigo)' : 'var(--text-secondary)',
+                color: isActive ? (isAccent ? '#fff' : 'var(--accent-indigo)') : 'var(--text-secondary)',
                 fontSize: '13px',
                 fontWeight: isActive ? 600 : 500,
                 cursor: 'pointer',
                 transition: 'all var(--transition-fast)',
                 outline: 'none',
+                boxShadow: isActive && isAccent ? '0 4px 14px rgba(79,70,229,0.35)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                  e.currentTarget.style.background = 'var(--border-light)';
+                  e.currentTarget.style.color = isAccent ? '#4F46E5' : 'var(--text-primary)';
+                  e.currentTarget.style.background = isAccent ? 'rgba(79,70,229,0.08)' : 'var(--border-light)';
                 }
               }}
               onMouseLeave={(e) => {

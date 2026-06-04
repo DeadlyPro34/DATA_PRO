@@ -82,6 +82,10 @@ export const datasetAPI = {
   // NEW: AI Pandas (Groq-generated code runs on backend)
   aiPandas: (id, code) =>
     api.post(`/datasets/${id}/ai_pandas/`, { code }),
+
+  // NEW: Auto Dashboard — pure Pandas analysis, no AI API needed
+  autoDashboard: (id) =>
+    api.get(`/datasets/${id}/auto_dashboard/`),
 };
 
 export default api;
